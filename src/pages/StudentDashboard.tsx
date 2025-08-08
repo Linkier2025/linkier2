@@ -55,6 +55,15 @@ const StudentDashboard = () => {
               </div>
             </div>
           </Card>
+          <Card className="p-4 cursor-pointer" onClick={() => navigate("/student-profile")}> 
+            <div className="flex items-center gap-3">
+              <User className="h-5 w-5 text-primary" />
+              <div>
+                <p className="font-medium">Profile</p>
+                <p className="text-sm text-muted-foreground">Edit your profile</p>
+              </div>
+            </div>
+          </Card>
           <Card className="p-4 cursor-pointer" onClick={() => navigate("/favorites")}> 
             <div className="flex items-center gap-3">
               <Heart className="h-5 w-5 text-primary" />
@@ -66,7 +75,7 @@ const StudentDashboard = () => {
           </Card>
           <Card className="p-4 cursor-pointer" onClick={() => navigate("/rentals")}> 
             <div className="flex items-center gap-3">
-              <User className="h-5 w-5 text-primary" />
+              <Home className="h-5 w-5 text-primary" />
               <div>
                 <p className="font-medium">My Rentals</p>
                 <p className="text-sm text-muted-foreground">Current leases</p>

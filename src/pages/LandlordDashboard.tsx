@@ -2,7 +2,7 @@ import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { Plus, Users, MessageSquare, Bell, AlertCircle, Home } from "lucide-react";
+import { Plus, Users, MessageSquare, Bell, AlertCircle, Home, User } from "lucide-react";
 import linkierLogo from "@/assets/linkier-logo.png";
 
 const LandlordDashboard = () => {
@@ -43,6 +43,15 @@ const LandlordDashboard = () => {
               <div>
                 <p className="font-medium">Add Property</p>
                 <p className="text-sm text-muted-foreground">List a new place</p>
+              </div>
+            </div>
+          </Card>
+          <Card className="p-4 cursor-pointer" onClick={() => navigate("/landlord-profile")}> 
+            <div className="flex items-center gap-3">
+              <User className="h-5 w-5 text-primary" />
+              <div>
+                <p className="font-medium">Profile</p>
+                <p className="text-sm text-muted-foreground">Edit your profile</p>
               </div>
             </div>
           </Card>
