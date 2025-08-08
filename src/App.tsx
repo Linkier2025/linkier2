@@ -10,6 +10,8 @@ import LandlordLogin from "./pages/LandlordLogin";
 import StudentSignup from "./pages/StudentSignup";
 import LandlordSignup from "./pages/LandlordSignup";
 import NotFound from "./pages/NotFound";
+import StudentDashboard from "./pages/StudentDashboard";
+import LandlordDashboard from "./pages/LandlordDashboard";
 
 const queryClient = new QueryClient();
 
@@ -26,6 +28,8 @@ const App = () => (
           <Route path="/landlord-login" element={<LandlordLogin />} />
           <Route path="/student-signup" element={<StudentSignup />} />
           <Route path="/landlord-signup" element={<LandlordSignup />} />
+          <Route path="/student-dashboard" element={<StudentDashboard />} />
+          <Route path="/landlord-dashboard" element={<LandlordDashboard />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
