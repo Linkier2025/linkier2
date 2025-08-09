@@ -19,6 +19,8 @@ import PropertyDetails from "./pages/PropertyDetails";
 import AddProperty from "./pages/AddProperty";
 import Messages from "./pages/Messages";
 import Tenants from "./pages/Tenants";
+import RentTracking from "./pages/RentTracking";
+import PaymentHistory from "./pages/PaymentHistory";
 
 const queryClient = new QueryClient();
 
@@ -44,6 +46,8 @@ const App = () => (
           <Route path="/add-property" element={<AddProperty />} />
           <Route path="/messages" element={<Messages />} />
           <Route path="/tenants" element={<Tenants />} />
+          <Route path="/rent-tracking" element={<RentTracking />} />
+          <Route path="/payment-history" element={<PaymentHistory />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>

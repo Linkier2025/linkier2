@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { Search, Home, Heart, Wallet, MessageSquare, AlertCircle, User } from "lucide-react";
+import { Search, Home, Heart, Wallet, MessageSquare, AlertCircle, User, DollarSign } from "lucide-react";
 import linkierLogo from "@/assets/linkier-logo.png";
 
 const StudentDashboard = () => {
@@ -100,12 +100,12 @@ const StudentDashboard = () => {
               </div>
             </div>
           </Card>
-          <Card className="p-4 cursor-pointer" onClick={() => navigate("/payments")}> 
+          <Card className="p-4 cursor-pointer" onClick={() => navigate("/payment-history")}> 
             <div className="flex items-center gap-3">
-              <Wallet className="h-5 w-5 text-primary" />
+              <DollarSign className="h-5 w-5 text-primary" />
               <div>
-                <p className="font-medium">Rent Tracking</p>
-                <p className="text-sm text-muted-foreground">History & upcoming</p>
+                <p className="font-medium">Payment History</p>
+                <p className="text-sm text-muted-foreground">View payment records</p>
               </div>
             </div>
           </Card>
