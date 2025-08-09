@@ -168,6 +168,10 @@ export default function StudentProfile() {
                   <SelectItem value="National University of Science and Technology">National University of Science and Technology</SelectItem>
                   <SelectItem value="Midlands State University">Midlands State University</SelectItem>
                   <SelectItem value="Harare Institute of Technology">Harare Institute of Technology</SelectItem>
+                  <SelectItem value="Chinhoyi University of Technology">Chinhoyi University of Technology</SelectItem>
+                  <SelectItem value="Great Zimbabwe University">Great Zimbabwe University</SelectItem>
+                  <SelectItem value="Bindura University of Science Education">Bindura University of Science Education</SelectItem>
+                  <SelectItem value="Lupane State University">Lupane State University</SelectItem>
                 </SelectContent>
               </Select>
             </div>

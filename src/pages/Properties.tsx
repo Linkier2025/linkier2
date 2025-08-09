@@ -105,6 +105,11 @@ export default function Properties() {
                   <SelectItem value="uz">University of Zimbabwe</SelectItem>
                   <SelectItem value="nust">National University of Science and Technology</SelectItem>
                   <SelectItem value="msu">Midlands State University</SelectItem>
+                  <SelectItem value="hit">Harare Institute of Technology</SelectItem>
+                  <SelectItem value="cut">Chinhoyi University of Technology</SelectItem>
+                  <SelectItem value="gzu">Great Zimbabwe University</SelectItem>
+                  <SelectItem value="buse">Bindura University of Science Education</SelectItem>
+                  <SelectItem value="lsu">Lupane State University</SelectItem>
                 </SelectContent>
               </Select>
 
@@ -199,7 +204,7 @@ export default function Properties() {
 
                 <div className="flex justify-between items-center pt-2">
                   <span className="text-xl font-bold text-primary">
-                    R{property.rent.toLocaleString()}/month
+                    ${property.rent.toLocaleString()} USD/month
                   </span>
                 </div>
 

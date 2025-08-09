@@ -93,7 +93,7 @@ export default function AddProperty() {
 
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label htmlFor="rent">Monthly Rent (R)</Label>
+                  <Label htmlFor="rent">Monthly Rent (USD)</Label>
                   <Input
                     id="rent"
                     type="number"
@@ -143,6 +143,10 @@ export default function AddProperty() {
                       <SelectItem value="nust">National University of Science and Technology</SelectItem>
                       <SelectItem value="msu">Midlands State University</SelectItem>
                       <SelectItem value="hit">Harare Institute of Technology</SelectItem>
+                      <SelectItem value="cut">Chinhoyi University of Technology</SelectItem>
+                      <SelectItem value="gzu">Great Zimbabwe University</SelectItem>
+                      <SelectItem value="buse">Bindura University of Science Education</SelectItem>
+                      <SelectItem value="lsu">Lupane State University</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>

@@ -109,7 +109,7 @@ export default function PropertyDetails() {
               </div>
               <div className="text-right">
                 <div className="text-2xl font-bold text-primary">
-                  R{mockProperty.rent.toLocaleString()}/month
+                  ${mockProperty.rent.toLocaleString()} USD/month
                 </div>
                 <div className="flex items-center gap-1 mt-1">
                   <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />

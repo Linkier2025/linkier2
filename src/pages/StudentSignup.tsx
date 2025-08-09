@@ -30,7 +30,7 @@ const StudentSignup = () => {
     "Chinhoyi University of Technology",
     "Great Zimbabwe University",
     "Bindura University of Science Education",
-    "Africa University"
+    "Lupane State University"
   ];
 
   const handleInputChange = (field: string, value: string) => {
