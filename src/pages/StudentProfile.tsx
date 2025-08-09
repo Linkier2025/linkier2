@@ -27,7 +27,7 @@ export default function StudentProfile() {
     email: "john.doe@student.ac.za",
     phone: "+27 12 345 6789",
     gender: "male",
-    university: "University of Cape Town",
+    university: "University of Zimbabwe",
     yearOfStudy: "3",
     profilePicture: ""
   });
@@ -164,10 +164,10 @@ export default function StudentProfile() {
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="University of Cape Town">University of Cape Town</SelectItem>
-                  <SelectItem value="University of the Witwatersrand">University of the Witwatersrand</SelectItem>
-                  <SelectItem value="Stellenbosch University">Stellenbosch University</SelectItem>
-                  <SelectItem value="University of Pretoria">University of Pretoria</SelectItem>
+                  <SelectItem value="University of Zimbabwe">University of Zimbabwe</SelectItem>
+                  <SelectItem value="National University of Science and Technology">National University of Science and Technology</SelectItem>
+                  <SelectItem value="Midlands State University">Midlands State University</SelectItem>
+                  <SelectItem value="Harare Institute of Technology">Harare Institute of Technology</SelectItem>
                 </SelectContent>
               </Select>
             </div>

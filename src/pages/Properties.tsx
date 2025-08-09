@@ -12,8 +12,8 @@ const mockProperties = [
     id: 1,
     title: "Cozy Student Apartment",
     rent: 4500,
-    location: "Rondebosch, Cape Town",
-    university: "University of Cape Town",
+    location: "Mount Pleasant, Harare",
+    university: "University of Zimbabwe",
     rooms: 2,
     gender: "Mixed",
     rating: 4.5,
@@ -25,8 +25,8 @@ const mockProperties = [
     id: 2,
     title: "Modern Studio Near Campus",
     rent: 3800,
-    location: "Observatory, Cape Town",
-    university: "University of Cape Town",
+    location: "Avondale, Harare",
+    university: "University of Zimbabwe",
     rooms: 1,
     gender: "Girls",
     rating: 4.2,
@@ -38,8 +38,8 @@ const mockProperties = [
     id: 3,
     title: "Shared House with Garden",
     rent: 3200,
-    location: "Mowbray, Cape Town",
-    university: "University of Cape Town",
+    location: "Belvedere, Harare",
+    university: "University of Zimbabwe",
     rooms: 4,
     gender: "Boys",
     rating: 4.7,
@@ -102,9 +102,9 @@ export default function Properties() {
                   <SelectValue placeholder="University" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="uct">University of Cape Town</SelectItem>
-                  <SelectItem value="wits">University of the Witwatersrand</SelectItem>
-                  <SelectItem value="stellenbosch">Stellenbosch University</SelectItem>
+                  <SelectItem value="uz">University of Zimbabwe</SelectItem>
+                  <SelectItem value="nust">National University of Science and Technology</SelectItem>
+                  <SelectItem value="msu">Midlands State University</SelectItem>
                 </SelectContent>
               </Select>
 

@@ -23,14 +23,14 @@ const StudentSignup = () => {
   });
 
   const universities = [
-    "University of Cape Town",
-    "University of the Witwatersrand",
-    "Stellenbosch University",
-    "University of Pretoria",
-    "University of KwaZulu-Natal",
-    "Rhodes University",
-    "North-West University",
-    "University of the Free State"
+    "University of Zimbabwe",
+    "National University of Science and Technology",
+    "Midlands State University",
+    "Harare Institute of Technology",
+    "Chinhoyi University of Technology",
+    "Great Zimbabwe University",
+    "Bindura University of Science Education",
+    "Africa University"
   ];
 
   const handleInputChange = (field: string, value: string) => {

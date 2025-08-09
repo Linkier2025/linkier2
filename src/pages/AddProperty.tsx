@@ -139,10 +139,10 @@ export default function AddProperty() {
                       <SelectValue placeholder="Select university" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="uct">University of Cape Town</SelectItem>
-                      <SelectItem value="wits">University of the Witwatersrand</SelectItem>
-                      <SelectItem value="stellenbosch">Stellenbosch University</SelectItem>
-                      <SelectItem value="up">University of Pretoria</SelectItem>
+                      <SelectItem value="uz">University of Zimbabwe</SelectItem>
+                      <SelectItem value="nust">National University of Science and Technology</SelectItem>
+                      <SelectItem value="msu">Midlands State University</SelectItem>
+                      <SelectItem value="hit">Harare Institute of Technology</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
