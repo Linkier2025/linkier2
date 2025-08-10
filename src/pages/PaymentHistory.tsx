@@ -21,7 +21,7 @@ export default function PaymentHistory() {
       method: "Bank Transfer", 
       status: "Paid", 
       property: "Apartment 2B - Avondale",
-      landlord: "Robert Mugabe",
+      landlord: "Tafadzwa Mhembere",
       receiptNumber: "RCP-2024-001"
     },
     { 
@@ -31,7 +31,7 @@ export default function PaymentHistory() {
       method: "Mobile Money", 
       status: "Paid", 
       property: "Apartment 2B - Avondale",
-      landlord: "Robert Mugabe",
+      landlord: "Tafadzwa Mhembere",
       receiptNumber: "RCP-2023-012"
     },
     { 
@@ -41,7 +41,7 @@ export default function PaymentHistory() {
       method: "Bank Transfer", 
       status: "Paid", 
       property: "Apartment 2B - Avondale",
-      landlord: "Robert Mugabe",
+      landlord: "Tafadzwa Mhembere",
       receiptNumber: "RCP-2023-011"
     },
     { 
@@ -51,7 +51,7 @@ export default function PaymentHistory() {
       method: "Cash", 
       status: "Paid", 
       property: "Apartment 2B - Avondale",
-      landlord: "Robert Mugabe",
+      landlord: "Tafadzwa Mhembere",
       receiptNumber: "RCP-2023-010"
     },
   ];
@@ -159,7 +159,7 @@ export default function PaymentHistory() {
               </div>
               <div>
                 <p className="text-sm font-medium text-muted-foreground">Landlord</p>
-                <p className="text-lg font-semibold">Robert Mugabe</p>
+                <p className="text-lg font-semibold">Tafadzwa Mhembere</p>
               </div>
               <div>
                 <p className="text-sm font-medium text-muted-foreground">Monthly Rent</p>

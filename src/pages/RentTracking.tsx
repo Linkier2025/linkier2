@@ -23,16 +23,18 @@ export default function RentTracking() {
 
   // Mock data for tenants and payments
   const mockTenants = [
-    { id: 1, name: "John Doe", property: "Apartment 2B - Avondale", rent: 450, university: "University of Zimbabwe" },
-    { id: 2, name: "Jane Smith", property: "Room 3A - Mount Pleasant", rent: 350, university: "NUST" },
-    { id: 3, name: "Mike Johnson", property: "Studio 1C - Borrowdale", rent: 500, university: "Midlands State University" },
+    { id: 1, name: "Chipo Mukamuri", property: "Apartment 2B - Avondale", rent: 450, university: "University of Zimbabwe" },
+    { id: 2, name: "Tendai Chikomo", property: "Room 3A - Mount Pleasant", rent: 350, university: "NUST" },
+    { id: 3, name: "Farai Mudenge", property: "Studio 1C - Borrowdale", rent: 500, university: "Midlands State University" },
+    { id: 4, name: "Rumbidzai Zvoma", property: "Apartment 1A - Belvedere", rent: 400, university: "Chinhoyi University of Technology" },
   ];
 
   const mockPayments = [
-    { id: 1, tenantId: 1, tenantName: "John Doe", amount: 450, date: "2024-01-15", method: "Bank Transfer", status: "Paid", property: "Apartment 2B - Avondale" },
-    { id: 2, tenantId: 2, tenantName: "Jane Smith", amount: 350, date: "2024-01-10", method: "Cash", status: "Paid", property: "Room 3A - Mount Pleasant" },
-    { id: 3, tenantId: 1, tenantName: "John Doe", amount: 450, date: "2023-12-15", method: "Mobile Money", status: "Paid", property: "Apartment 2B - Avondale" },
-    { id: 4, tenantId: 3, tenantName: "Mike Johnson", amount: 500, date: "2024-01-20", method: "Bank Transfer", status: "Paid", property: "Studio 1C - Borrowdale" },
+    { id: 1, tenantId: 1, tenantName: "Chipo Mukamuri", amount: 450, date: "2024-01-15", method: "Bank Transfer", status: "Paid", property: "Apartment 2B - Avondale" },
+    { id: 2, tenantId: 2, tenantName: "Tendai Chikomo", amount: 350, date: "2024-01-10", method: "Cash", status: "Paid", property: "Room 3A - Mount Pleasant" },
+    { id: 3, tenantId: 1, tenantName: "Chipo Mukamuri", amount: 450, date: "2023-12-15", method: "Mobile Money", status: "Paid", property: "Apartment 2B - Avondale" },
+    { id: 4, tenantId: 3, tenantName: "Farai Mudenge", amount: 500, date: "2024-01-20", method: "Bank Transfer", status: "Paid", property: "Studio 1C - Borrowdale" },
+    { id: 5, tenantId: 4, tenantName: "Rumbidzai Zvoma", amount: 400, date: "2024-01-18", method: "Mobile Money", status: "Paid", property: "Apartment 1A - Belvedere" },
   ];
 
   const [paymentForm, setPaymentForm] = useState({
