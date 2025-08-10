@@ -4,7 +4,6 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Plus, Users, MessageSquare, Bell, AlertCircle, Home, User, DollarSign } from "lucide-react";
 import linkierLogo from "@/assets/linkier-logo.png";
-
 const LandlordDashboard = () => {
   const navigate = useNavigate();
 
@@ -15,15 +14,12 @@ const LandlordDashboard = () => {
     meta.setAttribute("name", "description");
     meta.setAttribute("content", "Landlord dashboard for Linkier: manage properties, tenants, messages and notifications.");
     if (!meta.parentElement) document.head.appendChild(meta);
-
     const canonical = document.querySelector('link[rel="canonical"]') || document.createElement("link");
     canonical.setAttribute("rel", "canonical");
     canonical.setAttribute("href", window.location.href);
     if (!canonical.parentElement) document.head.appendChild(canonical);
   }, []);
-
-  return (
-    <div className="min-h-screen bg-background flex flex-col">
+  return <div className="min-h-screen bg-background flex flex-col">
       <header className="bg-gradient-hero">
         <div className="max-w-4xl mx-auto px-4 py-4 flex items-center justify-between">
           <div className="flex items-center gap-3">
@@ -64,15 +60,7 @@ const LandlordDashboard = () => {
               </div>
             </div>
           </Card>
-          <Card className="p-4 cursor-pointer" onClick={() => navigate("/messages")}> 
-            <div className="flex items-center gap-3">
-              <MessageSquare className="h-5 w-5 text-primary" />
-              <div>
-                <p className="font-medium">Messages</p>
-                <p className="text-sm text-muted-foreground">Chat with students</p>
-              </div>
-            </div>
-          </Card>
+          
           <Card className="p-4 cursor-pointer" onClick={() => navigate("/notifications")}> 
             <div className="flex items-center gap-3">
               <Bell className="h-5 w-5 text-primary" />
@@ -112,15 +100,8 @@ const LandlordDashboard = () => {
         </section>
 
         {/* Placeholder sections */}
-        <section className="space-y-3">
-          <h2 className="text-base font-semibold">Welcome to Linkier</h2>
-          <p className="text-sm text-muted-foreground">
-            Start by adding a property or reviewing new requests. We’ll connect this to authentication and data once Supabase is enabled.
-          </p>
-        </section>
+        
       </main>
-    </div>
-  );
+    </div>;
 };
-
 export default LandlordDashboard;
