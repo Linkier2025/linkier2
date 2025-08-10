@@ -5,7 +5,6 @@ import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Search, Home, Heart, Wallet, MessageSquare, AlertCircle, User, DollarSign } from "lucide-react";
 import linkierLogo from "@/assets/linkier-logo.png";
-
 const StudentDashboard = () => {
   const navigate = useNavigate();
 
@@ -16,15 +15,12 @@ const StudentDashboard = () => {
     meta.setAttribute("name", "description");
     meta.setAttribute("content", "Student dashboard for Linkier: manage profile, messages, rentals, payments and favorites.");
     if (!meta.parentElement) document.head.appendChild(meta);
-
     const canonical = document.querySelector('link[rel="canonical"]') || document.createElement("link");
     canonical.setAttribute("rel", "canonical");
     canonical.setAttribute("href", window.location.href);
     if (!canonical.parentElement) document.head.appendChild(canonical);
   }, []);
-
-  return (
-    <div className="min-h-screen bg-background flex flex-col">
+  return <div className="min-h-screen bg-background flex flex-col">
       <header className="bg-gradient-hero">
         <div className="max-w-4xl mx-auto px-4 py-4 flex items-center justify-between">
           <div className="flex items-center gap-3">
@@ -82,15 +78,7 @@ const StudentDashboard = () => {
               </div>
             </div>
           </Card>
-          <Card className="p-4 cursor-pointer" onClick={() => navigate("/messages")}> 
-            <div className="flex items-center gap-3">
-              <MessageSquare className="h-5 w-5 text-primary" />
-              <div>
-                <p className="font-medium">Messages</p>
-                <p className="text-sm text-muted-foreground">Chat with landlords</p>
-              </div>
-            </div>
-          </Card>
+          
           <Card className="p-4 cursor-pointer" onClick={() => navigate("/complaints")}> 
             <div className="flex items-center gap-3">
               <AlertCircle className="h-5 w-5 text-primary" />
@@ -113,14 +101,10 @@ const StudentDashboard = () => {
 
         {/* Placeholder sections */}
         <section className="space-y-3">
-          <h2 className="text-base font-semibold">Welcome to Linkier</h2>
-          <p className="text-sm text-muted-foreground">
-            This is your hub. We’ll hook this up to authentication, listings, messages and more once Supabase is connected.
-          </p>
+          
+          
         </section>
       </main>
-    </div>
-  );
+    </div>;
 };
-
 export default StudentDashboard;
