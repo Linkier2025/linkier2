@@ -11,10 +11,11 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { ArrowLeft, Plus, Wifi, Zap, Droplets, Flame, AlertTriangle, Clock, CheckCircle } from "lucide-react";
 import linkierLogo from "@/assets/linkier-logo.png";
 import { useToast } from "@/hooks/use-toast";
-
 const Complaints = () => {
   const navigate = useNavigate();
-  const { toast } = useToast();
+  const {
+    toast
+  } = useToast();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [formData, setFormData] = useState({
     type: "",
@@ -37,85 +38,89 @@ const Complaints = () => {
   }, []);
 
   // Mock complaints data
-  const complaints = [
-    {
-      id: 1,
-      type: "wifi",
-      property: "Sunny View Boarding House",
-      room: "Room 204",
-      tenant: "Maria Santos",
-      description: "Internet connection has been very slow for the past 3 days. Unable to attend online classes properly.",
-      status: "in-progress",
-      urgency: "high",
-      date: "2024-08-09",
-      lastUpdate: "2024-08-10"
-    },
-    {
-      id: 2,
-      type: "water",
-      property: "Green Valley Dormitory",
-      room: "Room 101",
-      tenant: "John Cruz",
-      description: "Water pressure is very low in the shower. Sometimes no water comes out at all.",
-      status: "pending",
-      urgency: "medium",
-      date: "2024-08-08",
-      lastUpdate: "2024-08-08"
-    },
-    {
-      id: 3,
-      type: "power",
-      property: "Sunset Apartments",
-      room: "Room 305",
-      tenant: "Lisa Rodriguez",
-      description: "Power keeps going out in the room. Circuit breaker trips every few hours.",
-      status: "resolved",
-      urgency: "high",
-      date: "2024-08-06",
-      lastUpdate: "2024-08-07"
-    },
-    {
-      id: 4,
-      type: "gas",
-      property: "Sunny View Boarding House",
-      room: "Kitchen",
-      tenant: "Multiple tenants",
-      description: "Gas stove is not working properly. Low gas pressure affecting cooking.",
-      status: "pending",
-      urgency: "medium",
-      date: "2024-08-05",
-      lastUpdate: "2024-08-05"
-    }
-  ];
-
+  const complaints = [{
+    id: 1,
+    type: "wifi",
+    property: "Sunny View Boarding House",
+    room: "Room 204",
+    tenant: "Maria Santos",
+    description: "Internet connection has been very slow for the past 3 days. Unable to attend online classes properly.",
+    status: "in-progress",
+    urgency: "high",
+    date: "2024-08-09",
+    lastUpdate: "2024-08-10"
+  }, {
+    id: 2,
+    type: "water",
+    property: "Green Valley Dormitory",
+    room: "Room 101",
+    tenant: "John Cruz",
+    description: "Water pressure is very low in the shower. Sometimes no water comes out at all.",
+    status: "pending",
+    urgency: "medium",
+    date: "2024-08-08",
+    lastUpdate: "2024-08-08"
+  }, {
+    id: 3,
+    type: "power",
+    property: "Sunset Apartments",
+    room: "Room 305",
+    tenant: "Lisa Rodriguez",
+    description: "Power keeps going out in the room. Circuit breaker trips every few hours.",
+    status: "resolved",
+    urgency: "high",
+    date: "2024-08-06",
+    lastUpdate: "2024-08-07"
+  }, {
+    id: 4,
+    type: "gas",
+    property: "Sunny View Boarding House",
+    room: "Kitchen",
+    tenant: "Multiple tenants",
+    description: "Gas stove is not working properly. Low gas pressure affecting cooking.",
+    status: "pending",
+    urgency: "medium",
+    date: "2024-08-05",
+    lastUpdate: "2024-08-05"
+  }];
   const getAmenityIcon = (type: string) => {
     switch (type) {
-      case "wifi": return <Wifi className="h-4 w-4" />;
-      case "water": return <Droplets className="h-4 w-4" />;
-      case "power": return <Zap className="h-4 w-4" />;
-      case "gas": return <Flame className="h-4 w-4" />;
-      default: return <AlertTriangle className="h-4 w-4" />;
+      case "wifi":
+        return <Wifi className="h-4 w-4" />;
+      case "water":
+        return <Droplets className="h-4 w-4" />;
+      case "power":
+        return <Zap className="h-4 w-4" />;
+      case "gas":
+        return <Flame className="h-4 w-4" />;
+      default:
+        return <AlertTriangle className="h-4 w-4" />;
     }
   };
-
   const getStatusColor = (status: string) => {
     switch (status) {
-      case "pending": return "secondary";
-      case "in-progress": return "default";
-      case "resolved": return "outline";
-      default: return "secondary";
+      case "pending":
+        return "secondary";
+      case "in-progress":
+        return "default";
+      case "resolved":
+        return "outline";
+      default:
+        return "secondary";
     }
   };
-
   const getUrgencyColor = (urgency: string) => {
     switch (urgency) {
-      case "high": return "destructive";
-      case "medium": return "secondary";
-      case "low": return "outline";
-      default: return "secondary";
+      case "high":
+        return "destructive";
+      case "medium":
+        return "secondary";
+      case "low":
+        return "outline";
+      default:
+        return "secondary";
     }
   };
-
   const handleSubmit = () => {
     if (!formData.type || !formData.property || !formData.urgency || !formData.description) {
       toast({
@@ -125,18 +130,19 @@ const Complaints = () => {
       });
       return;
     }
-
     toast({
       title: "Complaint submitted",
-      description: "Your complaint has been submitted and will be reviewed soon.",
+      description: "Your complaint has been submitted and will be reviewed soon."
     });
-    
     setIsDialogOpen(false);
-    setFormData({ type: "", property: "", urgency: "", description: "" });
+    setFormData({
+      type: "",
+      property: "",
+      urgency: "",
+      description: ""
+    });
   };
-
-  return (
-    <div className="min-h-screen bg-background flex flex-col">
+  return <div className="min-h-screen bg-background flex flex-col">
       <header className="bg-gradient-hero">
         <div className="max-w-4xl mx-auto px-4 py-4 flex items-center justify-between">
           <div className="flex items-center gap-3">
@@ -148,10 +154,7 @@ const Complaints = () => {
           </div>
           <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
             <DialogTrigger asChild>
-              <Button variant="secondary" size="sm">
-                <Plus className="h-4 w-4 mr-2" />
-                Report Issue
-              </Button>
+              
             </DialogTrigger>
             <DialogContent className="sm:max-w-md">
               <DialogHeader>
@@ -163,7 +166,10 @@ const Complaints = () => {
               <div className="space-y-4">
                 <div>
                   <Label htmlFor="type">Issue Type</Label>
-                  <Select value={formData.type} onValueChange={(value) => setFormData(prev => ({ ...prev, type: value }))}>
+                  <Select value={formData.type} onValueChange={value => setFormData(prev => ({
+                  ...prev,
+                  type: value
+                }))}>
                     <SelectTrigger>
                       <SelectValue placeholder="Select issue type" />
                     </SelectTrigger>
@@ -177,16 +183,17 @@ const Complaints = () => {
                 </div>
                 <div>
                   <Label htmlFor="property">Property</Label>
-                  <Input
-                    id="property"
-                    placeholder="Property/Room location"
-                    value={formData.property}
-                    onChange={(e) => setFormData(prev => ({ ...prev, property: e.target.value }))}
-                  />
+                  <Input id="property" placeholder="Property/Room location" value={formData.property} onChange={e => setFormData(prev => ({
+                  ...prev,
+                  property: e.target.value
+                }))} />
                 </div>
                 <div>
                   <Label htmlFor="urgency">Urgency Level</Label>
-                  <Select value={formData.urgency} onValueChange={(value) => setFormData(prev => ({ ...prev, urgency: value }))}>
+                  <Select value={formData.urgency} onValueChange={value => setFormData(prev => ({
+                  ...prev,
+                  urgency: value
+                }))}>
                     <SelectTrigger>
                       <SelectValue placeholder="Select urgency level" />
                     </SelectTrigger>
@@ -199,12 +206,10 @@ const Complaints = () => {
                 </div>
                 <div>
                   <Label htmlFor="description">Description</Label>
-                  <Textarea
-                    id="description"
-                    placeholder="Describe the issue in detail..."
-                    value={formData.description}
-                    onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
-                  />
+                  <Textarea id="description" placeholder="Describe the issue in detail..." value={formData.description} onChange={e => setFormData(prev => ({
+                  ...prev,
+                  description: e.target.value
+                }))} />
                 </div>
               </div>
               <DialogFooter>
@@ -271,8 +276,7 @@ const Complaints = () => {
         <section aria-label="Recent complaints">
           <h2 className="text-xl font-semibold mb-4">Recent Complaints</h2>
           <div className="space-y-4">
-            {complaints.map((complaint) => (
-              <Card key={complaint.id}>
+            {complaints.map(complaint => <Card key={complaint.id}>
                 <CardHeader className="pb-3">
                   <div className="flex items-start justify-between">
                     <div className="flex items-center gap-3">
@@ -291,13 +295,7 @@ const Complaints = () => {
                         {complaint.urgency} priority
                       </Badge>
                       <Badge variant={getStatusColor(complaint.status)}>
-                        {complaint.status === "in-progress" ? (
-                          <><Clock className="h-3 w-3 mr-1" />In Progress</>
-                        ) : complaint.status === "resolved" ? (
-                          <><CheckCircle className="h-3 w-3 mr-1" />Resolved</>
-                        ) : (
-                          <><AlertTriangle className="h-3 w-3 mr-1" />Pending</>
-                        )}
+                        {complaint.status === "in-progress" ? <><Clock className="h-3 w-3 mr-1" />In Progress</> : complaint.status === "resolved" ? <><CheckCircle className="h-3 w-3 mr-1" />Resolved</> : <><AlertTriangle className="h-3 w-3 mr-1" />Pending</>}
                       </Badge>
                     </div>
                   </div>
@@ -309,13 +307,10 @@ const Complaints = () => {
                     <span>Last updated: {complaint.lastUpdate}</span>
                   </div>
                 </CardContent>
-              </Card>
-            ))}
+              </Card>)}
           </div>
         </section>
       </main>
-    </div>
-  );
+    </div>;
 };
-
 export default Complaints;
