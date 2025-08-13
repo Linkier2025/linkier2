@@ -3,6 +3,8 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { AuthProvider } from "@/hooks/useAuth";
+import { ProtectedRoute } from "@/components/ProtectedRoute";
 import Landing from "./pages/Landing";
 import SignupChoice from "./pages/SignupChoice";
 import StudentLogin from "./pages/StudentLogin";
@@ -34,31 +36,93 @@ const App = () => (
       <Toaster />
       <Sonner />
       <BrowserRouter>
-        <Routes>
-          <Route path="/" element={<Landing />} />
-          <Route path="/signup-choice" element={<SignupChoice />} />
-          <Route path="/student-login" element={<StudentLogin />} />
-          <Route path="/landlord-login" element={<LandlordLogin />} />
-          <Route path="/student-signup" element={<StudentSignup />} />
-          <Route path="/landlord-signup" element={<LandlordSignup />} />
-          <Route path="/student-dashboard" element={<StudentDashboard />} />
-          <Route path="/landlord-dashboard" element={<LandlordDashboard />} />
-          <Route path="/student-profile" element={<StudentProfile />} />
-          <Route path="/landlord-profile" element={<LandlordProfile />} />
-          <Route path="/properties" element={<Properties />} />
-          <Route path="/property/:id" element={<PropertyDetails />} />
-          <Route path="/add-property" element={<AddProperty />} />
-          <Route path="/messages" element={<Messages />} />
-          <Route path="/tenants" element={<Tenants />} />
-          <Route path="/rent-tracking" element={<RentTracking />} />
-          <Route path="/payment-history" element={<PaymentHistory />} />
-          <Route path="/notifications" element={<Notifications />} />
-          <Route path="/rentals" element={<Rentals />} />
-        <Route path="/complaints" element={<Complaints />} />
-        <Route path="/my-requests" element={<MyRequests />} />
-          {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-          <Route path="*" element={<NotFound />} />
-        </Routes>
+        <AuthProvider>
+          <Routes>
+            <Route path="/" element={<Landing />} />
+            <Route path="/signup-choice" element={<SignupChoice />} />
+            <Route path="/student-login" element={<StudentLogin />} />
+            <Route path="/landlord-login" element={<LandlordLogin />} />
+            <Route path="/student-signup" element={<StudentSignup />} />
+            <Route path="/landlord-signup" element={<LandlordSignup />} />
+            <Route path="/student-dashboard" element={
+              <ProtectedRoute userType="student">
+                <StudentDashboard />
+              </ProtectedRoute>
+            } />
+            <Route path="/landlord-dashboard" element={
+              <ProtectedRoute userType="landlord">
+                <LandlordDashboard />
+              </ProtectedRoute>
+            } />
+            <Route path="/student-profile" element={
+              <ProtectedRoute userType="student">
+                <StudentProfile />
+              </ProtectedRoute>
+            } />
+            <Route path="/landlord-profile" element={
+              <ProtectedRoute userType="landlord">
+                <LandlordProfile />
+              </ProtectedRoute>
+            } />
+            <Route path="/properties" element={
+              <ProtectedRoute userType="student">
+                <Properties />
+              </ProtectedRoute>
+            } />
+            <Route path="/property/:id" element={
+              <ProtectedRoute userType="student">
+                <PropertyDetails />
+              </ProtectedRoute>
+            } />
+            <Route path="/add-property" element={
+              <ProtectedRoute userType="landlord">
+                <AddProperty />
+              </ProtectedRoute>
+            } />
+            <Route path="/messages" element={
+              <ProtectedRoute>
+                <Messages />
+              </ProtectedRoute>
+            } />
+            <Route path="/tenants" element={
+              <ProtectedRoute userType="landlord">
+                <Tenants />
+              </ProtectedRoute>
+            } />
+            <Route path="/rent-tracking" element={
+              <ProtectedRoute userType="landlord">
+                <RentTracking />
+              </ProtectedRoute>
+            } />
+            <Route path="/payment-history" element={
+              <ProtectedRoute userType="student">
+                <PaymentHistory />
+              </ProtectedRoute>
+            } />
+            <Route path="/notifications" element={
+              <ProtectedRoute>
+                <Notifications />
+              </ProtectedRoute>
+            } />
+            <Route path="/rentals" element={
+              <ProtectedRoute userType="student">
+                <Rentals />
+              </ProtectedRoute>
+            } />
+            <Route path="/complaints" element={
+              <ProtectedRoute>
+                <Complaints />
+              </ProtectedRoute>
+            } />
+            <Route path="/my-requests" element={
+              <ProtectedRoute userType="student">
+                <MyRequests />
+              </ProtectedRoute>
+            } />
+            {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+            <Route path="*" element={<NotFound />} />
+          </Routes>
+        </AuthProvider>
       </BrowserRouter>
     </TooltipProvider>
   </QueryClientProvider>

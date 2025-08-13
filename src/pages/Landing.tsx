@@ -1,10 +1,25 @@
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { useNavigate } from "react-router-dom";
+import { useAuth } from "@/hooks/useAuth";
 import linkierLogo from "@/assets/linkier-logo.png";
 
 const Landing = () => {
   const navigate = useNavigate();
+  const { user, profile } = useAuth();
+
+  // Redirect authenticated users to their respective dashboards
+  const handleGetStarted = () => {
+    if (user && profile) {
+      if (profile.user_type === 'student') {
+        navigate('/student-dashboard');
+      } else if (profile.user_type === 'landlord') {
+        navigate('/landlord-dashboard');
+      }
+    } else {
+      navigate('/signup-choice');
+    }
+  };
 
   return (
     <div className="min-h-screen bg-gradient-hero flex flex-col">

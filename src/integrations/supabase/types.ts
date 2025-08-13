@@ -182,6 +182,48 @@ export type Database = {
         }
         Relationships: []
       }
+      user_profiles: {
+        Row: {
+          created_at: string
+          first_name: string | null
+          gender: string | null
+          id: string
+          last_name: string | null
+          phone: string | null
+          university: string | null
+          updated_at: string
+          user_id: string
+          user_type: string
+          year_of_study: string | null
+        }
+        Insert: {
+          created_at?: string
+          first_name?: string | null
+          gender?: string | null
+          id?: string
+          last_name?: string | null
+          phone?: string | null
+          university?: string | null
+          updated_at?: string
+          user_id: string
+          user_type: string
+          year_of_study?: string | null
+        }
+        Update: {
+          created_at?: string
+          first_name?: string | null
+          gender?: string | null
+          id?: string
+          last_name?: string | null
+          phone?: string | null
+          university?: string | null
+          updated_at?: string
+          user_id?: string
+          user_type?: string
+          year_of_study?: string | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never

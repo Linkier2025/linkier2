@@ -5,11 +5,13 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useNavigate } from "react-router-dom";
 import { ArrowLeft, Eye, EyeOff } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useAuth } from "@/hooks/useAuth";
 import linkierLogo from "@/assets/linkier-logo.png";
 
 const StudentSignup = () => {
   const navigate = useNavigate();
+  const { signUp, user, profile } = useAuth();
   const [showPassword, setShowPassword] = useState(false);
   const [formData, setFormData] = useState({
     firstName: "",
@@ -37,9 +39,30 @@ const StudentSignup = () => {
     setFormData(prev => ({ ...prev, [field]: value }));
   };
 
-  const handleSubmit = () => {
-    // Note: This will be connected to Supabase authentication
-    navigate('/student-dashboard');
+  // Redirect if already logged in
+  useEffect(() => {
+    if (user && profile?.user_type === 'student') {
+      navigate('/student-dashboard');
+    } else if (user && profile?.user_type === 'landlord') {
+      navigate('/landlord-dashboard');
+    }
+  }, [user, profile, navigate]);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!formData.email || !formData.password) return;
+    
+    const userData = {
+      user_type: 'student',
+      first_name: formData.firstName,
+      last_name: formData.surname,
+      phone: formData.phone,
+      university: formData.university,
+      year_of_study: formData.yearOfStudy,
+      gender: formData.gender
+    };
+    
+    await signUp(formData.email, formData.password, userData);
   };
 
   const getPasswordStrength = (password: string) => {
@@ -79,7 +102,7 @@ const StudentSignup = () => {
                 <p className="text-muted-foreground mt-2">Create your account to find accommodation</p>
               </div>
 
-              <form className="space-y-4" onSubmit={(e) => { e.preventDefault(); handleSubmit(); }}>
+              <form className="space-y-4" onSubmit={handleSubmit}>
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
                     <Label htmlFor="firstName">First Name</Label>

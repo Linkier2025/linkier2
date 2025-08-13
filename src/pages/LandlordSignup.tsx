@@ -4,11 +4,13 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useNavigate } from "react-router-dom";
 import { ArrowLeft, Eye, EyeOff } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useAuth } from "@/hooks/useAuth";
 import linkierLogo from "@/assets/linkier-logo.png";
 
 const LandlordSignup = () => {
   const navigate = useNavigate();
+  const { signUp, user, profile } = useAuth();
   const [showPassword, setShowPassword] = useState(false);
   const [formData, setFormData] = useState({
     firstName: "",
@@ -22,9 +24,27 @@ const LandlordSignup = () => {
     setFormData(prev => ({ ...prev, [field]: value }));
   };
 
-  const handleSubmit = () => {
-    // Note: This will be connected to Supabase authentication
-    navigate('/landlord-dashboard');
+  // Redirect if already logged in
+  useEffect(() => {
+    if (user && profile?.user_type === 'landlord') {
+      navigate('/landlord-dashboard');
+    } else if (user && profile?.user_type === 'student') {
+      navigate('/student-dashboard');
+    }
+  }, [user, profile, navigate]);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!formData.email || !formData.password) return;
+    
+    const userData = {
+      user_type: 'landlord',
+      first_name: formData.firstName,
+      last_name: formData.surname,
+      phone: formData.phone
+    };
+    
+    await signUp(formData.email, formData.password, userData);
   };
 
   const getPasswordStrength = (password: string) => {
@@ -64,7 +84,7 @@ const LandlordSignup = () => {
                 <p className="text-muted-foreground mt-2">Create your account to list properties</p>
               </div>
 
-              <form className="space-y-4" onSubmit={(e) => { e.preventDefault(); handleSubmit(); }}>
+              <form className="space-y-4" onSubmit={handleSubmit}>
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
                     <Label htmlFor="firstName">First Name</Label>

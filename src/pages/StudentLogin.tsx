@@ -4,18 +4,34 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useNavigate } from "react-router-dom";
 import { ArrowLeft, Eye, EyeOff } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useAuth } from "@/hooks/useAuth";
 import linkierLogo from "@/assets/linkier-logo.png";
 
 const StudentLogin = () => {
   const navigate = useNavigate();
+  const { signIn, user, profile } = useAuth();
   const [showPassword, setShowPassword] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
-  const handleLogin = () => {
-    // Note: This will be connected to Supabase authentication
-    navigate('/student-dashboard');
+  // Redirect if already logged in
+  useEffect(() => {
+    if (user && profile?.user_type === 'student') {
+      navigate('/student-dashboard');
+    } else if (user && profile?.user_type === 'landlord') {
+      navigate('/landlord-dashboard');
+    }
+  }, [user, profile, navigate]);
+
+  const handleLogin = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!email || !password) return;
+    
+    const { error } = await signIn(email, password);
+    if (!error) {
+      navigate('/student-dashboard');
+    }
   };
 
   return (
@@ -46,7 +62,7 @@ const StudentLogin = () => {
                 <p className="text-muted-foreground mt-2">Sign in to find your perfect accommodation</p>
               </div>
 
-              <form className="space-y-4" onSubmit={(e) => { e.preventDefault(); handleLogin(); }}>
+              <form className="space-y-4" onSubmit={handleLogin}>
                 <div className="space-y-2">
                   <Label htmlFor="email">Email Address</Label>
                   <Input
