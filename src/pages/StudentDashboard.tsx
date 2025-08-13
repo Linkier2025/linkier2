@@ -78,6 +78,15 @@ const StudentDashboard = () => {
               </div>
             </div>
           </Card>
+          <Card className="p-4 cursor-pointer" onClick={() => navigate("/my-requests")}> 
+            <div className="flex items-center gap-3">
+              <MessageSquare className="h-5 w-5 text-primary" />
+              <div>
+                <p className="font-medium">My Requests</p>
+                <p className="text-sm text-muted-foreground">Rental requests</p>
+              </div>
+            </div>
+          </Card>
           
           <Card className="p-4 cursor-pointer" onClick={() => navigate("/complaints")}> 
             <div className="flex items-center gap-3">

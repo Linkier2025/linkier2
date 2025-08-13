@@ -24,6 +24,7 @@ import PaymentHistory from "./pages/PaymentHistory";
 import Notifications from "./pages/Notifications";
 import Rentals from "./pages/Rentals";
 import Complaints from "./pages/Complaints";
+import MyRequests from "./pages/MyRequests";
 
 const queryClient = new QueryClient();
 
@@ -53,7 +54,8 @@ const App = () => (
           <Route path="/payment-history" element={<PaymentHistory />} />
           <Route path="/notifications" element={<Notifications />} />
           <Route path="/rentals" element={<Rentals />} />
-          <Route path="/complaints" element={<Complaints />} />
+        <Route path="/complaints" element={<Complaints />} />
+        <Route path="/my-requests" element={<MyRequests />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
