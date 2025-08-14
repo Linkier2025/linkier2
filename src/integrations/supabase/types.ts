@@ -98,18 +98,21 @@ export type Database = {
           first_seen: string
           last_seen: string
           mac: string
+          user_id: string | null
         }
         Insert: {
           custom_name?: string | null
           first_seen?: string
           last_seen?: string
           mac: string
+          user_id?: string | null
         }
         Update: {
           custom_name?: string | null
           first_seen?: string
           last_seen?: string
           mac?: string
+          user_id?: string | null
         }
         Relationships: []
       }
