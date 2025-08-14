@@ -25,7 +25,6 @@ import RentTracking from "./pages/RentTracking";
 import PaymentHistory from "./pages/PaymentHistory";
 import Notifications from "./pages/Notifications";
 import Rentals from "./pages/Rentals";
-import Complaints from "./pages/Complaints";
 import MyRequests from "./pages/MyRequests";
 
 const queryClient = new QueryClient();
@@ -107,11 +106,6 @@ const App = () => (
             <Route path="/rentals" element={
               <ProtectedRoute userType="student">
                 <Rentals />
-              </ProtectedRoute>
-            } />
-            <Route path="/complaints" element={
-              <ProtectedRoute>
-                <Complaints />
               </ProtectedRoute>
             } />
             <Route path="/my-requests" element={
