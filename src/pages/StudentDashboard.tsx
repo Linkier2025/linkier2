@@ -37,14 +37,7 @@ const StudentDashboard = () => {
       </header>
 
       <main className="flex-1 max-w-4xl mx-auto w-full px-4 py-6">
-        <div className="text-center py-12">
-          <h2 className="text-2xl font-semibold text-foreground mb-4">
-            Welcome to Linkier
-          </h2>
-          <p className="text-muted-foreground">
-            Your student dashboard is ready to be customized.
-          </p>
-        </div>
+        {/* Empty dashboard - ready for content */}
       </main>
     </div>
   );
