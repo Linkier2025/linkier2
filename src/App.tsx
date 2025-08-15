@@ -21,6 +21,7 @@ import PropertyDetails from "./pages/PropertyDetails";
 import AddProperty from "./pages/AddProperty";
 import Messages from "./pages/Messages";
 import Tenants from "./pages/Tenants";
+import Complaints from "./pages/Complaints";
 import RentTracking from "./pages/RentTracking";
 import PaymentHistory from "./pages/PaymentHistory";
 import Notifications from "./pages/Notifications";
@@ -86,6 +87,11 @@ const App = () => (
             <Route path="/tenants" element={
               <ProtectedRoute userType="landlord">
                 <Tenants />
+              </ProtectedRoute>
+            } />
+            <Route path="/complaints" element={
+              <ProtectedRoute userType="landlord">
+                <Complaints />
               </ProtectedRoute>
             } />
             <Route path="/rent-tracking" element={
