@@ -29,7 +29,7 @@ const StudentDashboard = () => {
       <header className="bg-gradient-hero">
         <div className="max-w-4xl mx-auto px-4 py-4 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <img src={linkierLogo} alt="Linkier logo" className="h-8 w-8" />
+            <img src={linkierLogo} alt="Linkier logo" className="h-12 w-12" />
             <h1 className="text-lg font-semibold text-white">Student Dashboard</h1>
           </div>
           <Button variant="secondary" size="sm" onClick={handleSignOut}>

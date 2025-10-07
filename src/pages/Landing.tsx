@@ -25,9 +25,8 @@ const Landing = () => {
     <div className="min-h-screen bg-gradient-hero flex flex-col">
       {/* Header */}
       <header className="p-6 text-center">
-        <div className="flex items-center justify-center gap-3 mb-4">
-          <img src={linkierLogo} alt="Linkier" className="w-12 h-12" />
-          <h1 className="text-3xl font-bold text-white">Linkier</h1>
+        <div className="flex items-center justify-center mb-4">
+          <img src={linkierLogo} alt="Linkier" className="w-32 h-32" />
         </div>
       </header>
 
