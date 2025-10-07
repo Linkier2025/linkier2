@@ -8,11 +8,10 @@ interface UserProfile {
   user_id: string;
   user_type: 'student' | 'landlord';
   first_name?: string;
-  last_name?: string;
+  surname?: string;
   phone?: string;
-  university?: string;
-  year_of_study?: string;
-  gender?: string;
+  email?: string;
+  avatar_url?: string;
 }
 
 interface AuthContextType {
@@ -38,7 +37,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const fetchProfile = async (userId: string) => {
     try {
       const { data, error } = await supabase
-        .from('user_profiles')
+        .from('profiles')
         .select('*')
         .eq('user_id', userId)
         .single();
@@ -178,7 +177,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     
     try {
       const { error } = await supabase
-        .from('user_profiles')
+        .from('profiles')
         .update(updates)
         .eq('user_id', user.id);
 
