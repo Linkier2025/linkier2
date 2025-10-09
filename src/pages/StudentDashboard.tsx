@@ -1,10 +1,11 @@
 import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useAuth } from "@/hooks/useAuth";
 import linkierLogo from "@/assets/linkier-logo.png";
-import { Home, MessageSquare, FileText, Bell, User, Search } from "lucide-react";
+import { Home, MessageSquare, FileText, Bell, Search, ChevronRight, LogOut } from "lucide-react";
 
 const StudentDashboard = () => {
   const navigate = useNavigate();
@@ -24,104 +25,73 @@ const StudentDashboard = () => {
     navigate("/");
   };
 
+  const menuItems = [
+    { title: "Browse Properties", icon: Search, route: "/rentals" },
+    { title: "Saved Properties", icon: Home, route: "/properties" },
+    { title: "My Requests", icon: FileText, route: "/my-requests" },
+    { title: "Messages", icon: MessageSquare, route: "/messages" },
+    { title: "Notifications", icon: Bell, route: "/notifications" },
+  ];
+
   return (
-    <div className="min-h-screen bg-background flex flex-col">
-      <header className="bg-gradient-hero">
+    <div className="min-h-screen bg-background">
+      <header className="bg-background border-b">
         <div className="max-w-4xl mx-auto px-4 py-4 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <img src={linkierLogo} alt="Linkier logo" className="h-12 w-12" />
-            <h1 className="text-lg font-semibold text-white">Student Dashboard</h1>
+          <div className="flex items-center gap-2">
+            <img src={linkierLogo} alt="Linkier" className="h-10 w-10" />
+            <h1 className="text-xl font-semibold text-foreground">Linkier</h1>
           </div>
-          <Button variant="secondary" size="sm" onClick={handleSignOut}>
-            Sign out
-          </Button>
+          <div className="flex items-center gap-2">
+            <Button variant="ghost" size="icon" onClick={() => navigate("/notifications")}>
+              <Bell className="h-5 w-5" />
+            </Button>
+            <Button variant="ghost" size="icon" onClick={handleSignOut}>
+              <LogOut className="h-5 w-5" />
+            </Button>
+          </div>
         </div>
       </header>
 
-      <main className="flex-1 max-w-4xl mx-auto w-full px-4 py-6">
-        <div className="space-y-6">
-          <div>
-            <h2 className="text-2xl font-bold text-foreground">
-              Welcome back{profile?.first_name ? `, ${profile.first_name}` : ''}!
-            </h2>
-            <p className="text-muted-foreground mt-1">
-              Find your perfect student accommodation
-            </p>
-          </div>
+      <main className="max-w-4xl mx-auto px-4 py-6">
+        <div className="space-y-4">
+          {/* User Profile Card */}
+          <Card 
+            className="cursor-pointer hover:shadow-md transition-shadow" 
+            onClick={() => navigate("/student-profile")}
+          >
+            <CardContent className="p-6">
+              <div className="flex items-center gap-4">
+                <Avatar className="h-16 w-16">
+                  <AvatarImage src={profile?.avatar_url || ""} alt={profile?.first_name || "User"} />
+                  <AvatarFallback className="bg-primary text-primary-foreground text-xl">
+                    {profile?.first_name?.[0] || "U"}
+                  </AvatarFallback>
+                </Avatar>
+                <div>
+                  <h2 className="text-xl font-semibold text-foreground">
+                    {profile?.first_name} {profile?.surname}
+                  </h2>
+                  <p className="text-sm text-muted-foreground">student</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <Card className="hover:shadow-lg transition-shadow cursor-pointer" onClick={() => navigate("/rentals")}>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Search className="h-5 w-5 text-primary" />
-                  Browse Properties
-                </CardTitle>
-                <CardDescription>
-                  Discover available student accommodations
-                </CardDescription>
-              </CardHeader>
+          {/* Menu Items */}
+          {menuItems.map((item) => (
+            <Card 
+              key={item.title}
+              className="cursor-pointer hover:shadow-md transition-shadow"
+              onClick={() => navigate(item.route)}
+            >
+              <CardContent className="p-6">
+                <div className="flex items-center justify-between">
+                  <span className="text-lg font-medium text-foreground">{item.title}</span>
+                  <ChevronRight className="h-5 w-5 text-muted-foreground" />
+                </div>
+              </CardContent>
             </Card>
-
-            <Card className="hover:shadow-lg transition-shadow cursor-pointer" onClick={() => navigate("/properties")}>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Home className="h-5 w-5 text-primary" />
-                  Saved Properties
-                </CardTitle>
-                <CardDescription>
-                  View your favorite properties
-                </CardDescription>
-              </CardHeader>
-            </Card>
-
-            <Card className="hover:shadow-lg transition-shadow cursor-pointer" onClick={() => navigate("/my-requests")}>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <FileText className="h-5 w-5 text-primary" />
-                  My Requests
-                </CardTitle>
-                <CardDescription>
-                  Track your rental applications
-                </CardDescription>
-              </CardHeader>
-            </Card>
-
-            <Card className="hover:shadow-lg transition-shadow cursor-pointer" onClick={() => navigate("/messages")}>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <MessageSquare className="h-5 w-5 text-primary" />
-                  Messages
-                </CardTitle>
-                <CardDescription>
-                  Chat with landlords
-                </CardDescription>
-              </CardHeader>
-            </Card>
-
-            <Card className="hover:shadow-lg transition-shadow cursor-pointer" onClick={() => navigate("/notifications")}>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Bell className="h-5 w-5 text-primary" />
-                  Notifications
-                </CardTitle>
-                <CardDescription>
-                  Stay updated on your activity
-                </CardDescription>
-              </CardHeader>
-            </Card>
-
-            <Card className="hover:shadow-lg transition-shadow cursor-pointer" onClick={() => navigate("/student-profile")}>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <User className="h-5 w-5 text-primary" />
-                  My Profile
-                </CardTitle>
-                <CardDescription>
-                  Update your information
-                </CardDescription>
-              </CardHeader>
-            </Card>
-          </div>
+          ))}
         </div>
       </main>
     </div>

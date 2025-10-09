@@ -1,14 +1,15 @@
 import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useAuth } from "@/hooks/useAuth";
-import { User, Plus, Users, MessageSquare, Bell, Home } from "lucide-react";
+import { Plus, Users, Bell, Home, ChevronRight, LogOut } from "lucide-react";
 import linkierLogo from "@/assets/linkier-logo.png";
 
 const LandlordDashboard = () => {
   const navigate = useNavigate();
-  const { signOut } = useAuth();
+  const { signOut, profile } = useAuth();
 
   // Basic SEO handling
   useEffect(() => {
@@ -24,123 +25,73 @@ const LandlordDashboard = () => {
     navigate("/");
   };
 
+  const menuItems = [
+    { title: "My Property", icon: Home, route: "/properties" },
+    { title: "My Tenants", icon: Users, route: "/tenants" },
+    { title: "Rent Tracking", icon: Bell, route: "/rent-tracking" },
+    { title: "Complaints", icon: Bell, route: "/complaints" },
+    { title: "Messages", icon: Bell, route: "/messages" },
+  ];
+
   return (
-    <div className="min-h-screen bg-background flex flex-col">
-      <header className="bg-gradient-hero">
+    <div className="min-h-screen bg-background">
+      <header className="bg-background border-b">
         <div className="max-w-4xl mx-auto px-4 py-4 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <img src={linkierLogo} alt="Linkier logo" className="h-8 w-8" />
-            <h1 className="text-lg font-semibold text-white">Landlord Dashboard</h1>
+          <div className="flex items-center gap-2">
+            <img src={linkierLogo} alt="Linkier" className="h-10 w-10" />
+            <h1 className="text-xl font-semibold text-foreground">Linkier</h1>
           </div>
-          <Button variant="secondary" size="sm" onClick={handleSignOut}>
-            Sign out
-          </Button>
+          <div className="flex items-center gap-2">
+            <Button variant="ghost" size="icon" onClick={() => navigate("/notifications")}>
+              <Bell className="h-5 w-5" />
+            </Button>
+            <Button variant="ghost" size="icon" onClick={handleSignOut}>
+              <LogOut className="h-5 w-5" />
+            </Button>
+          </div>
         </div>
       </header>
 
-      <main className="flex-1 max-w-4xl mx-auto w-full px-4 py-6">
-        <div className="space-y-6">
-          <div className="text-center py-8">
-            <h2 className="text-2xl font-semibold text-foreground mb-2">
-              Welcome to Your Landlord Dashboard
-            </h2>
-            <p className="text-muted-foreground">
-              Manage your properties, tenants, and communications all in one place.
-            </p>
-          </div>
+      <main className="max-w-4xl mx-auto px-4 py-6">
+        <div className="space-y-4">
+          {/* User Profile Card */}
+          <Card 
+            className="cursor-pointer hover:shadow-md transition-shadow" 
+            onClick={() => navigate("/landlord-profile")}
+          >
+            <CardContent className="p-6">
+              <div className="flex items-center gap-4">
+                <Avatar className="h-16 w-16">
+                  <AvatarImage src={profile?.avatar_url || ""} alt={profile?.first_name || "User"} />
+                  <AvatarFallback className="bg-primary text-primary-foreground text-xl">
+                    {profile?.first_name?.[0] || "U"}
+                  </AvatarFallback>
+                </Avatar>
+                <div>
+                  <h2 className="text-xl font-semibold text-foreground">
+                    {profile?.first_name} {profile?.surname}
+                  </h2>
+                  <p className="text-sm text-muted-foreground">landlord</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
 
-          {/* Dashboard Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {/* Profile Management */}
-            <Card className="hover:shadow-lg transition-shadow cursor-pointer" onClick={() => navigate("/landlord-profile")}>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <User className="h-5 w-5" />
-                  Profile
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-muted-foreground text-sm">
-                  Edit your profile information and upload profile picture
-                </p>
+          {/* Menu Items */}
+          {menuItems.map((item) => (
+            <Card 
+              key={item.title}
+              className="cursor-pointer hover:shadow-md transition-shadow"
+              onClick={() => navigate(item.route)}
+            >
+              <CardContent className="p-6">
+                <div className="flex items-center justify-between">
+                  <span className="text-lg font-medium text-foreground">{item.title}</span>
+                  <ChevronRight className="h-5 w-5 text-muted-foreground" />
+                </div>
               </CardContent>
             </Card>
-
-            {/* Add Property */}
-            <Card className="hover:shadow-lg transition-shadow cursor-pointer" onClick={() => navigate("/add-property")}>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Plus className="h-5 w-5" />
-                  Add Property
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-muted-foreground text-sm">
-                  List a new property for rent
-                </p>
-              </CardContent>
-            </Card>
-
-            {/* Tenants */}
-            <Card className="hover:shadow-lg transition-shadow cursor-pointer" onClick={() => navigate("/tenants")}>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Users className="h-5 w-5" />
-                  Tenants
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-muted-foreground text-sm">
-                  View and manage your accepted tenants
-                </p>
-              </CardContent>
-            </Card>
-
-            {/* Complaints */}
-            <Card className="hover:shadow-lg transition-shadow cursor-pointer" onClick={() => navigate("/complaints")}>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <MessageSquare className="h-5 w-5" />
-                  Complaints
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-muted-foreground text-sm">
-                  Handle tenant complaints and issues
-                </p>
-              </CardContent>
-            </Card>
-
-            {/* Notifications */}
-            <Card className="hover:shadow-lg transition-shadow cursor-pointer" onClick={() => navigate("/notifications")}>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Bell className="h-5 w-5" />
-                  Notifications
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-muted-foreground text-sm">
-                  View rental requests and messages
-                </p>
-              </CardContent>
-            </Card>
-
-            {/* Properties Overview */}
-            <Card className="hover:shadow-lg transition-shadow cursor-pointer" onClick={() => navigate("/properties")}>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Home className="h-5 w-5" />
-                  Properties
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-muted-foreground text-sm">
-                  View all your listed properties
-                </p>
-              </CardContent>
-            </Card>
-          </div>
+          ))}
         </div>
       </main>
     </div>
