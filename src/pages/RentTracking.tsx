@@ -10,14 +10,16 @@ import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { CalendarIcon, Plus, DollarSign, TrendingUp, Users } from "lucide-react";
+import { CalendarIcon, Plus, DollarSign, TrendingUp, Users, AlertCircle, Home } from "lucide-react";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/hooks/useAuth";
 
 export default function RentTracking() {
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { profile } = useAuth();
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date());
   const [isDialogOpen, setIsDialogOpen] = useState(false);
 
@@ -78,12 +80,197 @@ export default function RentTracking() {
 
   const getStatusBadge = (status: string) => {
     return (
-      <Badge variant={status === "Paid" ? "default" : "destructive"}>
+      <Badge variant={status === "Paid" ? "default" : status === "Pending" ? "secondary" : "destructive"}>
         {status}
       </Badge>
     );
   };
 
+  // Student-specific mock data
+  const studentPayments = [
+    { id: 1, amount: 450, date: "2024-01-15", method: "Bank Transfer", status: "Paid", receiptNumber: "RCP-2024-001" },
+    { id: 2, amount: 450, date: "2023-12-15", method: "Mobile Money", status: "Paid", receiptNumber: "RCP-2023-012" },
+    { id: 3, amount: 450, date: "2023-11-15", method: "Bank Transfer", status: "Paid", receiptNumber: "RCP-2023-011" },
+  ];
+
+  const nextPaymentDue = "2024-02-15";
+  const monthlyRent = 450;
+  const currentProperty = "Apartment 2B - Avondale";
+  const landlordName = "Tafadzwa Mhembere";
+
+  // If user is a student, show student view
+  if (profile?.user_type === "student") {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-background to-muted/20">
+        <div className="container mx-auto p-6">
+          <div className="flex justify-between items-center mb-6">
+            <div>
+              <h1 className="text-3xl font-bold">Rent Tracking</h1>
+              <p className="text-muted-foreground">Manage your rent payments and track your payment history</p>
+            </div>
+            <Button onClick={() => navigate("/student-dashboard")}>
+              Back to Dashboard
+            </Button>
+          </div>
+
+          {/* Statistics Cards */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Next Payment Due</CardTitle>
+                <CalendarIcon className="h-4 w-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">{format(new Date(nextPaymentDue), "MMM dd, yyyy")}</div>
+                <p className="text-xs text-muted-foreground">Payment deadline</p>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Monthly Rent</CardTitle>
+                <DollarSign className="h-4 w-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">${monthlyRent} USD</div>
+                <p className="text-xs text-muted-foreground">Due monthly</p>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Payment Status</CardTitle>
+                <AlertCircle className="h-4 w-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold text-green-600">Up to Date</div>
+                <p className="text-xs text-muted-foreground">All payments current</p>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Current Rental Info */}
+          <Card className="mb-6">
+            <CardHeader>
+              <CardTitle>Current Rental</CardTitle>
+              <CardDescription>Your accommodation details</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="flex items-center gap-3">
+                  <Home className="h-5 w-5 text-muted-foreground" />
+                  <div>
+                    <p className="text-sm font-medium text-muted-foreground">Property</p>
+                    <p className="text-lg font-semibold">{currentProperty}</p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-3">
+                  <Users className="h-5 w-5 text-muted-foreground" />
+                  <div>
+                    <p className="text-sm font-medium text-muted-foreground">Landlord</p>
+                    <p className="text-lg font-semibold">{landlordName}</p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-3">
+                  <DollarSign className="h-5 w-5 text-muted-foreground" />
+                  <div>
+                    <p className="text-sm font-medium text-muted-foreground">Monthly Rent</p>
+                    <p className="text-lg font-semibold text-primary">${monthlyRent} USD</p>
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Upcoming Payment */}
+          <Card className="mb-6 border-primary/50">
+            <CardHeader>
+              <CardTitle>Upcoming Payment</CardTitle>
+              <CardDescription>Your next rent payment details</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-2xl font-bold">${monthlyRent} USD</p>
+                  <p className="text-sm text-muted-foreground">
+                    Due on {format(new Date(nextPaymentDue), "MMMM dd, yyyy")}
+                  </p>
+                </div>
+                <Badge variant="secondary" className="text-lg px-4 py-2">
+                  {Math.ceil((new Date(nextPaymentDue).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24))} days left
+                </Badge>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Payment History */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Payment History</CardTitle>
+              <CardDescription>View your past rent payments</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Date</TableHead>
+                    <TableHead>Amount</TableHead>
+                    <TableHead>Payment Method</TableHead>
+                    <TableHead>Receipt Number</TableHead>
+                    <TableHead>Status</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {studentPayments.map((payment) => (
+                    <TableRow key={payment.id}>
+                      <TableCell className="font-medium">
+                        {format(new Date(payment.date), "MMM dd, yyyy")}
+                      </TableCell>
+                      <TableCell className="font-semibold">${payment.amount} USD</TableCell>
+                      <TableCell className="capitalize">{payment.method.replace("-", " ")}</TableCell>
+                      <TableCell className="font-mono text-sm">{payment.receiptNumber}</TableCell>
+                      <TableCell>{getStatusBadge(payment.status)}</TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </CardContent>
+          </Card>
+
+          {/* Payment Information */}
+          <Card className="mt-6">
+            <CardHeader>
+              <CardTitle>Payment Information</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                <div>
+                  <h4 className="font-semibold mb-2">Accepted Payment Methods:</h4>
+                  <ul className="space-y-1 text-muted-foreground">
+                    <li>🏦 Bank Transfer</li>
+                    <li>📱 Mobile Money (EcoCash, OneMoney)</li>
+                    <li>💵 Cash (with receipt)</li>
+                    <li>💳 Cheque</li>
+                  </ul>
+                </div>
+                <div>
+                  <h4 className="font-semibold mb-2">Payment Reminders:</h4>
+                  <ul className="space-y-1 text-muted-foreground">
+                    <li>• Rent is due on the 15th of each month</li>
+                    <li>• Late payments may incur additional fees</li>
+                    <li>• Always request a receipt for cash payments</li>
+                    <li>• Contact your landlord for payment issues</li>
+                  </ul>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+    );
+  }
+
+  // Landlord view (existing code)
   return (
     <div className="min-h-screen bg-gradient-to-br from-background to-muted/20">
       <div className="container mx-auto p-6">
