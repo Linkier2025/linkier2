@@ -90,12 +90,12 @@ const App = () => (
               </ProtectedRoute>
             } />
             <Route path="/complaints" element={
-              <ProtectedRoute userType="landlord">
+              <ProtectedRoute>
                 <Complaints />
               </ProtectedRoute>
             } />
             <Route path="/rent-tracking" element={
-              <ProtectedRoute userType="landlord">
+              <ProtectedRoute>
                 <RentTracking />
               </ProtectedRoute>
             } />
