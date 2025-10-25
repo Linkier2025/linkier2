@@ -51,7 +51,7 @@ const Landing = () => {
           </div>
 
           {/* Sign In Buttons */}
-          <Card className="p-6 bg-white/95 backdrop-blur-sm shadow-strong">
+          <Card className="p-6 bg-white/20 backdrop-blur-sm border-white/30 shadow-strong">
             <div className="space-y-4">
               <h3 className="text-lg font-semibold text-center mb-6">Sign in to your account</h3>
               
