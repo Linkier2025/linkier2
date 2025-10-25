@@ -34,7 +34,7 @@ const Landing = () => {
       {/* Header */}
       <header className="relative z-10 p-6 text-center">
         <div className="flex items-center justify-center mb-4">
-          <img src={linkierLogo} alt="Linkier" className="w-32 h-32" />
+          <img src={linkierLogo} alt="Linkier" className="w-48 h-32" />
         </div>
       </header>
 
@@ -53,7 +53,7 @@ const Landing = () => {
           {/* Sign In Buttons */}
           <Card className="p-6 bg-white/20 backdrop-blur-sm border-white/30 shadow-strong">
             <div className="space-y-4">
-              <h3 className="text-lg font-semibold text-center mb-6">Sign in to your account</h3>
+              <h3 className="text-lg font-semibold text-center mb-6 text-white">Sign in to your account</h3>
               
               <Button 
                 variant="student" 
