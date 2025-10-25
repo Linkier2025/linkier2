@@ -3,14 +3,23 @@ import { Card } from "@/components/ui/card";
 import { useNavigate } from "react-router-dom";
 import { ArrowLeft, GraduationCap, Home } from "lucide-react";
 import linkierLogo from "@/assets/linkier-logo.png";
+import landingBg from "@/assets/landing-background.jpg";
 
 const SignupChoice = () => {
   const navigate = useNavigate();
 
   return (
-    <div className="min-h-screen bg-gradient-hero flex flex-col">
+    <div className="min-h-screen relative flex flex-col">
+      {/* Background Image */}
+      <div 
+        className="absolute inset-0 bg-cover bg-center"
+        style={{ backgroundImage: `url(${landingBg})` }}
+      />
+      {/* Overlay */}
+      <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-black/50 to-black/70" />
+      
       {/* Header */}
-      <header className="p-6 flex items-center">
+      <header className="relative z-10 p-6 flex items-center">
         <Button 
           variant="ghost" 
           size="icon"
@@ -26,7 +35,7 @@ const SignupChoice = () => {
       </header>
 
       {/* Main Content */}
-      <main className="flex-1 flex flex-col items-center justify-center px-6 pb-8">
+      <main className="relative z-10 flex-1 flex flex-col items-center justify-center px-6 pb-8">
         <div className="w-full max-w-md space-y-8">
           {/* Title */}
           <div className="text-center text-white mb-8">
