@@ -12,6 +12,9 @@ interface UserProfile {
   phone?: string;
   email?: string;
   avatar_url?: string;
+  gender?: string;
+  university?: string;
+  year_of_study?: string;
 }
 
 interface AuthContextType {
