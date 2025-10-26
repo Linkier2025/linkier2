@@ -1,6 +1,7 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -19,25 +20,44 @@ import { useAuth } from "@/hooks/useAuth";
 export default function RentTracking() {
   const navigate = useNavigate();
   const { toast } = useToast();
-  const { profile } = useAuth();
+  const { profile, user } = useAuth();
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date());
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [payments, setPayments] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  // Mock data for tenants and payments
-  const mockTenants = [
-    { id: 1, name: "Chipo Mukamuri", property: "Apartment 2B - Avondale", rent: 450, university: "University of Zimbabwe" },
-    { id: 2, name: "Tendai Chikomo", property: "Room 3A - Mount Pleasant", rent: 350, university: "NUST" },
-    { id: 3, name: "Farai Mudenge", property: "Studio 1C - Borrowdale", rent: 500, university: "Midlands State University" },
-    { id: 4, name: "Rumbidzai Zvoma", property: "Apartment 1A - Belvedere", rent: 400, university: "Chinhoyi University of Technology" },
-  ];
+  useEffect(() => {
+    if (user) {
+      fetchPayments();
+    }
+  }, [user]);
 
-  const mockPayments = [
-    { id: 1, tenantId: 1, tenantName: "Chipo Mukamuri", amount: 450, date: "2024-01-15", method: "Bank Transfer", status: "Paid", property: "Apartment 2B - Avondale" },
-    { id: 2, tenantId: 2, tenantName: "Tendai Chikomo", amount: 350, date: "2024-01-10", method: "Cash", status: "Paid", property: "Room 3A - Mount Pleasant" },
-    { id: 3, tenantId: 1, tenantName: "Chipo Mukamuri", amount: 450, date: "2023-12-15", method: "Mobile Money", status: "Paid", property: "Apartment 2B - Avondale" },
-    { id: 4, tenantId: 3, tenantName: "Farai Mudenge", amount: 500, date: "2024-01-20", method: "Bank Transfer", status: "Paid", property: "Studio 1C - Borrowdale" },
-    { id: 5, tenantId: 4, tenantName: "Rumbidzai Zvoma", amount: 400, date: "2024-01-18", method: "Mobile Money", status: "Paid", property: "Apartment 1A - Belvedere" },
-  ];
+  const fetchPayments = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('payments')
+        .select(`
+          *,
+          rentals!inner(
+            id,
+            student_id,
+            landlord_id,
+            properties(title, location)
+          )
+        `)
+        .order('payment_date', { ascending: false });
+
+      if (error) throw error;
+      setPayments(data || []);
+    } catch (error) {
+      console.error('Error fetching payments:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const mockTenants: any[] = [];
+  const mockPayments = payments;
 
   const [paymentForm, setPaymentForm] = useState({
     tenantId: "",
@@ -86,17 +106,25 @@ export default function RentTracking() {
     );
   };
 
-  // Student-specific mock data
-  const studentPayments = [
-    { id: 1, amount: 450, date: "2024-01-15", method: "Bank Transfer", status: "Paid", receiptNumber: "RCP-2024-001" },
-    { id: 2, amount: 450, date: "2023-12-15", method: "Mobile Money", status: "Paid", receiptNumber: "RCP-2023-012" },
-    { id: 3, amount: 450, date: "2023-11-15", method: "Bank Transfer", status: "Paid", receiptNumber: "RCP-2023-011" },
-  ];
+  // Student-specific data from database
+  const studentPayments = payments.filter(p => 
+    p.rentals?.student_id === user?.id
+  ).map(p => ({
+    id: p.id,
+    amount: p.amount,
+    date: p.payment_date,
+    method: p.payment_method,
+    status: p.status,
+    receiptNumber: p.receipt_number
+  }));
 
-  const nextPaymentDue = "2024-02-15";
-  const monthlyRent = 450;
-  const currentProperty = "Apartment 2B - Avondale";
-  const landlordName = "Tafadzwa Mhembere";
+  const nextPaymentDue = studentPayments.length > 0 
+    ? new Date(new Date(studentPayments[0].date).setMonth(new Date(studentPayments[0].date).getMonth() + 1)).toISOString().split('T')[0]
+    : new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
+  
+  const monthlyRent = studentPayments[0]?.amount || 0;
+  const currentProperty = studentPayments[0] ? "Your Current Property" : "No active rental";
+  const landlordName = "Your Landlord";
 
   // If user is a student, show student view
   if (profile?.user_type === "student") {

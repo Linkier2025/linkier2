@@ -14,6 +14,91 @@ export type Database = {
   }
   public: {
     Tables: {
+      messages: {
+        Row: {
+          created_at: string
+          id: string
+          message: string
+          property_id: string | null
+          read: boolean | null
+          receiver_id: string
+          sender_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          message: string
+          property_id?: string | null
+          read?: boolean | null
+          receiver_id: string
+          sender_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          message?: string
+          property_id?: string | null
+          read?: boolean | null
+          receiver_id?: string
+          sender_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "messages_property_id_fkey"
+            columns: ["property_id"]
+            isOneToOne: false
+            referencedRelation: "properties"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      payments: {
+        Row: {
+          amount: number
+          created_at: string
+          id: string
+          notes: string | null
+          payment_date: string
+          payment_method: string
+          receipt_number: string | null
+          rental_id: string
+          status: string | null
+          updated_at: string
+        }
+        Insert: {
+          amount: number
+          created_at?: string
+          id?: string
+          notes?: string | null
+          payment_date: string
+          payment_method: string
+          receipt_number?: string | null
+          rental_id: string
+          status?: string | null
+          updated_at?: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          id?: string
+          notes?: string | null
+          payment_date?: string
+          payment_method?: string
+          receipt_number?: string | null
+          rental_id?: string
+          status?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "payments_rental_id_fkey"
+            columns: ["rental_id"]
+            isOneToOne: false
+            referencedRelation: "rentals"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           avatar_url: string | null
@@ -61,6 +146,122 @@ export type Database = {
           year_of_study?: string | null
         }
         Relationships: []
+      }
+      properties: {
+        Row: {
+          amenities: string[] | null
+          boarding_house_name: string | null
+          created_at: string
+          description: string | null
+          gender_preference: string | null
+          house_number: string | null
+          id: string
+          images: string[] | null
+          landlord_id: string
+          location: string
+          occupancy_rate: string | null
+          rating: number | null
+          rent_amount: number
+          rooms: number
+          status: string | null
+          title: string
+          total_rooms: number | null
+          university: string | null
+          updated_at: string
+        }
+        Insert: {
+          amenities?: string[] | null
+          boarding_house_name?: string | null
+          created_at?: string
+          description?: string | null
+          gender_preference?: string | null
+          house_number?: string | null
+          id?: string
+          images?: string[] | null
+          landlord_id: string
+          location: string
+          occupancy_rate?: string | null
+          rating?: number | null
+          rent_amount: number
+          rooms: number
+          status?: string | null
+          title: string
+          total_rooms?: number | null
+          university?: string | null
+          updated_at?: string
+        }
+        Update: {
+          amenities?: string[] | null
+          boarding_house_name?: string | null
+          created_at?: string
+          description?: string | null
+          gender_preference?: string | null
+          house_number?: string | null
+          id?: string
+          images?: string[] | null
+          landlord_id?: string
+          location?: string
+          occupancy_rate?: string | null
+          rating?: number | null
+          rent_amount?: number
+          rooms?: number
+          status?: string | null
+          title?: string
+          total_rooms?: number | null
+          university?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      rentals: {
+        Row: {
+          created_at: string
+          id: string
+          landlord_id: string
+          lease_end: string
+          lease_start: string
+          monthly_rent: number
+          property_id: string
+          room_number: string | null
+          status: string | null
+          student_id: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          landlord_id: string
+          lease_end: string
+          lease_start: string
+          monthly_rent: number
+          property_id: string
+          room_number?: string | null
+          status?: string | null
+          student_id: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          landlord_id?: string
+          lease_end?: string
+          lease_start?: string
+          monthly_rent?: number
+          property_id?: string
+          room_number?: string | null
+          status?: string | null
+          student_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "rentals_property_id_fkey"
+            columns: ["property_id"]
+            isOneToOne: false
+            referencedRelation: "properties"
+            referencedColumns: ["id"]
+          },
+        ]
       }
     }
     Views: {

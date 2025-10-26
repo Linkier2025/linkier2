@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -9,75 +9,85 @@ import {
   MapPin, 
   Phone, 
   Mail, 
-  User, 
-  Users, 
   Calendar,
   Building,
   Hash,
   ArrowLeft
 } from "lucide-react";
 import { Link } from "react-router-dom";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/hooks/useAuth";
+import { useToast } from "@/hooks/use-toast";
 
-const mockRentals = [
-  {
-    id: 1,
-    propertyTitle: "Cozy Student Apartment",
-    houseNumber: "Block A, Unit 12",
-    location: "Mount Pleasant, Harare",
-    roomNumber: "Room 205",
-    monthlyRent: 4500,
-    leaseStart: "2024-01-15",
-    leaseEnd: "2024-12-15",
-    status: "Active",
-    landlord: {
-      name: "Sarah Johnson",
-      phone: "+263 71 234 5678",
-      email: "sarah.johnson@email.com",
-      avatar: "/placeholder.svg",
-      rating: 4.8
-    },
-    roommate: {
-      name: "Chipo Mukamuri",
-      course: "Computer Science",
-      year: "3rd Year",
-      avatar: "/placeholder.svg"
-    },
-    boardingHouse: {
-      name: "Mount Pleasant Student Lodge",
-      facilities: ["WiFi", "Security", "Parking", "Laundry", "Kitchen"],
-      totalRooms: 48,
-      occupancy: "85%"
-    }
-  },
-  {
-    id: 2,
-    propertyTitle: "Modern Studio Near Campus",
-    houseNumber: "Building C, Studio 8",
-    location: "Avondale, Harare",
-    roomNumber: "Studio 8",
-    monthlyRent: 3800,
-    leaseStart: "2024-02-01",
-    leaseEnd: "2024-11-30",
-    status: "Active",
-    landlord: {
-      name: "Mike Chen",
-      phone: "+263 77 987 6543",
-      email: "mike.chen@email.com",
-      avatar: "/placeholder.svg",
-      rating: 4.5
-    },
-    roommate: null, // Single studio
-    boardingHouse: {
-      name: "Avondale Student Residences",
-      facilities: ["WiFi", "Gym", "Study Room", "24/7 Security"],
-      totalRooms: 24,
-      occupancy: "92%"
-    }
-  }
-];
+interface Rental {
+  id: string;
+  room_number: string | null;
+  lease_start: string;
+  lease_end: string;
+  monthly_rent: number;
+  status: string;
+  properties: {
+    title: string;
+    location: string;
+    house_number: string | null;
+    boarding_house_name: string | null;
+    total_rooms: number | null;
+    occupancy_rate: string | null;
+    amenities: string[] | null;
+  };
+}
 
 export default function Rentals() {
-  const [selectedRental, setSelectedRental] = useState<number | null>(null);
+  const { user } = useAuth();
+  const [rentals, setRentals] = useState<Rental[]>([]);
+  const [loading, setLoading] = useState(true);
+  const { toast } = useToast();
+
+  useEffect(() => {
+    if (user) {
+      fetchRentals();
+    }
+  }, [user]);
+
+  const fetchRentals = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('rentals')
+        .select(`
+          *,
+          properties (
+            title,
+            location,
+            house_number,
+            boarding_house_name,
+            total_rooms,
+            occupancy_rate,
+            amenities
+          )
+        `)
+        .eq('student_id', user?.id)
+        .eq('status', 'active');
+
+      if (error) throw error;
+      setRentals(data || []);
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to load rentals",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-background to-secondary/20 p-4 flex items-center justify-center">
+        <p>Loading rentals...</p>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-background to-secondary/20 p-4">
@@ -92,202 +102,7 @@ export default function Rentals() {
           </Link>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {mockRentals.map((rental) => (
-            <Card key={rental.id} className="overflow-hidden">
-              <CardHeader className="bg-primary/5">
-                <div className="flex items-center justify-between">
-                  <CardTitle className="flex items-center gap-2">
-                    <Home className="h-5 w-5" />
-                    {rental.propertyTitle}
-                  </CardTitle>
-                  <Badge 
-                    variant={rental.status === "Active" ? "default" : "secondary"}
-                  >
-                    {rental.status}
-                  </Badge>
-                </div>
-              </CardHeader>
-
-              <CardContent className="space-y-6 p-6">
-                {/* Property Details */}
-                <div className="space-y-3">
-                  <h3 className="font-semibold text-lg">Property Information</h3>
-                  
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
-                    <div className="flex items-center gap-2">
-                      <Building className="h-4 w-4 text-muted-foreground" />
-                      <span className="text-muted-foreground">House:</span>
-                      <span>{rental.houseNumber}</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <Hash className="h-4 w-4 text-muted-foreground" />
-                      <span className="text-muted-foreground">Room:</span>
-                      <span>{rental.roomNumber}</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <MapPin className="h-4 w-4 text-muted-foreground" />
-                      <span className="text-muted-foreground">Location:</span>
-                      <span>{rental.location}</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <Calendar className="h-4 w-4 text-muted-foreground" />
-                      <span className="text-muted-foreground">Rent:</span>
-                      <span className="font-semibold text-primary">
-                        ${rental.monthlyRent}/month
-                      </span>
-                    </div>
-                  </div>
-                </div>
-
-                <Separator />
-
-                {/* Boarding House Details */}
-                <div className="space-y-3">
-                  <h3 className="font-semibold">Boarding House: {rental.boardingHouse.name}</h3>
-                  
-                  <div className="grid grid-cols-2 gap-3 text-sm">
-                    <div>
-                      <span className="text-muted-foreground">Total Rooms:</span>
-                      <p className="font-medium">{rental.boardingHouse.totalRooms}</p>
-                    </div>
-                    <div>
-                      <span className="text-muted-foreground">Occupancy:</span>
-                      <p className="font-medium">{rental.boardingHouse.occupancy}</p>
-                    </div>
-                  </div>
-
-                  <div>
-                    <p className="text-muted-foreground text-sm mb-2">Facilities:</p>
-                    <div className="flex flex-wrap gap-1">
-                      {rental.boardingHouse.facilities.map((facility) => (
-                        <Badge key={facility} variant="outline" className="text-xs">
-                          {facility}
-                        </Badge>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-
-                <Separator />
-
-                {/* Landlord Information */}
-                <div className="space-y-3">
-                  <h3 className="font-semibold">Landlord Contact</h3>
-                  
-                  <div className="flex items-start gap-3">
-                    <Avatar className="h-12 w-12">
-                      <AvatarImage src={rental.landlord.avatar} />
-                      <AvatarFallback>
-                        {rental.landlord.name.split(' ').map(n => n[0]).join('')}
-                      </AvatarFallback>
-                    </Avatar>
-                    
-                    <div className="flex-1 space-y-2">
-                      <div className="flex items-center gap-2">
-                        <p className="font-medium">{rental.landlord.name}</p>
-                        <Badge variant="secondary" className="text-xs">
-                          ⭐ {rental.landlord.rating}
-                        </Badge>
-                      </div>
-                      
-                      <div className="space-y-1 text-sm">
-                        <div className="flex items-center gap-2">
-                          <Phone className="h-3 w-3 text-muted-foreground" />
-                          <a 
-                            href={`tel:${rental.landlord.phone}`}
-                            className="text-primary hover:underline"
-                          >
-                            {rental.landlord.phone}
-                          </a>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <Mail className="h-3 w-3 text-muted-foreground" />
-                          <a 
-                            href={`mailto:${rental.landlord.email}`}
-                            className="text-primary hover:underline"
-                          >
-                            {rental.landlord.email}
-                          </a>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Roommate Information */}
-                {rental.roommate && (
-                  <>
-                    <Separator />
-                    <div className="space-y-3">
-                      <h3 className="font-semibold">Roommate</h3>
-                      
-                      <div className="flex items-start gap-3">
-                        <Avatar className="h-10 w-10">
-                          <AvatarImage src={rental.roommate.avatar} />
-                          <AvatarFallback>
-                            {rental.roommate.name.split(' ').map(n => n[0]).join('')}
-                          </AvatarFallback>
-                        </Avatar>
-                        
-                        <div className="space-y-1">
-                          <p className="font-medium">{rental.roommate.name}</p>
-                          <div className="text-sm text-muted-foreground">
-                            <p>{rental.roommate.course}</p>
-                            <p>{rental.roommate.year}</p>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </>
-                )}
-
-                {!rental.roommate && (
-                  <>
-                    <Separator />
-                    <div className="text-center text-muted-foreground">
-                      <Users className="h-8 w-8 mx-auto mb-2 opacity-50" />
-                      <p className="text-sm">Single occupancy room</p>
-                    </div>
-                  </>
-                )}
-
-                <Separator />
-
-                {/* Lease Information */}
-                <div className="space-y-2">
-                  <h3 className="font-semibold text-sm">Lease Period</h3>
-                  <div className="grid grid-cols-2 gap-3 text-sm">
-                    <div>
-                      <span className="text-muted-foreground">Start:</span>
-                      <p className="font-medium">
-                        {new Date(rental.leaseStart).toLocaleDateString()}
-                      </p>
-                    </div>
-                    <div>
-                      <span className="text-muted-foreground">End:</span>
-                      <p className="font-medium">
-                        {new Date(rental.leaseEnd).toLocaleDateString()}
-                      </p>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Action Buttons */}
-                <div className="flex gap-2 pt-2">
-                  <Button variant="outline" size="sm" className="flex-1">
-                    Contact Landlord
-                  </Button>
-                  <Button variant="outline" size="sm" className="flex-1">
-                    View Payment History
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
-
-        {mockRentals.length === 0 && (
+        {rentals.length === 0 ? (
           <Card className="text-center py-12">
             <CardContent>
               <Home className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
@@ -300,6 +115,136 @@ export default function Rentals() {
               </Link>
             </CardContent>
           </Card>
+        ) : (
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {rentals.map((rental) => (
+              <Card key={rental.id} className="overflow-hidden">
+                <CardHeader className="bg-primary/5">
+                  <div className="flex items-center justify-between">
+                    <CardTitle className="flex items-center gap-2">
+                      <Home className="h-5 w-5" />
+                      {rental.properties.title}
+                    </CardTitle>
+                    <Badge 
+                      variant={rental.status === "active" ? "default" : "secondary"}
+                    >
+                      {rental.status}
+                    </Badge>
+                  </div>
+                </CardHeader>
+
+                <CardContent className="space-y-6 p-6">
+                  {/* Property Details */}
+                  <div className="space-y-3">
+                    <h3 className="font-semibold text-lg">Property Information</h3>
+                    
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
+                      {rental.properties.house_number && (
+                        <div className="flex items-center gap-2">
+                          <Building className="h-4 w-4 text-muted-foreground" />
+                          <span className="text-muted-foreground">House:</span>
+                          <span>{rental.properties.house_number}</span>
+                        </div>
+                      )}
+                      {rental.room_number && (
+                        <div className="flex items-center gap-2">
+                          <Hash className="h-4 w-4 text-muted-foreground" />
+                          <span className="text-muted-foreground">Room:</span>
+                          <span>{rental.room_number}</span>
+                        </div>
+                      )}
+                      <div className="flex items-center gap-2">
+                        <MapPin className="h-4 w-4 text-muted-foreground" />
+                        <span className="text-muted-foreground">Location:</span>
+                        <span>{rental.properties.location}</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Calendar className="h-4 w-4 text-muted-foreground" />
+                        <span className="text-muted-foreground">Rent:</span>
+                        <span className="font-semibold text-primary">
+                          ${rental.monthly_rent}/month
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {rental.properties.boarding_house_name && (
+                    <>
+                      <Separator />
+                      <div className="space-y-3">
+                        <h3 className="font-semibold">Boarding House: {rental.properties.boarding_house_name}</h3>
+                        
+                        {(rental.properties.total_rooms || rental.properties.occupancy_rate) && (
+                          <div className="grid grid-cols-2 gap-3 text-sm">
+                            {rental.properties.total_rooms && (
+                              <div>
+                                <span className="text-muted-foreground">Total Rooms:</span>
+                                <p className="font-medium">{rental.properties.total_rooms}</p>
+                              </div>
+                            )}
+                            {rental.properties.occupancy_rate && (
+                              <div>
+                                <span className="text-muted-foreground">Occupancy:</span>
+                                <p className="font-medium">{rental.properties.occupancy_rate}</p>
+                              </div>
+                            )}
+                          </div>
+                        )}
+
+                        {rental.properties.amenities && rental.properties.amenities.length > 0 && (
+                          <div>
+                            <p className="text-muted-foreground text-sm mb-2">Facilities:</p>
+                            <div className="flex flex-wrap gap-1">
+                              {rental.properties.amenities.map((facility) => (
+                                <Badge key={facility} variant="outline" className="text-xs">
+                                  {facility}
+                                </Badge>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    </>
+                  )}
+
+                  <Separator />
+
+                  {/* Lease Information */}
+                  <div className="space-y-2">
+                    <h3 className="font-semibold text-sm">Lease Period</h3>
+                    <div className="grid grid-cols-2 gap-3 text-sm">
+                      <div>
+                        <span className="text-muted-foreground">Start:</span>
+                        <p className="font-medium">
+                          {new Date(rental.lease_start).toLocaleDateString()}
+                        </p>
+                      </div>
+                      <div>
+                        <span className="text-muted-foreground">End:</span>
+                        <p className="font-medium">
+                          {new Date(rental.lease_end).toLocaleDateString()}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Action Buttons */}
+                  <div className="flex gap-2 pt-2">
+                    <Link to="/messages" className="flex-1">
+                      <Button variant="outline" size="sm" className="w-full">
+                        Contact Landlord
+                      </Button>
+                    </Link>
+                    <Link to="/rent-tracking" className="flex-1">
+                      <Button variant="outline" size="sm" className="w-full">
+                        View Payment History
+                      </Button>
+                    </Link>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
         )}
       </div>
     </div>
