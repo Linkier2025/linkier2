@@ -26,7 +26,7 @@ const LandlordDashboard = () => {
   };
 
   const menuItems = [
-    { title: "My Property", icon: Home, route: "/properties" },
+    { title: "My Properties", icon: Home, route: "/my-properties" },
     { title: "My Tenants", icon: Users, route: "/tenants" },
     { title: "Rent Tracking", icon: DollarSign, route: "/rent-tracking" },
     { title: "Complaints", icon: AlertCircle, route: "/complaints" },

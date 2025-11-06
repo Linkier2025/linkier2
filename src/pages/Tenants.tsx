@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -7,60 +7,107 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { ArrowLeft, Mail, Phone, Star, User } from "lucide-react";
 import { Link } from "react-router-dom";
 import { toast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/hooks/useAuth";
 
-const mockTenants = [
-  {
-    id: 1,
-    name: "John Doe",
-    email: "john.doe@student.ac.za",
-    phone: "+27 12 345 6789",
-    property: "Cozy Student Apartment",
-    room: "Room 1",
-    moveInDate: "2024-02-01",
-    status: "active",
-    rating: 4.5,
-    avatar: ""
-  },
-  {
-    id: 2,
-    name: "Jane Smith",
-    email: "jane.smith@student.ac.za",
-    phone: "+27 12 345 6790",
-    property: "Modern Studio Near Campus",
-    room: "Studio",
-    moveInDate: "2024-01-15",
-    status: "active",
-    rating: 4.8,
-    avatar: ""
-  },
-  {
-    id: 3,
-    name: "Mike Johnson",
-    email: "mike.johnson@student.ac.za",
-    phone: "+27 12 345 6791",
-    property: "Shared House with Garden",
-    room: "Room 3",
-    moveInDate: "2023-08-01",
-    status: "moved_out",
-    rating: 4.2,
-    avatar: ""
-  }
-];
+interface Tenant {
+  id: string;
+  name: string;
+  email: string;
+  phone: string;
+  property: string;
+  room: string;
+  moveInDate: string;
+  status: string;
+  avatar: string;
+}
 
 export default function Tenants() {
-  const [tenants, setTenants] = useState(mockTenants);
+  const { user } = useAuth();
+  const [tenants, setTenants] = useState<Tenant[]>([]);
+  const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState("all");
 
-  const updateTenantStatus = (tenantId: number, newStatus: string) => {
-    setTenants(prev => prev.map(tenant => 
-      tenant.id === tenantId ? { ...tenant, status: newStatus } : tenant
-    ));
+  useEffect(() => {
+    fetchTenants();
+  }, [user]);
+
+  const fetchTenants = async () => {
+    if (!user) return;
     
-    const statusText = newStatus === 'moved_out' ? 'moved out' : newStatus === 'inactive' ? 'marked as inactive' : newStatus;
-    toast({
-      title: "Tenant status updated",
-      description: `Tenant has been ${statusText}.`,
-    });
+    try {
+      const { data, error } = await supabase
+        .from('rentals')
+        .select(`
+          id,
+          room_number,
+          lease_start,
+          status,
+          student_id,
+          properties (
+            title
+          ),
+          profiles!rentals_student_id_fkey (
+            first_name,
+            surname,
+            email,
+            phone,
+            avatar_url
+          )
+        `)
+        .eq('landlord_id', user.id);
+
+      if (error) throw error;
+
+      const formattedTenants = (data || []).map((rental: any) => ({
+        id: rental.id,
+        name: `${rental.profiles?.first_name || ''} ${rental.profiles?.surname || ''}`.trim() || 'Unknown',
+        email: rental.profiles?.email || '',
+        phone: rental.profiles?.phone || '',
+        property: rental.properties?.title || 'Unknown Property',
+        room: rental.room_number || 'N/A',
+        moveInDate: rental.lease_start || '',
+        status: rental.status || 'active',
+        avatar: rental.profiles?.avatar_url || ''
+      }));
+
+      setTenants(formattedTenants);
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to load tenants",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const updateTenantStatus = async (tenantId: string, newStatus: string) => {
+    try {
+      const { error } = await supabase
+        .from('rentals')
+        .update({ status: newStatus })
+        .eq('id', tenantId);
+
+      if (error) throw error;
+
+      setTenants(prev => prev.map(tenant => 
+        tenant.id === tenantId ? { ...tenant, status: newStatus } : tenant
+      ));
+      
+      const statusText = newStatus === 'moved_out' ? 'moved out' : newStatus === 'inactive' ? 'marked as inactive' : newStatus;
+      toast({
+        title: "Tenant status updated",
+        description: `Tenant has been ${statusText}.`,
+      });
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to update tenant status",
+        variant: "destructive",
+      });
+    }
   };
 
   const filteredTenants = tenants.filter(tenant => {
@@ -80,6 +127,14 @@ export default function Tenants() {
         return <Badge>{status}</Badge>;
     }
   };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-background to-secondary/20 p-4 flex items-center justify-center">
+        <p>Loading tenants...</p>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-background to-secondary/20 p-4">
@@ -126,12 +181,8 @@ export default function Tenants() {
                         <User className="h-4 w-4" />
                       </AvatarFallback>
                     </Avatar>
-                    <div>
+                     <div>
                       <CardTitle className="text-lg">{tenant.name}</CardTitle>
-                      <div className="flex items-center gap-1">
-                        <Star className="h-3 w-3 fill-yellow-400 text-yellow-400" />
-                        <span className="text-sm text-muted-foreground">{tenant.rating}</span>
-                      </div>
                     </div>
                   </div>
                   {getStatusBadge(tenant.status)}

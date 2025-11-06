@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -7,12 +7,17 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
 import { ArrowLeft, Upload, X } from "lucide-react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useParams } from "react-router-dom";
 import { toast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/hooks/useAuth";
 
 export default function AddProperty() {
   const navigate = useNavigate();
+  const { id } = useParams();
+  const { user } = useAuth();
   const [images, setImages] = useState<string[]>([]);
+  const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
     title: "",
     rent: "",
@@ -21,8 +26,54 @@ export default function AddProperty() {
     rooms: "",
     gender: "",
     description: "",
-    amenities: [] as string[]
+    amenities: [] as string[],
+    houseNumber: "",
+    boardingHouseName: "",
+    totalRooms: ""
   });
+
+  useEffect(() => {
+    if (id) {
+      fetchProperty();
+    }
+  }, [id]);
+
+  const fetchProperty = async () => {
+    if (!id) return;
+    
+    try {
+      const { data, error } = await supabase
+        .from('properties')
+        .select('*')
+        .eq('id', id)
+        .single();
+
+      if (error) throw error;
+
+      if (data) {
+        setFormData({
+          title: data.title || "",
+          rent: data.rent_amount?.toString() || "",
+          location: data.location || "",
+          university: data.university || "",
+          rooms: data.rooms?.toString() || "",
+          gender: data.gender_preference || "",
+          description: data.description || "",
+          amenities: data.amenities || [],
+          houseNumber: data.house_number || "",
+          boardingHouseName: data.boarding_house_name || "",
+          totalRooms: data.total_rooms?.toString() || ""
+        });
+        setImages(data.images || []);
+      }
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to load property",
+        variant: "destructive",
+      });
+    }
+  };
 
   const amenitiesList = [
     "WiFi", "Parking", "Security", "Laundry", "Kitchen", "Study Area", 
@@ -53,13 +104,76 @@ export default function AddProperty() {
     }));
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    toast({
-      title: "Property added!",
-      description: "Your property has been successfully listed.",
-    });
-    navigate("/landlord-dashboard");
+    
+    if (!user) {
+      toast({
+        title: "Error",
+        description: "You must be logged in to add a property",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setLoading(true);
+
+    try {
+      const propertyData = {
+        landlord_id: user.id,
+        title: formData.title,
+        rent_amount: parseFloat(formData.rent),
+        location: formData.location,
+        university: formData.university,
+        rooms: parseInt(formData.rooms),
+        gender_preference: formData.gender,
+        description: formData.description,
+        amenities: formData.amenities,
+        images: images,
+        house_number: formData.houseNumber,
+        boarding_house_name: formData.boardingHouseName,
+        total_rooms: formData.totalRooms ? parseInt(formData.totalRooms) : null,
+        status: 'available'
+      };
+
+      if (id) {
+        // Update existing property
+        const { error } = await supabase
+          .from('properties')
+          .update(propertyData)
+          .eq('id', id);
+
+        if (error) throw error;
+
+        toast({
+          title: "Property updated!",
+          description: "Your property has been successfully updated.",
+        });
+      } else {
+        // Insert new property
+        const { error } = await supabase
+          .from('properties')
+          .insert([propertyData]);
+
+        if (error) throw error;
+
+        toast({
+          title: "Property added!",
+          description: "Your property has been successfully listed.",
+        });
+      }
+
+      navigate("/my-properties");
+    } catch (error) {
+      console.error('Error saving property:', error);
+      toast({
+        title: "Error",
+        description: "Failed to save property. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -71,7 +185,7 @@ export default function AddProperty() {
               <ArrowLeft className="h-5 w-5" />
             </Button>
           </Link>
-          <h1 className="text-2xl font-bold">Add New Property</h1>
+          <h1 className="text-2xl font-bold">{id ? 'Edit Property' : 'Add New Property'}</h1>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-6">
@@ -128,6 +242,38 @@ export default function AddProperty() {
                   onChange={(e) => setFormData({...formData, location: e.target.value})}
                   placeholder="e.g. Rondebosch, Cape Town"
                   required
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="houseNumber">House Number</Label>
+                  <Input
+                    id="houseNumber"
+                    value={formData.houseNumber}
+                    onChange={(e) => setFormData({...formData, houseNumber: e.target.value})}
+                    placeholder="e.g. 123"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="boardingHouseName">Boarding House Name</Label>
+                  <Input
+                    id="boardingHouseName"
+                    value={formData.boardingHouseName}
+                    onChange={(e) => setFormData({...formData, boardingHouseName: e.target.value})}
+                    placeholder="e.g. Sunrise Lodge"
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="totalRooms">Total Rooms in Property</Label>
+                <Input
+                  id="totalRooms"
+                  type="number"
+                  value={formData.totalRooms}
+                  onChange={(e) => setFormData({...formData, totalRooms: e.target.value})}
+                  placeholder="Total number of rooms"
                 />
               </div>
 
@@ -245,8 +391,8 @@ export default function AddProperty() {
             </CardContent>
           </Card>
 
-          <Button type="submit" size="lg" className="w-full">
-            Add Property
+          <Button type="submit" size="lg" className="w-full" disabled={loading}>
+            {loading ? 'Saving...' : id ? 'Update Property' : 'Add Property'}
           </Button>
         </form>
       </div>

@@ -27,6 +27,7 @@ import PaymentHistory from "./pages/PaymentHistory";
 import Notifications from "./pages/Notifications";
 import Rentals from "./pages/Rentals";
 import MyRequests from "./pages/MyRequests";
+import MyProperties from "./pages/MyProperties";
 
 const queryClient = new QueryClient();
 
@@ -77,6 +78,16 @@ const App = () => (
             <Route path="/add-property" element={
               <ProtectedRoute userType="landlord">
                 <AddProperty />
+              </ProtectedRoute>
+            } />
+            <Route path="/edit-property/:id" element={
+              <ProtectedRoute userType="landlord">
+                <AddProperty />
+              </ProtectedRoute>
+            } />
+            <Route path="/my-properties" element={
+              <ProtectedRoute userType="landlord">
+                <MyProperties />
               </ProtectedRoute>
             } />
             <Route path="/messages" element={
