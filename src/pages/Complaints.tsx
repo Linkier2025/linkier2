@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -7,77 +7,186 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { ArrowLeft, MessageSquare, Clock, CheckCircle, Plus } from "lucide-react";
+import { ArrowLeft, MessageSquare, Clock, CheckCircle, Plus, Loader2 } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { toast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
+import { supabase } from "@/integrations/supabase/client";
 
 interface Complaint {
-  id: number;
+  id: string;
   title: string;
   description: string;
-  tenant: string;
-  property: string;
+  student_id: string;
+  property_id: string;
   status: "pending" | "in-progress" | "resolved";
-  date: string;
+  created_at: string;
   priority: "low" | "medium" | "high";
+  tenant_name?: string;
+  property_title?: string;
 }
-
-const mockComplaints: Complaint[] = [
-  {
-    id: 1,
-    title: "Leaky Faucet in Kitchen",
-    description: "The kitchen faucet has been dripping constantly for the past week.",
-    tenant: "John Smith",
-    property: "Sunset Apartments - Unit 4B",
-    status: "pending",
-    date: "2024-01-15",
-    priority: "medium"
-  },
-  {
-    id: 2,
-    title: "Heating Not Working",
-    description: "The heating system stopped working yesterday evening.",
-    tenant: "Sarah Johnson",
-    property: "Oak Street House - Room 2",
-    status: "in-progress",
-    date: "2024-01-14",
-    priority: "high"
-  },
-  {
-    id: 3,
-    title: "Noisy Neighbors",
-    description: "Upstairs neighbors are being very loud during late hours.",
-    tenant: "Mike Davis",
-    property: "Pine View Complex - Unit 1A",
-    status: "resolved",
-    date: "2024-01-10",
-    priority: "low"
-  }
-];
 
 export default function Complaints() {
   const navigate = useNavigate();
-  const { profile } = useAuth();
-  const [complaints, setComplaints] = useState(mockComplaints);
+  const { profile, user } = useAuth();
+  const [complaints, setComplaints] = useState<Complaint[]>([]);
   const [filter, setFilter] = useState<"all" | "pending" | "in-progress" | "resolved">("all");
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [selectedProperty, setSelectedProperty] = useState("");
+  const [userProperties, setUserProperties] = useState<any[]>([]);
   const [complaintForm, setComplaintForm] = useState({
     title: "",
     description: "",
     priority: "medium"
   });
 
-  const updateComplaintStatus = (complaintId: number, newStatus: Complaint["status"]) => {
-    setComplaints(complaints.map(complaint =>
-      complaint.id === complaintId
-        ? { ...complaint, status: newStatus }
-        : complaint
-    ));
-    toast({
-      title: "Status updated",
-      description: `Complaint status changed to ${newStatus}.`,
-    });
+  // Fetch user's rentals to get their properties (for students)
+  useEffect(() => {
+    const fetchUserProperties = async () => {
+      if (!user || profile?.user_type !== "student") return;
+
+      const { data, error } = await supabase
+        .from('rentals')
+        .select('property_id, properties(id, title)')
+        .eq('student_id', user.id)
+        .eq('status', 'active');
+
+      if (error) {
+        console.error('Error fetching properties:', error);
+        return;
+      }
+
+      if (data) {
+        setUserProperties(data.map(r => r.properties).filter(Boolean));
+        if (data.length > 0 && data[0].properties) {
+          setSelectedProperty(data[0].properties.id);
+        }
+      }
+    };
+
+    fetchUserProperties();
+  }, [user, profile]);
+
+  // Fetch complaints
+  useEffect(() => {
+    const fetchComplaints = async () => {
+      if (!user) return;
+
+      setLoading(true);
+      try {
+        if (profile?.user_type === "student") {
+          // Fetch student's own complaints with property details
+          const { data, error } = await supabase
+            .from('complaints')
+            .select(`
+              *,
+              properties(title)
+            `)
+            .eq('student_id', user.id)
+            .order('created_at', { ascending: false });
+
+          if (error) throw error;
+
+          const formattedComplaints: Complaint[] = data?.map(c => ({
+            id: c.id,
+            title: c.title,
+            description: c.description,
+            student_id: c.student_id,
+            property_id: c.property_id,
+            status: c.status as "pending" | "in-progress" | "resolved",
+            priority: c.priority as "low" | "medium" | "high",
+            created_at: c.created_at,
+            property_title: (c.properties as any)?.title
+          })) || [];
+
+          setComplaints(formattedComplaints);
+        } else {
+          // Fetch complaints for landlord's properties with student details
+          const { data, error } = await supabase
+            .from('complaints')
+            .select(`
+              *,
+              properties(title, landlord_id)
+            `)
+            .order('created_at', { ascending: false });
+
+          if (error) throw error;
+
+          // For each complaint, fetch the student profile
+          const complaintsWithDetails = await Promise.all(
+            data?.map(async (c) => {
+              const { data: studentProfile } = await supabase
+                .from('profiles')
+                .select('first_name, surname')
+                .eq('user_id', c.student_id)
+                .maybeSingle();
+
+              return {
+                id: c.id,
+                title: c.title,
+                description: c.description,
+                student_id: c.student_id,
+                property_id: c.property_id,
+                status: c.status as "pending" | "in-progress" | "resolved",
+                priority: c.priority as "low" | "medium" | "high",
+                created_at: c.created_at,
+                tenant_name: studentProfile ? `${studentProfile.first_name} ${studentProfile.surname}` : 'Unknown',
+                property_title: (c.properties as any)?.title,
+                landlord_id: (c.properties as any)?.landlord_id
+              };
+            }) || []
+          );
+
+          // Filter only complaints for this landlord's properties
+          const landlordComplaints = complaintsWithDetails.filter(
+            c => c.landlord_id === user.id
+          );
+
+          setComplaints(landlordComplaints);
+        }
+      } catch (error) {
+        console.error('Error fetching complaints:', error);
+        toast({
+          title: "Error",
+          description: "Failed to load complaints",
+          variant: "destructive",
+        });
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchComplaints();
+  }, [user, profile]);
+
+  const updateComplaintStatus = async (complaintId: string, newStatus: Complaint["status"]) => {
+    try {
+      const { error } = await supabase
+        .from('complaints')
+        .update({ status: newStatus })
+        .eq('id', complaintId);
+
+      if (error) throw error;
+
+      setComplaints(complaints.map(complaint =>
+        complaint.id === complaintId
+          ? { ...complaint, status: newStatus }
+          : complaint
+      ));
+      
+      toast({
+        title: "Status updated",
+        description: `Complaint status changed to ${newStatus}.`,
+      });
+    } catch (error) {
+      console.error('Error updating status:', error);
+      toast({
+        title: "Error",
+        description: "Failed to update complaint status",
+        variant: "destructive",
+      });
+    }
   };
 
   const filteredComplaints = complaints.filter(complaint =>
@@ -102,8 +211,8 @@ export default function Complaints() {
     return <Badge variant={variants[priority as keyof typeof variants]}>{priority} priority</Badge>;
   };
 
-  const handleSubmitComplaint = () => {
-    if (!complaintForm.title || !complaintForm.description) {
+  const handleSubmitComplaint = async () => {
+    if (!complaintForm.title || !complaintForm.description || !selectedProperty) {
       toast({
         title: "Missing Information",
         description: "Please fill in all required fields.",
@@ -112,30 +221,66 @@ export default function Complaints() {
       return;
     }
 
-    const newComplaint: Complaint = {
-      id: complaints.length + 1,
-      title: complaintForm.title,
-      description: complaintForm.description,
-      tenant: `${profile?.first_name} ${profile?.surname}`,
-      property: "Apartment 2B - Avondale",
-      status: "pending",
-      date: new Date().toISOString().split('T')[0],
-      priority: complaintForm.priority as "low" | "medium" | "high"
-    };
+    if (!user) return;
 
-    setComplaints([newComplaint, ...complaints]);
-    toast({
-      title: "Complaint Submitted",
-      description: "Your complaint has been submitted successfully.",
-    });
+    try {
+      const { data, error } = await supabase
+        .from('complaints')
+        .insert({
+          student_id: user.id,
+          property_id: selectedProperty,
+          title: complaintForm.title,
+          description: complaintForm.description,
+          priority: complaintForm.priority,
+          status: 'pending'
+        })
+        .select(`
+          *,
+          properties(title)
+        `)
+        .single();
 
-    setComplaintForm({ title: "", description: "", priority: "medium" });
-    setIsDialogOpen(false);
+      if (error) throw error;
+
+      const newComplaint: Complaint = {
+        id: data.id,
+        title: data.title,
+        description: data.description,
+        student_id: data.student_id,
+        property_id: data.property_id,
+        status: data.status as "pending" | "in-progress" | "resolved",
+        priority: data.priority as "low" | "medium" | "high",
+        created_at: data.created_at,
+        property_title: (data.properties as any)?.title
+      };
+
+      setComplaints([newComplaint, ...complaints]);
+      toast({
+        title: "Complaint Submitted",
+        description: "Your complaint has been submitted successfully.",
+      });
+
+      setComplaintForm({ title: "", description: "", priority: "medium" });
+      setIsDialogOpen(false);
+    } catch (error) {
+      console.error('Error submitting complaint:', error);
+      toast({
+        title: "Error",
+        description: "Failed to submit complaint",
+        variant: "destructive",
+      });
+    }
   };
 
   // Student view
   if (profile?.user_type === "student") {
-    const myComplaints = complaints.filter(c => c.tenant === `${profile?.first_name} ${profile?.surname}`);
+    if (loading) {
+      return (
+        <div className="min-h-screen bg-background flex items-center justify-center">
+          <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+        </div>
+      );
+    }
     
     return (
       <div className="min-h-screen bg-background p-4">
@@ -170,6 +315,24 @@ export default function Complaints() {
                       value={complaintForm.title}
                       onChange={(e) => setComplaintForm({ ...complaintForm, title: e.target.value })}
                     />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="property">Property</Label>
+                    <Select
+                      value={selectedProperty}
+                      onValueChange={setSelectedProperty}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select a property" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {userProperties.map((property) => (
+                          <SelectItem key={property.id} value={property.id}>
+                            {property.title}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="description">Description</Label>
@@ -210,19 +373,25 @@ export default function Complaints() {
 
           {/* Complaints List */}
           <div className="grid gap-4">
-            {myComplaints.length === 0 ? (
+            {complaints.length === 0 ? (
               <Card>
                 <CardContent className="text-center py-8">
                   <MessageSquare className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
                   <p className="text-muted-foreground">You haven't submitted any complaints yet.</p>
-                  <Button className="mt-4" onClick={() => setIsDialogOpen(true)}>
-                    <Plus className="h-4 w-4 mr-2" />
-                    Submit Your First Complaint
-                  </Button>
+                  {userProperties.length > 0 ? (
+                    <Button className="mt-4" onClick={() => setIsDialogOpen(true)}>
+                      <Plus className="h-4 w-4 mr-2" />
+                      Submit Your First Complaint
+                    </Button>
+                  ) : (
+                    <p className="text-sm text-muted-foreground mt-2">
+                      You need to have an active rental to submit complaints.
+                    </p>
+                  )}
                 </CardContent>
               </Card>
             ) : (
-              myComplaints.map((complaint) => (
+              complaints.map((complaint) => (
                 <Card key={complaint.id}>
                   <CardHeader>
                     <div className="flex items-start justify-between">
@@ -235,7 +404,7 @@ export default function Complaints() {
                       </div>
                       <div className="text-sm text-muted-foreground">
                         <Clock className="h-4 w-4 inline mr-1" />
-                        {complaint.date}
+                        {new Date(complaint.created_at).toLocaleDateString()}
                       </div>
                     </div>
                   </CardHeader>
@@ -243,7 +412,7 @@ export default function Complaints() {
                     <p className="text-muted-foreground">{complaint.description}</p>
                     
                     <div className="text-sm">
-                      <strong>Property:</strong> {complaint.property}
+                      <strong>Property:</strong> {complaint.property_title || 'Unknown'}
                     </div>
 
                     {complaint.status === "resolved" && (
@@ -263,6 +432,14 @@ export default function Complaints() {
   }
 
   // Landlord view
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-background p-4">
       <div className="max-w-6xl mx-auto space-y-6">
@@ -319,7 +496,7 @@ export default function Complaints() {
                     </div>
                     <div className="text-sm text-muted-foreground">
                       <Clock className="h-4 w-4 inline mr-1" />
-                      {complaint.date}
+                      {new Date(complaint.created_at).toLocaleDateString()}
                     </div>
                   </div>
                 </CardHeader>
@@ -328,10 +505,10 @@ export default function Complaints() {
                   
                   <div className="grid grid-cols-2 gap-4 text-sm">
                     <div>
-                      <strong>Tenant:</strong> {complaint.tenant}
+                      <strong>Tenant:</strong> {complaint.tenant_name || 'Unknown'}
                     </div>
                     <div>
-                      <strong>Property:</strong> {complaint.property}
+                      <strong>Property:</strong> {complaint.property_title || 'Unknown'}
                     </div>
                   </div>
 
