@@ -48,18 +48,20 @@ export default function PropertyDetails() {
 
         if (propertyError) throw propertyError;
 
-        // Fetch landlord profile
+        // Try to fetch landlord profile but don't fail the whole page if not accessible
         const { data: landlordData, error: landlordError } = await supabase
           .from('profiles')
           .select('first_name, surname, phone, email')
           .eq('user_id', propertyData.landlord_id)
-          .single();
+          .maybeSingle();
 
-        if (landlordError) throw landlordError;
+        if (landlordError) {
+          console.warn('Landlord profile not accessible due to RLS or missing data:', landlordError);
+        }
 
         setProperty({
           ...propertyData,
-          landlord: landlordData
+          landlord: landlordData ?? { first_name: '', surname: '', phone: '', email: '' }
         });
       } catch (error) {
         console.error('Error fetching property:', error);
