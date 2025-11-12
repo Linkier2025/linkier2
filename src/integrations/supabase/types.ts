@@ -257,6 +257,95 @@ export type Database = {
         }
         Relationships: []
       }
+      property_viewings: {
+        Row: {
+          created_at: string
+          id: string
+          landlord_id: string
+          landlord_notes: string | null
+          property_id: string
+          requested_at: string
+          scheduled_date: string | null
+          status: string
+          student_id: string
+          student_message: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          landlord_id: string
+          landlord_notes?: string | null
+          property_id: string
+          requested_at?: string
+          scheduled_date?: string | null
+          status?: string
+          student_id: string
+          student_message?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          landlord_id?: string
+          landlord_notes?: string | null
+          property_id?: string
+          requested_at?: string
+          scheduled_date?: string | null
+          status?: string
+          student_id?: string
+          student_message?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "property_viewings_property_id_fkey"
+            columns: ["property_id"]
+            isOneToOne: false
+            referencedRelation: "properties"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      rental_requests: {
+        Row: {
+          created_at: string
+          id: string
+          landlord_id: string
+          landlord_response: string | null
+          property_id: string
+          requested_at: string
+          status: string
+          student_id: string
+          student_message: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          landlord_id: string
+          landlord_response?: string | null
+          property_id: string
+          requested_at?: string
+          status?: string
+          student_id: string
+          student_message?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          landlord_id?: string
+          landlord_response?: string | null
+          property_id?: string
+          requested_at?: string
+          status?: string
+          student_id?: string
+          student_message?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       rentals: {
         Row: {
           created_at: string

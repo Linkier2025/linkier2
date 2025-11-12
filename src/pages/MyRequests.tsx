@@ -1,88 +1,144 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
-import { ArrowLeft, MapPin, X, Clock, CheckCircle, XCircle } from "lucide-react";
+import { ArrowLeft, CheckCircle, XCircle, Clock, MapPin } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/hooks/useAuth";
+import { Skeleton } from "@/components/ui/skeleton";
+import { format } from "date-fns";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 
 interface RentalRequest {
-  id: number;
-  propertyTitle: string;
-  propertyLocation: string;
-  rent: number;
-  requestDate: string;
-  status: 'pending' | 'approved' | 'rejected';
-  landlordName: string;
+  id: string;
+  property_id: string;
+  status: string;
+  requested_at: string;
+  student_message: string | null;
+  landlord_response: string | null;
+  property: {
+    title: string;
+    location: string;
+  };
 }
 
-const mockRequests: RentalRequest[] = [
-  {
-    id: 1,
-    propertyTitle: "Cozy Student Apartment",
-    propertyLocation: "Mount Pleasant, Harare",
-    rent: 4500,
-    requestDate: "2024-01-15",
-    status: 'pending',
-    landlordName: "Sarah Johnson"
-  },
-  {
-    id: 2,
-    propertyTitle: "Modern Shared Housing",
-    propertyLocation: "Avondale, Harare",
-    rent: 3200,
-    requestDate: "2024-01-12",
-    status: 'approved',
-    landlordName: "Mike Peterson"
-  },
-  {
-    id: 3,
-    propertyTitle: "Student Residence",
-    propertyLocation: "Newlands, Harare",
-    rent: 2800,
-    requestDate: "2024-01-10",
-    status: 'rejected',
-    landlordName: "Lisa Wong"
-  }
-];
-
 export default function MyRequests() {
-  const [requests, setRequests] = useState<RentalRequest[]>(mockRequests);
+  const { user } = useAuth();
+  const [requests, setRequests] = useState<RentalRequest[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  const handleCancelRequest = (requestId: number) => {
-    setRequests(prevRequests => prevRequests.filter(request => request.id !== requestId));
-    toast({
-      title: "Request cancelled",
-      description: "Your rental request has been cancelled successfully.",
-    });
+  useEffect(() => {
+    fetchRequests();
+  }, [user]);
+
+  const fetchRequests = async () => {
+    if (!user) return;
+
+    try {
+      const { data: requestsData, error: requestsError } = await supabase
+        .from('rental_requests')
+        .select('*')
+        .eq('student_id', user.id)
+        .order('requested_at', { ascending: false });
+
+      if (requestsError) throw requestsError;
+
+      // Fetch property details
+      const propertyIds = [...new Set(requestsData?.map(r => r.property_id) || [])];
+      const { data: propertiesData } = await supabase
+        .from('properties')
+        .select('id, title, location')
+        .in('id', propertyIds);
+
+      const requestsWithProperties = requestsData?.map(request => ({
+        ...request,
+        property: propertiesData?.find(p => p.id === request.property_id) || { title: '', location: '' }
+      })) || [];
+
+      setRequests(requestsWithProperties);
+    } catch (error) {
+      console.error('Error fetching requests:', error);
+      toast({
+        title: "Error",
+        description: "Failed to load rental requests.",
+        variant: "destructive"
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleCancelRequest = async (requestId: string) => {
+    try {
+      const { error } = await supabase
+        .from('rental_requests')
+        .update({ status: 'cancelled' })
+        .eq('id', requestId);
+
+      if (error) throw error;
+
+      toast({
+        title: "Request cancelled",
+        description: "Your rental request has been cancelled.",
+      });
+      fetchRequests();
+    } catch (error) {
+      console.error('Error cancelling request:', error);
+      toast({
+        title: "Error",
+        description: "Failed to cancel request.",
+        variant: "destructive"
+      });
+    }
   };
 
   const getStatusIcon = (status: string) => {
     switch (status) {
-      case 'pending':
-        return <Clock className="h-4 w-4" />;
-      case 'approved':
-        return <CheckCircle className="h-4 w-4" />;
-      case 'rejected':
-        return <XCircle className="h-4 w-4" />;
+      case "approved":
+        return <CheckCircle className="h-5 w-5 text-green-500" />;
+      case "rejected":
+      case "cancelled":
+        return <XCircle className="h-5 w-5 text-red-500" />;
       default:
-        return <Clock className="h-4 w-4" />;
+        return <Clock className="h-5 w-5 text-yellow-500" />;
     }
   };
 
-  const getStatusVariant = (status: string) => {
+  const getStatusVariant = (status: string): "default" | "secondary" | "destructive" | "outline" => {
     switch (status) {
-      case 'pending':
-        return 'default';
-      case 'approved':
-        return 'secondary';
-      case 'rejected':
-        return 'destructive';
+      case "approved":
+        return "default";
+      case "rejected":
+      case "cancelled":
+        return "destructive";
       default:
-        return 'default';
+        return "secondary";
     }
   };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-background to-secondary/20 p-4">
+        <div className="max-w-4xl mx-auto space-y-6">
+          <Skeleton className="h-12 w-full" />
+          <Skeleton className="h-32 w-full" />
+          <Skeleton className="h-32 w-full" />
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-background to-secondary/20 p-4">
@@ -98,10 +154,13 @@ export default function MyRequests() {
 
         {requests.length === 0 ? (
           <Card>
-            <CardContent className="text-center py-12">
-              <p className="text-muted-foreground">No rental requests yet.</p>
+            <CardContent className="py-12 text-center">
+              <h3 className="text-lg font-semibold mb-2">No rental requests yet</h3>
+              <p className="text-muted-foreground mb-4">
+                Start by browsing properties and requesting to rent ones you like.
+              </p>
               <Link to="/properties">
-                <Button className="mt-4">Browse Properties</Button>
+                <Button>Browse Properties</Button>
               </Link>
             </CardContent>
           </Card>
@@ -109,82 +168,81 @@ export default function MyRequests() {
           <div className="space-y-4">
             {requests.map((request) => (
               <Card key={request.id}>
-                <CardHeader className="pb-3">
+                <CardHeader>
                   <div className="flex justify-between items-start">
                     <div>
-                      <CardTitle className="text-lg">{request.propertyTitle}</CardTitle>
-                      <div className="flex items-center gap-2 mt-1 text-muted-foreground">
+                      <CardTitle>{request.property.title}</CardTitle>
+                      <div className="flex items-center gap-2 mt-2 text-sm text-muted-foreground">
                         <MapPin className="h-4 w-4" />
-                        {request.propertyLocation}
+                        {request.property.location}
                       </div>
                     </div>
-                    <Badge variant={getStatusVariant(request.status)} className="flex items-center gap-1">
-                      {getStatusIcon(request.status)}
-                      {request.status.charAt(0).toUpperCase() + request.status.slice(1)}
+                    <Badge variant={getStatusVariant(request.status)}>
+                      {request.status}
                     </Badge>
                   </div>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                  <div className="grid grid-cols-2 gap-4 text-sm">
-                    <div>
-                      <span className="font-medium">Rent: </span>
-                      ${request.rent.toLocaleString()} USD/month
-                    </div>
-                    <div>
-                      <span className="font-medium">Landlord: </span>
-                      {request.landlordName}
-                    </div>
-                    <div>
-                      <span className="font-medium">Request Date: </span>
-                      {new Date(request.requestDate).toLocaleDateString()}
-                    </div>
+                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                    {getStatusIcon(request.status)}
+                    <span>Requested on {format(new Date(request.requested_at), "PPP")}</span>
                   </div>
 
-                  {request.status === 'pending' && (
-                    <div className="flex justify-end">
-                      <AlertDialog>
-                        <AlertDialogTrigger asChild>
-                          <Button variant="outline" size="sm" className="text-destructive hover:text-destructive">
-                            <X className="h-4 w-4 mr-2" />
-                            Cancel Request
-                          </Button>
-                        </AlertDialogTrigger>
-                        <AlertDialogContent>
-                          <AlertDialogHeader>
-                            <AlertDialogTitle>Cancel Rental Request</AlertDialogTitle>
-                            <AlertDialogDescription>
-                              Are you sure you want to cancel your request for "{request.propertyTitle}"? 
-                              This action cannot be undone.
-                            </AlertDialogDescription>
-                          </AlertDialogHeader>
-                          <AlertDialogFooter>
-                            <AlertDialogCancel>Keep Request</AlertDialogCancel>
-                            <AlertDialogAction 
-                              onClick={() => handleCancelRequest(request.id)}
-                              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                            >
-                              Cancel Request
-                            </AlertDialogAction>
-                          </AlertDialogFooter>
-                        </AlertDialogContent>
-                      </AlertDialog>
+                  {request.student_message && (
+                    <div>
+                      <p className="text-sm font-medium mb-1">Your message:</p>
+                      <p className="text-sm text-muted-foreground">{request.student_message}</p>
                     </div>
                   )}
 
-                  {request.status === 'approved' && (
-                    <div className="bg-secondary/50 p-3 rounded-lg">
-                      <p className="text-sm text-foreground">
-                        Great news! Your request has been approved. The landlord will contact you soon to discuss the next steps.
+                  {request.status === "approved" && (
+                    <div className="bg-green-50 dark:bg-green-950 border border-green-200 dark:border-green-800 rounded-lg p-4 mb-4">
+                      <p className="text-sm text-green-800 dark:text-green-200 font-medium mb-1">
+                        Your request has been approved!
                       </p>
+                      {request.landlord_response && (
+                        <p className="text-sm text-green-700 dark:text-green-300">
+                          {request.landlord_response}
+                        </p>
+                      )}
                     </div>
                   )}
 
-                  {request.status === 'rejected' && (
-                    <div className="bg-destructive/10 p-3 rounded-lg">
-                      <p className="text-sm text-foreground">
-                        Unfortunately, your request was not approved. You can browse other properties or try again later.
+                  {request.status === "rejected" && (
+                    <div className="bg-red-50 dark:bg-red-950 border border-red-200 dark:border-red-800 rounded-lg p-4 mb-4">
+                      <p className="text-sm text-red-800 dark:text-red-200 font-medium mb-1">
+                        Request was not approved
                       </p>
+                      {request.landlord_response && (
+                        <p className="text-sm text-red-700 dark:text-red-300">
+                          {request.landlord_response}
+                        </p>
+                      )}
                     </div>
+                  )}
+
+                  {request.status === "pending" && (
+                    <AlertDialog>
+                      <AlertDialogTrigger asChild>
+                        <Button variant="outline" size="sm">
+                          Cancel Request
+                        </Button>
+                      </AlertDialogTrigger>
+                      <AlertDialogContent>
+                        <AlertDialogHeader>
+                          <AlertDialogTitle>Cancel this request?</AlertDialogTitle>
+                          <AlertDialogDescription>
+                            Are you sure you want to cancel this rental request? This action cannot be undone.
+                          </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                          <AlertDialogCancel>No, keep it</AlertDialogCancel>
+                          <AlertDialogAction onClick={() => handleCancelRequest(request.id)}>
+                            Yes, cancel
+                          </AlertDialogAction>
+                        </AlertDialogFooter>
+                      </AlertDialogContent>
+                    </AlertDialog>
                   )}
                 </CardContent>
               </Card>

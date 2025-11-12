@@ -3,11 +3,12 @@ import { useParams, Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { ArrowLeft, MapPin, Users, Star, Phone, Mail, Heart, Calendar } from "lucide-react";
+import { ArrowLeft, MapPin, Users, Star, Phone, Mail, Heart, Calendar, Home } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { useAuth } from "@/hooks/useAuth";
 
@@ -44,6 +45,9 @@ export default function PropertyDetails() {
   const [viewingDialogOpen, setViewingDialogOpen] = useState(false);
   const [viewingMessage, setViewingMessage] = useState("");
   const [submittingViewing, setSubmittingViewing] = useState(false);
+  const [rentalDialogOpen, setRentalDialogOpen] = useState(false);
+  const [rentalMessage, setRentalMessage] = useState("");
+  const [submittingRental, setSubmittingRental] = useState(false);
 
   useEffect(() => {
     const fetchProperty = async () => {
@@ -120,6 +124,41 @@ export default function PropertyDetails() {
       });
     } finally {
       setSubmittingViewing(false);
+    }
+  };
+
+  const handleRequestRental = async () => {
+    if (!user || !property) return;
+
+    setSubmittingRental(true);
+    try {
+      const { error } = await supabase
+        .from('rental_requests')
+        .insert({
+          property_id: id,
+          student_id: user.id,
+          landlord_id: property.landlord_id,
+          student_message: rentalMessage || null,
+          status: 'pending'
+        });
+
+      if (error) throw error;
+
+      toast({
+        title: "Rental request sent!",
+        description: "The landlord will review your request soon.",
+      });
+      setRentalDialogOpen(false);
+      setRentalMessage("");
+    } catch (error) {
+      console.error('Error requesting rental:', error);
+      toast({
+        title: "Error",
+        description: "Failed to send rental request. Please try again.",
+        variant: "destructive"
+      });
+    } finally {
+      setSubmittingRental(false);
     }
   };
 
@@ -313,15 +352,21 @@ export default function PropertyDetails() {
           </CardContent>
         </Card>
 
-        {/* Action Button */}
+        {/* Action Buttons */}
         <div className="sticky bottom-4">
-          <Dialog open={viewingDialogOpen} onOpenChange={setViewingDialogOpen}>
-            <DialogTrigger asChild>
-              <Button size="lg" className="w-full shadow-lg">
-                <Calendar className="mr-2 h-5 w-5" />
-                Request Property Viewing
-              </Button>
-            </DialogTrigger>
+          <div className="flex gap-4">
+            <Button size="lg" className="flex-1" onClick={() => setRentalDialogOpen(true)}>
+              <Home className="mr-2 h-5 w-5" />
+              Request to Rent
+            </Button>
+            
+            <Dialog open={viewingDialogOpen} onOpenChange={setViewingDialogOpen}>
+              <DialogTrigger asChild>
+                <Button size="lg" variant="outline" className="flex-1">
+                  <Calendar className="mr-2 h-5 w-5" />
+                  Request Viewing
+                </Button>
+              </DialogTrigger>
             <DialogContent>
               <DialogHeader>
                 <DialogTitle>Request a Property Viewing</DialogTitle>
@@ -346,8 +391,37 @@ export default function PropertyDetails() {
                   {submittingViewing ? "Sending..." : "Send Viewing Request"}
                 </Button>
               </div>
-            </DialogContent>
-          </Dialog>
+              </DialogContent>
+            </Dialog>
+
+            {/* Rental Request Dialog */}
+            <Dialog open={rentalDialogOpen} onOpenChange={setRentalDialogOpen}>
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle>Request to Rent Property</DialogTitle>
+                </DialogHeader>
+                <div className="space-y-4 pt-4">
+                  <div>
+                    <Label htmlFor="rental-message">Message to Landlord (optional)</Label>
+                    <Textarea
+                      id="rental-message"
+                      placeholder="Tell the landlord about yourself and why you're interested..."
+                      value={rentalMessage}
+                      onChange={(e) => setRentalMessage(e.target.value)}
+                      rows={4}
+                    />
+                  </div>
+                  <Button 
+                    onClick={handleRequestRental} 
+                    className="w-full"
+                    disabled={submittingRental}
+                  >
+                    {submittingRental ? "Sending..." : "Send Rental Request"}
+                  </Button>
+                </div>
+              </DialogContent>
+            </Dialog>
+          </div>
         </div>
       </div>
     </div>
