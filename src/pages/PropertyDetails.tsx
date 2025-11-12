@@ -3,10 +3,13 @@ import { useParams, Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { ArrowLeft, MapPin, Users, Star, Phone, Mail, Heart } from "lucide-react";
+import { ArrowLeft, MapPin, Users, Star, Phone, Mail, Heart, Calendar } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Textarea } from "@/components/ui/textarea";
+import { useAuth } from "@/hooks/useAuth";
 
 interface PropertyData {
   id: string;
@@ -32,10 +35,14 @@ interface PropertyData {
 
 export default function PropertyDetails() {
   const { id } = useParams();
+  const { user } = useAuth();
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [isFavorite, setIsFavorite] = useState(false);
   const [property, setProperty] = useState<PropertyData | null>(null);
   const [loading, setLoading] = useState(true);
+  const [viewingDialogOpen, setViewingDialogOpen] = useState(false);
+  const [viewingMessage, setViewingMessage] = useState("");
+  const [submittingViewing, setSubmittingViewing] = useState(false);
 
   useEffect(() => {
     const fetchProperty = async () => {
@@ -80,11 +87,39 @@ export default function PropertyDetails() {
     }
   }, [id]);
 
-  const handleRequestToRent = () => {
-    toast({
-      title: "Request sent!",
-      description: "Your rental request has been sent to the landlord.",
-    });
+  const handleRequestViewing = async () => {
+    if (!user || !property) return;
+    
+    setSubmittingViewing(true);
+    try {
+      const { error } = await supabase
+        .from('property_viewings')
+        .insert({
+          property_id: id,
+          student_id: user.id,
+          landlord_id: property.landlord_id,
+          student_message: viewingMessage,
+          status: 'pending'
+        });
+
+      if (error) throw error;
+
+      toast({
+        title: "Viewing request sent!",
+        description: "The landlord will review your request and schedule a viewing.",
+      });
+      setViewingDialogOpen(false);
+      setViewingMessage("");
+    } catch (error) {
+      console.error('Error submitting viewing request:', error);
+      toast({
+        title: "Error",
+        description: "Failed to send viewing request. Please try again.",
+        variant: "destructive"
+      });
+    } finally {
+      setSubmittingViewing(false);
+    }
   };
 
   const toggleFavorite = () => {
@@ -279,9 +314,39 @@ export default function PropertyDetails() {
 
         {/* Action Button */}
         <div className="sticky bottom-4">
-          <Button onClick={handleRequestToRent} size="lg" className="w-full shadow-lg">
-            Request to Rent This Property
-          </Button>
+          <Dialog open={viewingDialogOpen} onOpenChange={setViewingDialogOpen}>
+            <DialogTrigger asChild>
+              <Button size="lg" className="w-full shadow-lg">
+                <Calendar className="mr-2 h-5 w-5" />
+                Request Property Viewing
+              </Button>
+            </DialogTrigger>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Request a Property Viewing</DialogTitle>
+              </DialogHeader>
+              <div className="space-y-4 pt-4">
+                <div>
+                  <p className="text-sm text-muted-foreground mb-2">
+                    Send a message to the landlord with your viewing request:
+                  </p>
+                  <Textarea
+                    placeholder="Let the landlord know when you'd like to view the property..."
+                    value={viewingMessage}
+                    onChange={(e) => setViewingMessage(e.target.value)}
+                    rows={4}
+                  />
+                </div>
+                <Button 
+                  onClick={handleRequestViewing} 
+                  className="w-full"
+                  disabled={submittingViewing}
+                >
+                  {submittingViewing ? "Sending..." : "Send Viewing Request"}
+                </Button>
+              </div>
+            </DialogContent>
+          </Dialog>
         </div>
       </div>
     </div>
