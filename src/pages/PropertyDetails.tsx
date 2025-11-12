@@ -25,6 +25,7 @@ interface PropertyData {
   amenities: string[];
   house_number: string;
   boarding_house_name: string;
+  landlord_id: string;
   landlord: {
     first_name: string;
     surname: string;
