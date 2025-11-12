@@ -28,6 +28,7 @@ import Notifications from "./pages/Notifications";
 import Rentals from "./pages/Rentals";
 import MyRequests from "./pages/MyRequests";
 import MyProperties from "./pages/MyProperties";
+import ViewingRequests from "./pages/ViewingRequests";
 
 const queryClient = new QueryClient();
 
@@ -128,6 +129,11 @@ const App = () => (
             <Route path="/my-requests" element={
               <ProtectedRoute userType="student">
                 <MyRequests />
+              </ProtectedRoute>
+            } />
+            <Route path="/viewing-requests" element={
+              <ProtectedRoute>
+                <ViewingRequests />
               </ProtectedRoute>
             } />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
