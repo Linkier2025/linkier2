@@ -1,146 +1,128 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Separator } from "@/components/ui/separator";
-import { ArrowLeft, Clock, Home, MessageSquare, UserPlus } from "lucide-react";
+import { ArrowLeft, Clock, Home, MessageSquare, Calendar, DollarSign } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
+import { formatDistanceToNow } from "date-fns";
 
 interface Notification {
   id: string;
-  type: "rental_request" | "message" | "booking" | "payment";
+  type: string;
   title: string;
   description: string;
-  time: string;
-  isRead: boolean;
-  studentName?: string;
-  propertyAddress?: string;
-  amount?: string;
+  created_at: string;
+  read: boolean;
+  related_id: string | null;
+  related_type: string | null;
 }
 
 const Notifications = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
+  const [notifications, setNotifications] = useState<Notification[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  const [notifications, setNotifications] = useState<Notification[]>([
-    {
-      id: "1",
-      type: "rental_request",
-      title: "New Rental Request",
-      description: "Tinashe Mukamuri wants to rent your 2-bedroom apartment at Avondale Heights",
-      time: "2 hours ago",
-      isRead: false,
-      studentName: "Tinashe Mukamuri",
-      propertyAddress: "Avondale Heights, 2-bedroom apartment",
-    },
-    {
-      id: "2",
-      type: "rental_request",
-      title: "New Rental Request",
-      description: "Chipo Nyamande is interested in your studio apartment at Borrowdale",
-      time: "5 hours ago",
-      isRead: false,
-      studentName: "Chipo Nyamande",
-      propertyAddress: "Borrowdale, Studio apartment",
-    },
-    {
-      id: "3",
-      type: "message",
-      title: "New Message",
-      description: "Farai Mangwende sent you a message about property viewing",
-      time: "1 day ago",
-      isRead: true,
-      studentName: "Farai Mangwende",
-    },
-    {
-      id: "4",
-      type: "rental_request",
-      title: "New Rental Request",
-      description: "Tafadzwa Moyo wants to rent your 3-bedroom house at Mount Pleasant",
-      time: "2 days ago",
-      isRead: true,
-      studentName: "Tafadzwa Moyo",
-      propertyAddress: "Mount Pleasant, 3-bedroom house",
-    },
-    {
-      id: "5",
-      type: "payment",
-      title: "Payment Reminder",
-      description: "Rent payment due for Property ID: P001",
-      time: "3 days ago",
-      isRead: true,
-      amount: "$450",
-    },
-    {
-      id: "6",
-      type: "booking",
-      title: "Property Viewing Scheduled",
-      description: "Kudakwashe Sithole scheduled a viewing for tomorrow 2:00 PM",
-      time: "1 week ago",
-      isRead: true,
-      studentName: "Kudakwashe Sithole",
-    },
-  ]);
+  useEffect(() => {
+    fetchNotifications();
+  }, []);
 
-  const handleAcceptRequest = (notificationId: string, studentName: string) => {
-    toast({
-      title: "Request Accepted",
-      description: `You accepted ${studentName}'s rental request`,
-    });
-    markAsRead(notificationId);
+  const fetchNotifications = async () => {
+    try {
+      const { data, error } = await supabase
+        .from("notifications")
+        .select("*")
+        .order("created_at", { ascending: false });
+
+      if (error) throw error;
+      setNotifications(data || []);
+    } catch (error) {
+      console.error("Error fetching notifications:", error);
+      toast({
+        title: "Error",
+        description: "Failed to load notifications",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const handleDeclineRequest = (notificationId: string, studentName: string) => {
-    toast({
-      title: "Request Declined",
-      description: `You declined ${studentName}'s rental request`,
-    });
-    markAsRead(notificationId);
+  const markAsRead = async (notificationId: string) => {
+    try {
+      const { error } = await supabase
+        .from("notifications")
+        .update({ read: true })
+        .eq("id", notificationId);
+
+      if (error) throw error;
+
+      setNotifications(prev =>
+        prev.map(notification =>
+          notification.id === notificationId
+            ? { ...notification, read: true }
+            : notification
+        )
+      );
+    } catch (error) {
+      console.error("Error marking notification as read:", error);
+    }
   };
 
-  const markAsRead = (notificationId: string) => {
-    setNotifications(prev =>
-      prev.map(notification =>
-        notification.id === notificationId
-          ? { ...notification, isRead: true }
-          : notification
-      )
-    );
+  const handleNotificationClick = async (notification: Notification) => {
+    await markAsRead(notification.id);
+
+    // Navigate based on notification type
+    if (notification.related_type === "rental_request") {
+      navigate("/landlord-requests");
+    } else if (notification.related_type === "viewing_request") {
+      navigate("/viewing-requests");
+    } else if (notification.related_type === "message") {
+      navigate("/messages");
+    }
   };
 
   const getNotificationIcon = (type: string) => {
     switch (type) {
       case "rental_request":
+      case "rental_response":
         return <Home className="h-5 w-5 text-primary" />;
       case "message":
         return <MessageSquare className="h-5 w-5 text-blue-600" />;
-      case "booking":
-        return <Clock className="h-5 w-5 text-orange-600" />;
+      case "viewing_request":
+      case "viewing_response":
+        return <Calendar className="h-5 w-5 text-orange-600" />;
       case "payment":
-        return <UserPlus className="h-5 w-5 text-green-600" />;
+        return <DollarSign className="h-5 w-5 text-green-600" />;
       default:
         return <Clock className="h-5 w-5 text-muted-foreground" />;
     }
   };
 
-  const getNotificationBadgeVariant = (type: string) => {
-    switch (type) {
-      case "rental_request":
-        return "default";
-      case "message":
-        return "secondary";
-      case "booking":
-        return "outline";
-      case "payment":
-        return "destructive";
-      default:
-        return "outline";
-    }
+  const getNotificationBadgeVariant = (read: boolean) => {
+    return read ? "secondary" : "default";
   };
 
-  const unreadCount = notifications.filter(n => !n.isRead).length;
+  const unreadCount = notifications.filter(n => !n.read).length;
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-background p-4">
+        <div className="max-w-4xl mx-auto">
+          <div className="flex items-center gap-4 mb-6">
+            <Button variant="ghost" size="icon" onClick={() => navigate(-1)}>
+              <ArrowLeft className="h-5 w-5" />
+            </Button>
+            <h1 className="text-2xl font-bold">Notifications</h1>
+          </div>
+          <p className="text-center text-muted-foreground">Loading notifications...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-background">
@@ -150,128 +132,73 @@ const Notifications = () => {
           <Button
             variant="outline"
             size="icon"
-            onClick={() => navigate("/landlord-dashboard")}
+            onClick={() => navigate(-1)}
+            className="shrink-0"
           >
-            <ArrowLeft className="h-4 w-4" />
+            <ArrowLeft className="h-5 w-5" />
           </Button>
-          <div>
-            <h1 className="text-3xl font-bold">Notifications</h1>
-            {unreadCount > 0 && (
-              <p className="text-muted-foreground">
-                You have {unreadCount} unread notification{unreadCount !== 1 ? 's' : ''}
-              </p>
-            )}
-          </div>
+          <h1 className="text-3xl font-bold">Notifications</h1>
+          {unreadCount > 0 && (
+            <Badge variant="default" className="ml-auto">
+              {unreadCount} New
+            </Badge>
+          )}
         </div>
+
+        <Separator className="mb-6" />
 
         {/* Notifications List */}
         <div className="space-y-4">
-          {notifications.map((notification) => (
-            <Card 
-              key={notification.id} 
-              className={`transition-all hover:shadow-md ${
-                !notification.isRead ? 'border-primary/50 bg-primary/5' : ''
-              }`}
-            >
-              <CardHeader className="pb-3">
-                <div className="flex items-start justify-between">
-                  <div className="flex items-start gap-3">
-                    <div className="mt-1">
+          {notifications.length === 0 ? (
+            <Card>
+              <CardContent className="p-8 text-center">
+                <p className="text-muted-foreground">No notifications yet</p>
+              </CardContent>
+            </Card>
+          ) : (
+            notifications.map((notification) => (
+              <Card
+                key={notification.id}
+                className={`transition-all cursor-pointer hover:shadow-md ${
+                  !notification.read ? "bg-primary/5 border-primary/20" : ""
+                }`}
+                onClick={() => handleNotificationClick(notification)}
+              >
+                <CardContent className="p-6">
+                  <div className="flex items-start gap-4">
+                    <div className="flex-shrink-0 mt-1">
                       {getNotificationIcon(notification.type)}
                     </div>
-                    <div className="flex-1">
-                      <div className="flex items-center gap-2 mb-1">
-                        <CardTitle className="text-lg">{notification.title}</CardTitle>
-                        {!notification.isRead && (
-                          <div className="w-2 h-2 rounded-full bg-primary" />
-                        )}
+
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-start justify-between gap-4 mb-2">
+                        <h3 className="font-semibold text-lg">
+                          {notification.title}
+                        </h3>
+                        <Badge variant={getNotificationBadgeVariant(notification.read)}>
+                          {notification.read ? "Read" : "New"}
+                        </Badge>
                       </div>
-                      <Badge variant={getNotificationBadgeVariant(notification.type)} className="mb-2">
-                        {notification.type.replace('_', ' ').toUpperCase()}
-                      </Badge>
+
+                      <p className="text-muted-foreground mb-3">
+                        {notification.description}
+                      </p>
+
+                      <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                        <Clock className="h-4 w-4" />
+                        <span>
+                          {formatDistanceToNow(new Date(notification.created_at), {
+                            addSuffix: true,
+                          })}
+                        </span>
+                      </div>
                     </div>
                   </div>
-                  <span className="text-sm text-muted-foreground">{notification.time}</span>
-                </div>
-              </CardHeader>
-              
-              <CardContent className="pt-0">
-                <p className="text-muted-foreground mb-4">{notification.description}</p>
-                
-                {notification.studentName && (
-                  <div className="flex items-center gap-3 mb-4">
-                    <Avatar className="h-8 w-8">
-                      <AvatarFallback>
-                        {notification.studentName.split(' ').map(n => n[0]).join('')}
-                      </AvatarFallback>
-                    </Avatar>
-                    <span className="font-medium">{notification.studentName}</span>
-                  </div>
-                )}
-
-                {notification.propertyAddress && (
-                  <div className="text-sm text-muted-foreground mb-4">
-                    <strong>Property:</strong> {notification.propertyAddress}
-                  </div>
-                )}
-
-                {notification.amount && (
-                  <div className="text-sm text-muted-foreground mb-4">
-                    <strong>Amount:</strong> {notification.amount}
-                  </div>
-                )}
-
-                {notification.type === "rental_request" && !notification.isRead && (
-                  <div className="flex gap-2">
-                    <Button 
-                      size="sm"
-                      onClick={() => handleAcceptRequest(notification.id, notification.studentName!)}
-                    >
-                      Accept Request
-                    </Button>
-                    <Button 
-                      variant="outline" 
-                      size="sm"
-                      onClick={() => handleDeclineRequest(notification.id, notification.studentName!)}
-                    >
-                      Decline
-                    </Button>
-                  </div>
-                )}
-
-                {notification.type === "message" && (
-                  <Button 
-                    variant="outline" 
-                    size="sm"
-                    onClick={() => navigate("/messages")}
-                  >
-                    View Message
-                  </Button>
-                )}
-
-                {notification.isRead && notification.type === "rental_request" && (
-                  <Badge variant="secondary">Processed</Badge>
-                )}
-              </CardContent>
-
-              {notification.id !== notifications[notifications.length - 1].id && (
-                <Separator className="mx-6" />
-              )}
-            </Card>
-          ))}
+                </CardContent>
+              </Card>
+            ))
+          )}
         </div>
-
-        {notifications.length === 0 && (
-          <Card className="text-center py-12">
-            <CardContent>
-              <Clock className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-              <h3 className="text-lg font-semibold mb-2">No notifications yet</h3>
-              <p className="text-muted-foreground">
-                You'll see rental requests and messages from students here
-              </p>
-            </CardContent>
-          </Card>
-        )}
       </div>
     </div>
   );
