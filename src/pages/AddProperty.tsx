@@ -6,11 +6,16 @@ import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
-import { ArrowLeft, Upload, X } from "lucide-react";
+import { ArrowLeft, Upload, X, Plus } from "lucide-react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { toast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
+
+type RoomConfiguration = {
+  room_number: string;
+  capacity: number;
+};
 
 export default function AddProperty() {
   const navigate = useNavigate();
@@ -18,6 +23,9 @@ export default function AddProperty() {
   const { user } = useAuth();
   const [images, setImages] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
+  const [roomConfigurations, setRoomConfigurations] = useState<RoomConfiguration[]>([
+    { room_number: "1", capacity: 1 }
+  ]);
   const [formData, setFormData] = useState({
     title: "",
     rent: "",
@@ -65,6 +73,9 @@ export default function AddProperty() {
           totalRooms: data.total_rooms?.toString() || ""
         });
         setImages(data.images || []);
+        if (data.room_configurations && Array.isArray(data.room_configurations) && data.room_configurations.length > 0) {
+          setRoomConfigurations(data.room_configurations as RoomConfiguration[]);
+        }
       }
     } catch (error) {
       toast({
@@ -104,6 +115,25 @@ export default function AddProperty() {
     }));
   };
 
+  const addRoomConfiguration = () => {
+    setRoomConfigurations(prev => [
+      ...prev,
+      { room_number: (prev.length + 1).toString(), capacity: 1 }
+    ]);
+  };
+
+  const removeRoomConfiguration = (index: number) => {
+    if (roomConfigurations.length > 1) {
+      setRoomConfigurations(prev => prev.filter((_, i) => i !== index));
+    }
+  };
+
+  const updateRoomConfiguration = (index: number, field: keyof RoomConfiguration, value: string | number) => {
+    setRoomConfigurations(prev => prev.map((config, i) => 
+      i === index ? { ...config, [field]: value } : config
+    ));
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
@@ -133,6 +163,7 @@ export default function AddProperty() {
         house_number: formData.houseNumber,
         boarding_house_name: formData.boardingHouseName,
         total_rooms: formData.totalRooms ? parseInt(formData.totalRooms) : null,
+        room_configurations: roomConfigurations,
         status: 'available'
       };
 
@@ -276,6 +307,79 @@ export default function AddProperty() {
                   placeholder="Total number of rooms"
                 />
               </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle>Room Configurations</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <p className="text-sm text-muted-foreground">
+                Specify how many students can occupy each room. You can add multiple configurations if rooms have different capacities.
+              </p>
+              
+              {roomConfigurations.map((config, index) => (
+                <div key={index} className="flex gap-4 items-end">
+                  <div className="flex-1 space-y-2">
+                    <Label htmlFor={`room-${index}`}>Room Number/Name</Label>
+                    <Input
+                      id={`room-${index}`}
+                      value={config.room_number}
+                      onChange={(e) => updateRoomConfiguration(index, 'room_number', e.target.value)}
+                      placeholder="e.g. Room 1 or A1"
+                      required
+                    />
+                  </div>
+                  <div className="flex-1 space-y-2">
+                    <Label htmlFor={`capacity-${index}`}>Students Per Room</Label>
+                    <Select 
+                      value={config.capacity.toString()} 
+                      onValueChange={(value) => updateRoomConfiguration(index, 'capacity', parseInt(value))}
+                    >
+                      <SelectTrigger id={`capacity-${index}`}>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="1">1 Student</SelectItem>
+                        <SelectItem value="2">2 Students</SelectItem>
+                        <SelectItem value="3">3 Students</SelectItem>
+                        <SelectItem value="4">4 Students</SelectItem>
+                        <SelectItem value="5">5 Students</SelectItem>
+                        <SelectItem value="6">6 Students</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  {roomConfigurations.length > 1 && (
+                    <Button
+                      type="button"
+                      variant="destructive"
+                      size="icon"
+                      onClick={() => removeRoomConfiguration(index)}
+                    >
+                      <X className="h-4 w-4" />
+                    </Button>
+                  )}
+                </div>
+              ))}
+              
+              <Button
+                type="button"
+                variant="outline"
+                onClick={addRoomConfiguration}
+                className="w-full"
+              >
+                <Plus className="h-4 w-4 mr-2" />
+                Add Another Room Configuration
+              </Button>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle>Additional Information</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
 
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">

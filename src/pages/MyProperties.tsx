@@ -29,6 +29,7 @@ interface Property {
   status: string;
   images: string[] | null;
   amenities: string[] | null;
+  room_configurations?: Array<{ room_number: string; capacity: number }>;
 }
 
 export default function MyProperties() {
@@ -54,7 +55,14 @@ export default function MyProperties() {
         .order('created_at', { ascending: false });
 
       if (error) throw error;
-      setProperties(data || []);
+      
+      // Type cast room_configurations properly
+      const typedProperties = (data || []).map(property => ({
+        ...property,
+        room_configurations: property.room_configurations as Array<{ room_number: string; capacity: number }> | undefined
+      }));
+      
+      setProperties(typedProperties);
     } catch (error) {
       toast({
         title: "Error",
@@ -155,6 +163,19 @@ export default function MyProperties() {
                     <p>{property.location}</p>
                     <p>{property.rooms} rooms • {property.gender_preference || 'Mixed'}</p>
                   </div>
+
+                  {property.room_configurations && property.room_configurations.length > 0 && (
+                    <div className="space-y-1">
+                      <p className="text-xs font-medium text-foreground">Room Capacity:</p>
+                      <div className="flex flex-wrap gap-1">
+                        {property.room_configurations.map((config, idx) => (
+                          <Badge key={idx} variant="outline" className="text-xs">
+                            Room {config.room_number}: {config.capacity} {config.capacity === 1 ? 'student' : 'students'}
+                          </Badge>
+                        ))}
+                      </div>
+                    </div>
+                  )}
 
                   {property.amenities && property.amenities.length > 0 && (
                     <div className="flex flex-wrap gap-1">
