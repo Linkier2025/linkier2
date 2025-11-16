@@ -245,6 +245,7 @@ export type Database = {
           occupancy_rate: string | null
           rating: number | null
           rent_amount: number
+          room_configurations: Json | null
           rooms: number
           status: string | null
           title: string
@@ -266,6 +267,7 @@ export type Database = {
           occupancy_rate?: string | null
           rating?: number | null
           rent_amount: number
+          room_configurations?: Json | null
           rooms: number
           status?: string | null
           title: string
@@ -287,6 +289,7 @@ export type Database = {
           occupancy_rate?: string | null
           rating?: number | null
           rent_amount?: number
+          room_configurations?: Json | null
           rooms?: number
           status?: string | null
           title?: string
