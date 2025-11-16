@@ -27,6 +27,7 @@ interface PropertyData {
   house_number: string;
   boarding_house_name: string;
   landlord_id: string;
+  room_configurations?: Array<{ room_number: string; capacity: number }>;
   landlord: {
     first_name: string;
     surname: string;
@@ -73,6 +74,7 @@ export default function PropertyDetails() {
 
         setProperty({
           ...propertyData,
+          room_configurations: propertyData.room_configurations as Array<{ room_number: string; capacity: number }> | undefined,
           landlord: landlordData ?? { first_name: '', surname: '', phone: '', email: '' }
         });
       } catch (error) {
@@ -294,6 +296,22 @@ export default function PropertyDetails() {
                 {property.university || "Not specified"}
               </div>
             </div>
+
+            {property.room_configurations && property.room_configurations.length > 0 && (
+              <div>
+                <h3 className="font-semibold mb-2 flex items-center gap-2">
+                  <Home className="h-4 w-4" />
+                  Room Capacity
+                </h3>
+                <div className="flex flex-wrap gap-2">
+                  {property.room_configurations.map((config, idx) => (
+                    <Badge key={idx} variant="outline" className="text-sm">
+                      Room {config.room_number}: {config.capacity} {config.capacity === 1 ? 'student' : 'students'}
+                    </Badge>
+                  ))}
+                </div>
+              </div>
+            )}
 
             {property.amenities && property.amenities.length > 0 && (
               <div>
