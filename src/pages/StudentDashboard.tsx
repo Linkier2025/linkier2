@@ -5,7 +5,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useAuth } from "@/hooks/useAuth";
 import linkierLogo from "@/assets/linkier-logo.png";
-import { Home, MessageSquare, DollarSign, Bell, Search, ChevronRight, LogOut, AlertCircle } from "lucide-react";
+import { Home, MessageSquare, DollarSign, Bell, Search, ChevronRight, LogOut, AlertCircle, FileText } from "lucide-react";
 
 const StudentDashboard = () => {
   const navigate = useNavigate();
@@ -27,6 +27,7 @@ const StudentDashboard = () => {
 
   const menuItems = [
     { title: "Search Property", icon: Search, route: "/properties" },
+    { title: "My Requests", icon: FileText, route: "/my-requests" },
     { title: "My Room", icon: Home, route: "/rentals" },
     { title: "Rent Tracking", icon: DollarSign, route: "/rent-tracking" },
     { title: "Complaints", icon: AlertCircle, route: "/complaints" },
