@@ -130,11 +130,37 @@ export default function PropertyDetails() {
   };
 
   const handleRequestRental = async () => {
-    if (!user || !property) return;
+    console.log('handleRequestRental called', { user: user?.id, property: property?.id });
+    
+    if (!user) {
+      toast({
+        title: "Not authenticated",
+        description: "Please log in to send a rental request.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    if (!property) {
+      toast({
+        title: "Property not found",
+        description: "Unable to send request for this property.",
+        variant: "destructive"
+      });
+      return;
+    }
 
     setSubmittingRental(true);
     try {
-      const { error } = await supabase
+      console.log('Inserting rental request:', {
+        property_id: id,
+        student_id: user.id,
+        landlord_id: property.landlord_id,
+        student_message: rentalMessage || null,
+        status: 'pending'
+      });
+
+      const { data, error } = await supabase
         .from('rental_requests')
         .insert({
           property_id: id,
@@ -142,9 +168,15 @@ export default function PropertyDetails() {
           landlord_id: property.landlord_id,
           student_message: rentalMessage || null,
           status: 'pending'
-        });
+        })
+        .select();
 
-      if (error) throw error;
+      if (error) {
+        console.error('Supabase error:', error);
+        throw error;
+      }
+
+      console.log('Rental request created:', data);
 
       toast({
         title: "Rental request sent!",
@@ -152,11 +184,11 @@ export default function PropertyDetails() {
       });
       setRentalDialogOpen(false);
       setRentalMessage("");
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error requesting rental:', error);
       toast({
         title: "Error",
-        description: "Failed to send rental request. Please try again.",
+        description: error?.message || "Failed to send rental request. Please try again.",
         variant: "destructive"
       });
     } finally {
