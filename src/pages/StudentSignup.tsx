@@ -7,13 +7,17 @@ import { useNavigate } from "react-router-dom";
 import { ArrowLeft, Eye, EyeOff } from "lucide-react";
 import { useState, useEffect } from "react";
 import { useAuth } from "@/hooks/useAuth";
+import { z } from "zod";
 import linkierLogo from "@/assets/linkier-logo.png";
 import landingBg from "@/assets/landing-background.jpg";
+
+const emailSchema = z.string().trim().email({ message: "Please enter a valid email address" });
 
 const StudentSignup = () => {
   const navigate = useNavigate();
   const { signUp, user, profile } = useAuth();
   const [showPassword, setShowPassword] = useState(false);
+  const [emailError, setEmailError] = useState("");
   const [formData, setFormData] = useState({
     firstName: "",
     surname: "",
@@ -38,6 +42,22 @@ const StudentSignup = () => {
 
   const handleInputChange = (field: string, value: string) => {
     setFormData(prev => ({ ...prev, [field]: value }));
+    if (field === 'email') {
+      setEmailError("");
+    }
+  };
+
+  const validateEmail = (email: string) => {
+    try {
+      emailSchema.parse(email);
+      setEmailError("");
+      return true;
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        setEmailError(error.issues[0].message);
+      }
+      return false;
+    }
   };
 
   // Redirect if already logged in
@@ -52,6 +72,10 @@ const StudentSignup = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!formData.email || !formData.password) return;
+    
+    if (!validateEmail(formData.email)) {
+      return;
+    }
     
     const userData = {
       user_type: 'student',
@@ -187,8 +211,13 @@ const StudentSignup = () => {
                     placeholder="Enter your email"
                     value={formData.email}
                     onChange={(e) => handleInputChange('email', e.target.value)}
+                    onBlur={(e) => validateEmail(e.target.value)}
                     required
+                    className={emailError ? "border-destructive" : ""}
                   />
+                  {emailError && (
+                    <p className="text-sm text-destructive">{emailError}</p>
+                  )}
                 </div>
 
                 <div className="space-y-2">
