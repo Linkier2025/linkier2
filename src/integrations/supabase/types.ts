@@ -349,6 +349,59 @@ export type Database = {
           },
         ]
       }
+      renovations: {
+        Row: {
+          created_at: string
+          description: string | null
+          end_date: string | null
+          estimated_cost: number | null
+          id: string
+          landlord_id: string
+          property_id: string
+          room_number: string | null
+          start_date: string | null
+          status: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          end_date?: string | null
+          estimated_cost?: number | null
+          id?: string
+          landlord_id: string
+          property_id: string
+          room_number?: string | null
+          start_date?: string | null
+          status?: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          end_date?: string | null
+          estimated_cost?: number | null
+          id?: string
+          landlord_id?: string
+          property_id?: string
+          room_number?: string | null
+          start_date?: string | null
+          status?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "renovations_property_id_fkey"
+            columns: ["property_id"]
+            isOneToOne: false
+            referencedRelation: "properties"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       rental_requests: {
         Row: {
           created_at: string
