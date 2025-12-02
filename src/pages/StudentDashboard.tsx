@@ -27,7 +27,7 @@ const StudentDashboard = () => {
 
   const menuItems = [
     { title: "Search Property", icon: Search, route: "/properties" },
-    { title: "My Requests", icon: FileText, route: "/my-requests" },
+    { title: "Viewing Requests", icon: FileText, route: "/viewing-requests" },
     { title: "My Room", icon: Home, route: "/rentals" },
     { title: "Rent Tracking", icon: DollarSign, route: "/rent-tracking" },
     { title: "Complaints", icon: AlertCircle, route: "/complaints" },

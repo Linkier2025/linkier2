@@ -26,10 +26,8 @@ import RentTracking from "./pages/RentTracking";
 import PaymentHistory from "./pages/PaymentHistory";
 import Notifications from "./pages/Notifications";
 import Rentals from "./pages/Rentals";
-import MyRequests from "./pages/MyRequests";
 import MyProperties from "./pages/MyProperties";
 import ViewingRequests from "./pages/ViewingRequests";
-import LandlordRequests from "./pages/LandlordRequests";
 import Renovations from "./pages/Renovations";
 
 const queryClient = new QueryClient();
@@ -128,19 +126,9 @@ const App = () => (
                 <Rentals />
               </ProtectedRoute>
             } />
-            <Route path="/my-requests" element={
-              <ProtectedRoute userType="student">
-                <MyRequests />
-              </ProtectedRoute>
-            } />
             <Route path="/viewing-requests" element={
               <ProtectedRoute>
                 <ViewingRequests />
-              </ProtectedRoute>
-            } />
-            <Route path="/landlord-requests" element={
-              <ProtectedRoute userType="landlord">
-                <LandlordRequests />
               </ProtectedRoute>
             } />
             <Route path="/renovations" element={
