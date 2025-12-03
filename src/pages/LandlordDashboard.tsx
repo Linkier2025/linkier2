@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useAuth } from "@/hooks/useAuth";
-import { Users, Bell, Home, ChevronRight, LogOut, DollarSign, AlertCircle, MessageSquare, FileText, Calendar, Hammer } from "lucide-react";
+import { Users, Bell, Home, ChevronRight, LogOut, DollarSign, AlertCircle, MessageSquare, Calendar } from "lucide-react";
 import linkierLogo from "@/assets/linkier-logo.png";
 
 const LandlordDashboard = () => {
@@ -27,11 +27,9 @@ const LandlordDashboard = () => {
 
   const menuItems = [
     { title: "My Properties", icon: Home, route: "/my-properties" },
-    { title: "Rental Requests", icon: FileText, route: "/landlord-requests" },
     { title: "Viewing Requests", icon: Calendar, route: "/viewing-requests" },
     { title: "My Tenants", icon: Users, route: "/tenants" },
     { title: "Rent Tracking", icon: DollarSign, route: "/rent-tracking" },
-    { title: "Renovations", icon: Hammer, route: "/renovations" },
     { title: "Complaints", icon: AlertCircle, route: "/complaints" },
     { title: "Messages", icon: MessageSquare, route: "/messages" },
   ];
