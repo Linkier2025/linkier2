@@ -6,12 +6,15 @@ import { useNavigate } from "react-router-dom";
 import { ArrowLeft, Eye, EyeOff } from "lucide-react";
 import { useState, useEffect } from "react";
 import { useAuth } from "@/hooks/useAuth";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
 import linkierLogo from "@/assets/linkier-logo.png";
 import landingBg from "@/assets/landing-background.jpg";
 
 const LandlordLogin = () => {
   const navigate = useNavigate();
   const { signIn, user, profile } = useAuth();
+  const { toast } = useToast();
   const [showPassword, setShowPassword] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -31,6 +34,22 @@ const LandlordLogin = () => {
     
     const { error } = await signIn(email, password);
     if (!error) {
+      // Check user type after login
+      const { data: profileData } = await supabase
+        .from('profiles')
+        .select('user_type')
+        .eq('user_id', (await supabase.auth.getUser()).data.user?.id)
+        .single();
+      
+      if (profileData?.user_type === 'student') {
+        await supabase.auth.signOut();
+        toast({
+          title: "Wrong Account Type",
+          description: "This is a student account. Please use the student login page.",
+          variant: "destructive",
+        });
+        return;
+      }
       navigate('/landlord-dashboard');
     }
   };
