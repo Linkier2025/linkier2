@@ -118,10 +118,22 @@ export default function AddProperty() {
         uploadedUrls.push(publicUrlData.publicUrl);
       }
 
-      setImages(prev => [...prev, ...uploadedUrls]);
+      const newImages = [...images, ...uploadedUrls];
+      setImages(newImages);
+
+      // Auto-save images to database if editing an existing property
+      if (id) {
+        const { error } = await supabase
+          .from('properties')
+          .update({ images: newImages })
+          .eq('id', id);
+
+        if (error) throw error;
+      }
+
       toast({
         title: "Images uploaded",
-        description: `${uploadedUrls.length} image(s) uploaded successfully.`,
+        description: `${uploadedUrls.length} image(s) uploaded and saved successfully.`,
       });
     } catch (error) {
       console.error('Error uploading images:', error);
@@ -135,8 +147,28 @@ export default function AddProperty() {
     }
   };
 
-  const removeImage = (index: number) => {
-    setImages(prev => prev.filter((_, i) => i !== index));
+  const removeImage = async (index: number) => {
+    const newImages = images.filter((_, i) => i !== index);
+    setImages(newImages);
+
+    // Auto-save when editing an existing property
+    if (id) {
+      try {
+        const { error } = await supabase
+          .from('properties')
+          .update({ images: newImages })
+          .eq('id', id);
+
+        if (error) throw error;
+      } catch (error) {
+        console.error('Error removing image:', error);
+        toast({
+          title: "Error",
+          description: "Failed to save image removal.",
+          variant: "destructive",
+        });
+      }
+    }
   };
 
   const handleAmenityChange = (amenity: string, checked: boolean) => {
