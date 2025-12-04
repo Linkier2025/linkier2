@@ -241,6 +241,11 @@ export default function MyProperties() {
     setRenovationDialogOpen(true);
   };
 
+  const getSelectedPropertyRooms = () => {
+    const property = properties.find(p => p.id === selectedPropertyId);
+    return property?.room_configurations || [];
+  };
+
   const handleRenovationSubmit = async () => {
     if (!renovationForm.title || !selectedPropertyId) {
       toast({
@@ -611,11 +616,22 @@ export default function MyProperties() {
           <div className="space-y-4 py-4">
             <div className="space-y-2">
               <Label>Room Number</Label>
-              <Input
-                placeholder="e.g., 101"
-                value={renovationForm.room_number}
-                onChange={(e) => setRenovationForm(prev => ({ ...prev, room_number: e.target.value }))}
-              />
+              <Select 
+                value={renovationForm.room_number} 
+                onValueChange={(v) => setRenovationForm(prev => ({ ...prev, room_number: v }))}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Select a room (optional)" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="">General (No specific room)</SelectItem>
+                  {getSelectedPropertyRooms().map((room) => (
+                    <SelectItem key={room.room_number} value={room.room_number}>
+                      Room {room.room_number}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
 
             <div className="space-y-2">
