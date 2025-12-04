@@ -91,15 +91,48 @@ export default function AddProperty() {
     "Garden", "Pool", "Gym", "Air Conditioning", "Heating", "Furnished"
   ];
 
-  const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const [uploading, setUploading] = useState(false);
+
+  const handleImageUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(event.target.files || []);
-    files.forEach(file => {
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        setImages(prev => [...prev, e.target?.result as string]);
-      };
-      reader.readAsDataURL(file);
-    });
+    if (files.length === 0 || !user) return;
+
+    setUploading(true);
+    const uploadedUrls: string[] = [];
+
+    try {
+      for (const file of files) {
+        const fileExt = file.name.split('.').pop();
+        const fileName = `${user.id}/${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`;
+
+        const { error: uploadError } = await supabase.storage
+          .from('property-images')
+          .upload(fileName, file);
+
+        if (uploadError) throw uploadError;
+
+        const { data: publicUrlData } = supabase.storage
+          .from('property-images')
+          .getPublicUrl(fileName);
+
+        uploadedUrls.push(publicUrlData.publicUrl);
+      }
+
+      setImages(prev => [...prev, ...uploadedUrls]);
+      toast({
+        title: "Images uploaded",
+        description: `${uploadedUrls.length} image(s) uploaded successfully.`,
+      });
+    } catch (error) {
+      console.error('Error uploading images:', error);
+      toast({
+        title: "Upload failed",
+        description: "Failed to upload images. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setUploading(false);
+    }
   };
 
   const removeImage = (index: number) => {
@@ -461,11 +494,14 @@ export default function AddProperty() {
                   multiple
                   className="hidden"
                   onChange={handleImageUpload}
+                  disabled={uploading}
                 />
                 <label htmlFor="property-images">
-                  <Button type="button" variant="outline" className="cursor-pointer">
-                    <Upload className="h-4 w-4 mr-2" />
-                    Upload Images
+                  <Button type="button" variant="outline" className="cursor-pointer" disabled={uploading} asChild>
+                    <span>
+                      <Upload className="h-4 w-4 mr-2" />
+                      {uploading ? "Uploading..." : "Upload Images"}
+                    </span>
                   </Button>
                 </label>
               </div>
