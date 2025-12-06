@@ -28,6 +28,7 @@ import Notifications from "./pages/Notifications";
 import Rentals from "./pages/Rentals";
 import MyProperties from "./pages/MyProperties";
 import ViewingRequests from "./pages/ViewingRequests";
+import LandlordRequests from "./pages/LandlordRequests";
 
 const queryClient = new QueryClient();
 
@@ -128,6 +129,11 @@ const App = () => (
             <Route path="/viewing-requests" element={
               <ProtectedRoute>
                 <ViewingRequests />
+              </ProtectedRoute>
+            } />
+            <Route path="/landlord-requests" element={
+              <ProtectedRoute userType="landlord">
+                <LandlordRequests />
               </ProtectedRoute>
             } />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
