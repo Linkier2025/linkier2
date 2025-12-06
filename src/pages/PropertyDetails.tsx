@@ -3,7 +3,7 @@ import { useParams, Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { ArrowLeft, MapPin, Users, Star, Phone, Mail, Heart, Calendar } from "lucide-react";
+import { ArrowLeft, MapPin, Users, Star, Phone, Mail, Heart, Calendar, Home } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -45,6 +45,9 @@ export default function PropertyDetails() {
   const [viewingDialogOpen, setViewingDialogOpen] = useState(false);
   const [viewingMessage, setViewingMessage] = useState("");
   const [submittingViewing, setSubmittingViewing] = useState(false);
+  const [rentalDialogOpen, setRentalDialogOpen] = useState(false);
+  const [rentalMessage, setRentalMessage] = useState("");
+  const [submittingRental, setSubmittingRental] = useState(false);
 
   useEffect(() => {
     const fetchProperty = async () => {
@@ -122,6 +125,41 @@ export default function PropertyDetails() {
       });
     } finally {
       setSubmittingViewing(false);
+    }
+  };
+
+  const handleRequestRental = async () => {
+    if (!user || !property) return;
+    
+    setSubmittingRental(true);
+    try {
+      const { error } = await supabase
+        .from('rental_requests')
+        .insert({
+          property_id: id,
+          student_id: user.id,
+          landlord_id: property.landlord_id,
+          student_message: rentalMessage,
+          status: 'pending'
+        });
+
+      if (error) throw error;
+
+      toast({
+        title: "Rental request sent!",
+        description: "The landlord will review your request and get back to you.",
+      });
+      setRentalDialogOpen(false);
+      setRentalMessage("");
+    } catch (error) {
+      console.error('Error submitting rental request:', error);
+      toast({
+        title: "Error",
+        description: "Failed to send rental request. Please try again.",
+        variant: "destructive"
+      });
+    } finally {
+      setSubmittingRental(false);
     }
   };
 
@@ -315,11 +353,11 @@ export default function PropertyDetails() {
           </CardContent>
         </Card>
 
-        {/* Action Button */}
-        <div className="sticky bottom-4">
+        {/* Action Buttons */}
+        <div className="sticky bottom-4 flex gap-3">
           <Dialog open={viewingDialogOpen} onOpenChange={setViewingDialogOpen}>
             <DialogTrigger asChild>
-              <Button size="lg" className="w-full">
+              <Button size="lg" variant="outline" className="flex-1">
                 <Calendar className="mr-2 h-5 w-5" />
                 Request Viewing
               </Button>
@@ -346,6 +384,40 @@ export default function PropertyDetails() {
                   disabled={submittingViewing}
                 >
                   {submittingViewing ? "Sending..." : "Send Viewing Request"}
+                </Button>
+              </div>
+            </DialogContent>
+          </Dialog>
+
+          <Dialog open={rentalDialogOpen} onOpenChange={setRentalDialogOpen}>
+            <DialogTrigger asChild>
+              <Button size="lg" className="flex-1">
+                <Home className="mr-2 h-5 w-5" />
+                Request to Rent
+              </Button>
+            </DialogTrigger>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Request to Rent This Property</DialogTitle>
+              </DialogHeader>
+              <div className="space-y-4 pt-4">
+                <div>
+                  <p className="text-sm text-muted-foreground mb-2">
+                    Send a message to the landlord with your rental request:
+                  </p>
+                  <Textarea
+                    placeholder="Introduce yourself and let the landlord know why you'd like to rent this property..."
+                    value={rentalMessage}
+                    onChange={(e) => setRentalMessage(e.target.value)}
+                    rows={4}
+                  />
+                </div>
+                <Button 
+                  onClick={handleRequestRental} 
+                  className="w-full"
+                  disabled={submittingRental}
+                >
+                  {submittingRental ? "Sending..." : "Send Rental Request"}
                 </Button>
               </div>
             </DialogContent>
