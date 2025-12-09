@@ -8,6 +8,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import linkierLogo from "@/assets/linkier-logo.png";
+import { ThemeToggle } from "@/components/ThemeToggle";
 import { 
   Home, 
   MessageSquare, 
@@ -292,6 +293,7 @@ const StudentDashboard = () => {
             <h1 className="text-xl font-semibold text-foreground">Linkier</h1>
           </div>
           <div className="flex items-center gap-2">
+            <ThemeToggle />
             <Button variant="ghost" size="icon" onClick={() => navigate("/notifications")}>
               <Bell className="h-5 w-5" />
             </Button>
