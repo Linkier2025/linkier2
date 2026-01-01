@@ -54,7 +54,6 @@ interface RentalRequest {
   status: string;
   requested_at: string;
   student_message: string | null;
-  landlord_response: string | null;
   property: {
     title: string;
     location: string;
@@ -70,12 +69,9 @@ export default function ViewingRequests() {
   const [rentalRequests, setRentalRequests] = useState<RentalRequest[]>([]);
   const [loading, setLoading] = useState(true);
   const [scheduleDialogOpen, setScheduleDialogOpen] = useState(false);
-  const [approveDialogOpen, setApproveDialogOpen] = useState(false);
   const [selectedViewing, setSelectedViewing] = useState<ViewingRequest | null>(null);
-  const [selectedRental, setSelectedRental] = useState<RentalRequest | null>(null);
   const [scheduledDate, setScheduledDate] = useState("");
   const [landlordNotes, setLandlordNotes] = useState("");
-  const [responseMessage, setResponseMessage] = useState("");
   const [updating, setUpdating] = useState(false);
 
   const isLandlord = profile?.user_type === 'landlord';
@@ -271,32 +267,29 @@ export default function ViewingRequests() {
     }
   };
 
-  const handleApproveRental = async () => {
-    if (!selectedRental) return;
-
+  const handleAcceptRental = async (request: RentalRequest) => {
     setUpdating(true);
     try {
-      const { error } = await supabase
-        .from('rental_requests')
-        .update({ 
-          status: 'approved',
-          landlord_response: responseMessage || 'Your rental request has been approved!'
-        })
-        .eq('id', selectedRental.id);
+      const { data, error } = await supabase.rpc('accept_rental_request', {
+        p_request_id: request.id,
+      });
 
       if (error) throw error;
 
+      const result = data as { success: boolean; room_number: string } | null;
+      
       toast({
-        title: "Request Approved",
-        description: "You can now create a rental agreement.",
+        title: "Request Accepted",
+        description: `Student has been assigned to Room ${result?.room_number}. Awaiting their payment.`,
       });
-      setApproveDialogOpen(false);
-      setSelectedRental(null);
-      setResponseMessage("");
       fetchRentalRequests();
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error:', error);
-      toast({ title: "Error", description: "Failed to approve.", variant: "destructive" });
+      toast({
+        title: "Error",
+        description: error.message || "Failed to accept request. Make sure rooms are available.",
+        variant: "destructive"
+      });
     } finally {
       setUpdating(false);
     }
@@ -306,10 +299,7 @@ export default function ViewingRequests() {
     try {
       const { error } = await supabase
         .from('rental_requests')
-        .update({ 
-          status: 'rejected',
-          landlord_response: 'Your rental request has been declined.'
-        })
+        .update({ status: 'declined' })
         .eq('id', request.id);
 
       if (error) throw error;
@@ -326,7 +316,7 @@ export default function ViewingRequests() {
     try {
       const { error } = await supabase
         .from('rental_requests')
-        .update({ status: 'cancelled' })
+        .delete()
         .eq('id', requestId);
 
       if (error) throw error;
@@ -345,16 +335,16 @@ export default function ViewingRequests() {
       scheduled: "default",
       completed: "outline",
       cancelled: "destructive",
-      approved: "default",
-      rejected: "destructive"
+      accepted: "default",
+      declined: "destructive"
     };
     const labels: Record<string, string> = {
       pending: "Pending",
       scheduled: "Scheduled",
       completed: "Completed",
       cancelled: "Cancelled",
-      approved: "Approved",
-      rejected: "Declined"
+      accepted: "Accepted",
+      declined: "Declined"
     };
     return <Badge variant={variants[status] || "default"}>{labels[status] || status}</Badge>;
   };
@@ -423,6 +413,9 @@ export default function ViewingRequests() {
     );
   }
 
+  const pendingRentalRequests = rentalRequests.filter(r => r.status === 'pending');
+  const otherRentalRequests = rentalRequests.filter(r => r.status !== 'pending');
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-background to-secondary/20 p-4">
       <div className="max-w-4xl mx-auto space-y-6">
@@ -437,17 +430,144 @@ export default function ViewingRequests() {
           </h1>
         </div>
 
-        <Tabs defaultValue="viewing" className="w-full">
+        <Tabs defaultValue="rental" className="w-full">
           <TabsList className="grid w-full grid-cols-2">
-            <TabsTrigger value="viewing" className="flex items-center gap-2">
-              <Calendar className="h-4 w-4" />
-              Viewing ({viewings.length})
-            </TabsTrigger>
             <TabsTrigger value="rental" className="flex items-center gap-2">
               <Home className="h-4 w-4" />
               Rental ({rentalRequests.length})
             </TabsTrigger>
+            <TabsTrigger value="viewing" className="flex items-center gap-2">
+              <Calendar className="h-4 w-4" />
+              Viewing ({viewings.length})
+            </TabsTrigger>
           </TabsList>
+
+          {/* Rental Requests Tab */}
+          <TabsContent value="rental" className="space-y-4 mt-4">
+            {rentalRequests.length === 0 ? (
+              <Card>
+                <CardContent className="py-12 text-center">
+                  <Home className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
+                  <h3 className="text-lg font-semibold mb-2">No rental requests</h3>
+                  <p className="text-muted-foreground">
+                    {isLandlord ? "No rental requests received yet." : "You haven't requested any rentals yet."}
+                  </p>
+                </CardContent>
+              </Card>
+            ) : (
+              <>
+                {/* Pending Requests - For Landlords */}
+                {isLandlord && pendingRentalRequests.length > 0 && (
+                  <div className="space-y-4">
+                    <h2 className="text-lg font-semibold">Pending Requests</h2>
+                    {pendingRentalRequests.map((request) => (
+                      <Card key={request.id}>
+                        <CardHeader>
+                          <div className="flex justify-between items-start">
+                            <div>
+                              <CardTitle>{request.property.title}</CardTitle>
+                              <div className="flex items-center gap-2 mt-2 text-sm text-muted-foreground">
+                                <MapPin className="h-4 w-4" />
+                                {request.property.location}
+                              </div>
+                            </div>
+                            {getStatusBadge(request.status)}
+                          </div>
+                        </CardHeader>
+                        <CardContent className="space-y-4">
+                          <StudentInfoCard student={request.student} />
+
+                          <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                            <Clock className="h-4 w-4" />
+                            Requested: {format(new Date(request.requested_at), "PPP")}
+                          </div>
+
+                          {request.student_message && (
+                            <div className="p-3 bg-muted/30 rounded-lg">
+                              <div className="flex items-center gap-2 text-sm font-medium mb-1">
+                                <MessageSquare className="h-4 w-4" />
+                                Student's Message
+                              </div>
+                              <p className="text-sm text-muted-foreground">{request.student_message}</p>
+                            </div>
+                          )}
+
+                          <div className="flex gap-2 pt-2">
+                            <Button
+                              className="flex-1 bg-green-600 hover:bg-green-700"
+                              onClick={() => handleAcceptRental(request)}
+                              disabled={updating}
+                            >
+                              <Check className="h-4 w-4 mr-2" />
+                              Accept & Assign Room
+                            </Button>
+                            <Button
+                              variant="destructive"
+                              className="flex-1"
+                              onClick={() => handleDeclineRental(request)}
+                            >
+                              <X className="h-4 w-4 mr-2" />
+                              Decline
+                            </Button>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    ))}
+                  </div>
+                )}
+
+                {/* Other Requests */}
+                {(isLandlord ? otherRentalRequests : rentalRequests).length > 0 && (
+                  <div className="space-y-4">
+                    {isLandlord && <h2 className="text-lg font-semibold">Previous Requests</h2>}
+                    {(isLandlord ? otherRentalRequests : rentalRequests).map((request) => (
+                      <Card key={request.id}>
+                        <CardHeader>
+                          <div className="flex justify-between items-start">
+                            <div>
+                              <CardTitle>{request.property.title}</CardTitle>
+                              <div className="flex items-center gap-2 mt-2 text-sm text-muted-foreground">
+                                <MapPin className="h-4 w-4" />
+                                {request.property.location}
+                              </div>
+                            </div>
+                            {getStatusBadge(request.status)}
+                          </div>
+                        </CardHeader>
+                        <CardContent className="space-y-4">
+                          {isLandlord && <StudentInfoCard student={request.student} />}
+
+                          <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                            <Clock className="h-4 w-4" />
+                            Requested: {format(new Date(request.requested_at), "PPP")}
+                          </div>
+
+                          {request.student_message && (
+                            <div className="p-3 bg-muted/30 rounded-lg">
+                              <div className="flex items-center gap-2 text-sm font-medium mb-1">
+                                <MessageSquare className="h-4 w-4" />
+                                {isLandlord ? "Student's Message" : "Your Message"}
+                              </div>
+                              <p className="text-sm text-muted-foreground">{request.student_message}</p>
+                            </div>
+                          )}
+
+                          {!isLandlord && request.status === 'pending' && (
+                            <Button
+                              variant="outline"
+                              onClick={() => handleCancelRental(request.id)}
+                            >
+                              Cancel Request
+                            </Button>
+                          )}
+                        </CardContent>
+                      </Card>
+                    ))}
+                  </div>
+                )}
+              </>
+            )}
+          </TabsContent>
 
           {/* Viewing Requests Tab */}
           <TabsContent value="viewing" className="space-y-4 mt-4">
@@ -477,7 +597,6 @@ export default function ViewingRequests() {
                     </div>
                   </CardHeader>
                   <CardContent className="space-y-4">
-                    {/* Student Info for Landlords */}
                     {isLandlord && <StudentInfoCard student={viewing.student} />}
 
                     <div className="flex items-center gap-2 text-sm text-muted-foreground">
@@ -503,135 +622,58 @@ export default function ViewingRequests() {
                     )}
 
                     {viewing.landlord_notes && (
-                      <div className="p-3 bg-primary/10 rounded-lg">
-                        <p className="text-sm font-medium mb-1">Landlord's Notes</p>
+                      <div className="p-3 bg-primary/5 rounded-lg">
+                        <div className="flex items-center gap-2 text-sm font-medium mb-1">
+                          <MessageSquare className="h-4 w-4" />
+                          Landlord Notes
+                        </div>
                         <p className="text-sm text-muted-foreground">{viewing.landlord_notes}</p>
                       </div>
                     )}
 
+                    {/* Landlord Actions */}
                     {isLandlord && viewing.status === 'pending' && (
                       <div className="flex gap-2 pt-2">
                         <Button
-                          size="sm"
+                          className="flex-1"
                           onClick={() => {
                             setSelectedViewing(viewing);
                             setScheduleDialogOpen(true);
                           }}
                         >
-                          <Check className="mr-2 h-4 w-4" />
+                          <Calendar className="h-4 w-4 mr-2" />
                           Schedule
                         </Button>
                         <Button
-                          size="sm"
                           variant="destructive"
+                          className="flex-1"
                           onClick={() => handleDeclineViewing(viewing.id)}
                         >
-                          <X className="mr-2 h-4 w-4" />
+                          <X className="h-4 w-4 mr-2" />
                           Decline
                         </Button>
                       </div>
                     )}
 
                     {isLandlord && viewing.status === 'scheduled' && (
-                      <Button size="sm" onClick={() => handleMarkCompleted(viewing.id)}>
-                        Mark as Completed
-                      </Button>
-                    )}
-
-                    {!isLandlord && viewing.status === 'pending' && (
-                      <Button size="sm" variant="outline" onClick={() => handleCancelViewing(viewing.id)}>
-                        Cancel Request
-                      </Button>
-                    )}
-                  </CardContent>
-                </Card>
-              ))
-            )}
-          </TabsContent>
-
-          {/* Rental Requests Tab */}
-          <TabsContent value="rental" className="space-y-4 mt-4">
-            {rentalRequests.length === 0 ? (
-              <Card>
-                <CardContent className="py-12 text-center">
-                  <Home className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
-                  <h3 className="text-lg font-semibold mb-2">No rental requests</h3>
-                  <p className="text-muted-foreground">
-                    {isLandlord ? "No rental requests received yet." : "You haven't submitted any rental requests yet."}
-                  </p>
-                </CardContent>
-              </Card>
-            ) : (
-              rentalRequests.map((request) => (
-                <Card key={request.id}>
-                  <CardHeader>
-                    <div className="flex justify-between items-start">
-                      <div>
-                        <CardTitle>{request.property.title}</CardTitle>
-                        <div className="flex items-center gap-2 mt-2 text-sm text-muted-foreground">
-                          <MapPin className="h-4 w-4" />
-                          {request.property.location}
-                        </div>
-                        {request.property.rent_amount > 0 && (
-                          <p className="text-sm font-semibold mt-1">
-                            R{request.property.rent_amount}/month
-                          </p>
-                        )}
-                      </div>
-                      {getStatusBadge(request.status)}
-                    </div>
-                  </CardHeader>
-                  <CardContent className="space-y-4">
-                    {/* Student Info for Landlords */}
-                    {isLandlord && <StudentInfoCard student={request.student} />}
-
-                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                      <Clock className="h-4 w-4" />
-                      Requested: {format(new Date(request.requested_at), "PPP")}
-                    </div>
-
-                    {request.student_message && (
-                      <div className="p-3 bg-muted/30 rounded-lg">
-                        <div className="flex items-center gap-2 text-sm font-medium mb-1">
-                          <MessageSquare className="h-4 w-4" />
-                          {isLandlord ? "Student's Message" : "Your Message"}
-                        </div>
-                        <p className="text-sm text-muted-foreground">{request.student_message}</p>
-                      </div>
-                    )}
-
-                    {request.landlord_response && request.status !== 'pending' && (
-                      <div className="p-3 bg-primary/10 rounded-lg">
-                        <p className="text-sm font-medium mb-1">Landlord's Response</p>
-                        <p className="text-sm text-muted-foreground">{request.landlord_response}</p>
-                      </div>
-                    )}
-
-                    {isLandlord && request.status === 'pending' && (
                       <div className="flex gap-2 pt-2">
                         <Button
-                          size="sm"
-                          onClick={() => {
-                            setSelectedRental(request);
-                            setApproveDialogOpen(true);
-                          }}
+                          variant="outline"
+                          className="flex-1"
+                          onClick={() => handleMarkCompleted(viewing.id)}
                         >
-                          <Check className="mr-2 h-4 w-4" />
-                          Approve
-                        </Button>
-                        <Button
-                          size="sm"
-                          variant="destructive"
-                          onClick={() => handleDeclineRental(request)}
-                        >
-                          <X className="mr-2 h-4 w-4" />
-                          Decline
+                          <Check className="h-4 w-4 mr-2" />
+                          Mark Completed
                         </Button>
                       </div>
                     )}
 
-                    {!isLandlord && request.status === 'pending' && (
-                      <Button size="sm" variant="outline" onClick={() => handleCancelRental(request.id)}>
+                    {/* Student Actions */}
+                    {!isLandlord && viewing.status === 'pending' && (
+                      <Button
+                        variant="outline"
+                        onClick={() => handleCancelViewing(viewing.id)}
+                      >
                         Cancel Request
                       </Button>
                     )}
@@ -650,22 +692,19 @@ export default function ViewingRequests() {
             </DialogHeader>
             <div className="space-y-4 pt-4">
               <div>
-                <Label htmlFor="scheduled-date">Date and Time</Label>
+                <Label>Date and Time</Label>
                 <Input
-                  id="scheduled-date"
                   type="datetime-local"
                   value={scheduledDate}
                   onChange={(e) => setScheduledDate(e.target.value)}
                 />
               </div>
               <div>
-                <Label htmlFor="landlord-notes">Notes (optional)</Label>
+                <Label>Notes for Student (optional)</Label>
                 <Textarea
-                  id="landlord-notes"
-                  placeholder="Add any additional information..."
+                  placeholder="Add any instructions or notes..."
                   value={landlordNotes}
                   onChange={(e) => setLandlordNotes(e.target.value)}
-                  rows={3}
                 />
               </div>
             </div>
@@ -674,38 +713,7 @@ export default function ViewingRequests() {
                 Cancel
               </Button>
               <Button onClick={handleScheduleViewing} disabled={!scheduledDate || updating}>
-                {updating ? "Scheduling..." : "Confirm"}
-              </Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
-
-        {/* Approve Rental Dialog */}
-        <Dialog open={approveDialogOpen} onOpenChange={setApproveDialogOpen}>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>Approve Rental Request</DialogTitle>
-            </DialogHeader>
-            <div className="space-y-4 pt-4">
-              <p className="text-sm text-muted-foreground">
-                Approving request from <strong>{selectedRental?.student?.first_name} {selectedRental?.student?.surname}</strong> for <strong>{selectedRental?.property.title}</strong>.
-              </p>
-              <div>
-                <Label>Message (optional)</Label>
-                <Textarea
-                  placeholder="e.g., Welcome! Please contact me to arrange move-in..."
-                  value={responseMessage}
-                  onChange={(e) => setResponseMessage(e.target.value)}
-                  className="mt-2"
-                />
-              </div>
-            </div>
-            <DialogFooter>
-              <Button variant="outline" onClick={() => setApproveDialogOpen(false)}>
-                Cancel
-              </Button>
-              <Button onClick={handleApproveRental} disabled={updating}>
-                {updating ? "Approving..." : "Confirm Approval"}
+                {updating ? "Scheduling..." : "Confirm Schedule"}
               </Button>
             </DialogFooter>
           </DialogContent>

@@ -407,7 +407,6 @@ export type Database = {
           created_at: string
           id: string
           landlord_id: string
-          landlord_response: string | null
           property_id: string
           requested_at: string
           status: string
@@ -419,7 +418,6 @@ export type Database = {
           created_at?: string
           id?: string
           landlord_id: string
-          landlord_response?: string | null
           property_id: string
           requested_at?: string
           status?: string
@@ -431,7 +429,6 @@ export type Database = {
           created_at?: string
           id?: string
           landlord_id?: string
-          landlord_response?: string | null
           property_id?: string
           requested_at?: string
           status?: string
@@ -491,12 +488,88 @@ export type Database = {
           },
         ]
       }
+      room_assignments: {
+        Row: {
+          created_at: string
+          id: string
+          room_id: string
+          status: string
+          student_id: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          room_id: string
+          status?: string
+          student_id: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          room_id?: string
+          status?: string
+          student_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "room_assignments_room_id_fkey"
+            columns: ["room_id"]
+            isOneToOne: false
+            referencedRelation: "rooms"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      rooms: {
+        Row: {
+          capacity: number
+          created_at: string
+          id: string
+          property_id: string
+          room_number: string
+          updated_at: string
+        }
+        Insert: {
+          capacity?: number
+          created_at?: string
+          id?: string
+          property_id: string
+          room_number: string
+          updated_at?: string
+        }
+        Update: {
+          capacity?: number
+          created_at?: string
+          id?: string
+          property_id?: string
+          room_number?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "rooms_property_id_fkey"
+            columns: ["property_id"]
+            isOneToOne: false
+            referencedRelation: "properties"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      accept_rental_request: { Args: { p_request_id: string }; Returns: Json }
+      cancel_reservation: {
+        Args: { p_assignment_id: string }
+        Returns: boolean
+      }
+      confirm_payment: { Args: { p_assignment_id: string }; Returns: boolean }
+      get_available_room: { Args: { p_property_id: string }; Returns: string }
     }
     Enums: {
       [_ in never]: never
