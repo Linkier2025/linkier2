@@ -11,7 +11,6 @@ import linkierLogo from "@/assets/linkier-logo.png";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { 
   Home, 
-  MessageSquare, 
   DollarSign, 
   Bell, 
   Search, 
@@ -31,7 +30,6 @@ interface DashboardStats {
   pendingViewings: number;
   pendingRentals: number;
   activeComplaints: number;
-  unreadMessages: number;
   totalPayments: number;
 }
 
@@ -61,7 +59,6 @@ const StudentDashboard = () => {
     pendingViewings: 0,
     pendingRentals: 0,
     activeComplaints: 0,
-    unreadMessages: 0,
     totalPayments: 0
   });
   const [activeRental, setActiveRental] = useState<ActiveRentalInfo | null>(null);
@@ -124,13 +121,6 @@ const StudentDashboard = () => {
         .select('*', { count: 'exact', head: true })
         .eq('student_id', user.id)
         .in('status', ['pending', 'in_progress']);
-
-      // Fetch unread messages count
-      const { count: messagesCount } = await supabase
-        .from('messages')
-        .select('*', { count: 'exact', head: true })
-        .eq('receiver_id', user.id)
-        .eq('read', false);
 
       // Fetch total payments made
       const { data: paymentsData } = await supabase
@@ -214,7 +204,6 @@ const StudentDashboard = () => {
         pendingViewings: viewingsCount || 0,
         pendingRentals: rentalsCount || 0,
         activeComplaints: complaintsCount || 0,
-        unreadMessages: messagesCount || 0,
         totalPayments
       });
 
@@ -254,7 +243,6 @@ const StudentDashboard = () => {
     { title: "My Room", icon: Home, route: "/rentals" },
     { title: "Rent Tracking", icon: DollarSign, route: "/rent-tracking" },
     { title: "Complaints", icon: AlertCircle, route: "/complaints" },
-    { title: "Messages", icon: MessageSquare, route: "/messages" },
   ];
 
   const statsCards = [
@@ -275,12 +263,6 @@ const StudentDashboard = () => {
       value: stats.activeComplaints, 
       icon: AlertCircle,
       color: "text-orange-500"
-    },
-    { 
-      title: "Unread Messages", 
-      value: stats.unreadMessages, 
-      icon: MessageSquare,
-      color: "text-green-500"
     },
   ];
 
