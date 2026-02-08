@@ -3,12 +3,13 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { ArrowLeft, Mail, Phone, User, CreditCard, CheckCircle, XCircle, Home, Users } from "lucide-react";
+import { ArrowLeft, User, CreditCard, CheckCircle, XCircle, Home, Users, MessageCircle } from "lucide-react";
 import { Link } from "react-router-dom";
 import { toast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { Skeleton } from "@/components/ui/skeleton";
+import { ContactOptionsSheet } from "@/components/ContactOptionsSheet";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -317,23 +318,18 @@ export default function Tenants() {
                       </Badge>
                     </div>
 
-                    <div className="mt-4 flex gap-2">
-                      {tenant.student?.phone && (
-                        <a href={`tel:${tenant.student.phone}`} className="flex-1">
+                    <div className="mt-4">
+                      <ContactOptionsSheet
+                        phone={tenant.student?.phone}
+                        email={tenant.student?.email}
+                        name={getStudentName(tenant.student)}
+                        trigger={
                           <Button variant="outline" size="sm" className="w-full">
-                            <Phone className="h-4 w-4 mr-2" />
-                            Call
+                            <MessageCircle className="h-4 w-4 mr-2" />
+                            Contact Student
                           </Button>
-                        </a>
-                      )}
-                      {tenant.student?.email && (
-                        <a href={`mailto:${tenant.student.email}`} className="flex-1">
-                          <Button variant="outline" size="sm" className="w-full">
-                            <Mail className="h-4 w-4 mr-2" />
-                            Email
-                          </Button>
-                        </a>
-                      )}
+                        }
+                      />
                     </div>
 
                     <div className="mt-3 flex gap-2">
@@ -420,20 +416,16 @@ export default function Tenants() {
                             </div>
                           </div>
                           <div className="flex gap-2">
-                            {tenant.student?.phone && (
-                              <a href={`tel:${tenant.student.phone}`}>
+                            <ContactOptionsSheet
+                              phone={tenant.student?.phone}
+                              email={tenant.student?.email}
+                              name={getStudentName(tenant.student)}
+                              trigger={
                                 <Button variant="ghost" size="icon">
-                                  <Phone className="h-4 w-4" />
+                                  <MessageCircle className="h-4 w-4" />
                                 </Button>
-                              </a>
-                            )}
-                            {tenant.student?.email && (
-                              <a href={`mailto:${tenant.student.email}`}>
-                                <Button variant="ghost" size="icon">
-                                  <Mail className="h-4 w-4" />
-                                </Button>
-                              </a>
-                            )}
+                              }
+                            />
                           </div>
                         </div>
                       ))}

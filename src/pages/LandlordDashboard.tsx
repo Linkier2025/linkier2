@@ -6,7 +6,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
-import { Users, Bell, Home, ChevronRight, LogOut, DollarSign, AlertCircle, MessageSquare, Calendar, Building, TrendingUp, Clock, User, GraduationCap, Phone } from "lucide-react";
+import { Users, Bell, Home, ChevronRight, LogOut, DollarSign, AlertCircle, Calendar, Building, TrendingUp, Clock, User, GraduationCap, Phone } from "lucide-react";
 import linkierLogo from "@/assets/linkier-logo.png";
 
 interface DashboardStats {
@@ -15,7 +15,6 @@ interface DashboardStats {
   pendingViewings: number;
   pendingRentals: number;
   activeComplaints: number;
-  unreadMessages: number;
 }
 
 interface RequestWithStudent {
@@ -48,7 +47,6 @@ const LandlordDashboard = () => {
     pendingViewings: 0,
     pendingRentals: 0,
     activeComplaints: 0,
-    unreadMessages: 0,
   });
   const [recentRequests, setRecentRequests] = useState<RequestWithStudent[]>([]);
   const [loading, setLoading] = useState(true);
@@ -77,15 +75,13 @@ const LandlordDashboard = () => {
         tenantsRes,
         viewingsRes,
         rentalsRes,
-        complaintsRes,
-        messagesRes
+        complaintsRes
       ] = await Promise.all([
         supabase.from('properties').select('id', { count: 'exact' }).eq('landlord_id', user.id),
         supabase.from('rentals').select('id', { count: 'exact' }).eq('landlord_id', user.id).eq('status', 'active'),
         supabase.from('property_viewings').select('id', { count: 'exact' }).eq('landlord_id', user.id).eq('status', 'pending'),
         supabase.from('rental_requests').select('id', { count: 'exact' }).eq('landlord_id', user.id).eq('status', 'pending'),
-        supabase.from('complaints').select('id, property_id').in('status', ['pending', 'in_progress']),
-        supabase.from('messages').select('id', { count: 'exact' }).eq('receiver_id', user.id).eq('read', false)
+        supabase.from('complaints').select('id, property_id').in('status', ['pending', 'in_progress'])
       ]);
 
       // Filter complaints for landlord's properties
@@ -101,7 +97,6 @@ const LandlordDashboard = () => {
         pendingViewings: viewingsRes.count || 0,
         pendingRentals: rentalsRes.count || 0,
         activeComplaints,
-        unreadMessages: messagesRes.count || 0,
       });
 
       // Fetch recent pending requests with student info
@@ -198,7 +193,6 @@ const LandlordDashboard = () => {
     { title: "My Tenants", icon: Users, route: "/tenants" },
     { title: "Rent Tracking", icon: DollarSign, route: "/rent-tracking" },
     { title: "Complaints", icon: AlertCircle, route: "/complaints" },
-    { title: "Messages", icon: MessageSquare, route: "/messages" },
   ];
 
   const statsCards = [
@@ -217,13 +211,8 @@ const LandlordDashboard = () => {
             <h1 className="text-xl font-semibold text-foreground">Linkier</h1>
           </div>
           <div className="flex items-center gap-2">
-            <Button variant="ghost" size="icon" onClick={() => navigate("/notifications")} className="relative">
+            <Button variant="ghost" size="icon" onClick={() => navigate("/notifications")}>
               <Bell className="h-5 w-5" />
-              {stats.unreadMessages > 0 && (
-                <span className="absolute -top-1 -right-1 h-4 w-4 bg-destructive text-destructive-foreground text-xs rounded-full flex items-center justify-center">
-                  {stats.unreadMessages}
-                </span>
-              )}
             </Button>
             <Button variant="ghost" size="icon" onClick={handleSignOut}>
               <LogOut className="h-5 w-5" />

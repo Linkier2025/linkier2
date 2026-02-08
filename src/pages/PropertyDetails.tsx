@@ -3,13 +3,14 @@ import { useParams, Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { ArrowLeft, MapPin, Users, Star, Phone, Mail, Heart, Calendar, Home } from "lucide-react";
+import { ArrowLeft, MapPin, Users, Star, Heart, Calendar, Home, MessageCircle } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
 import { useAuth } from "@/hooks/useAuth";
+import { ContactOptionsSheet } from "@/components/ContactOptionsSheet";
 
 interface PropertyData {
   id: string;
@@ -330,25 +331,17 @@ export default function PropertyDetails() {
                   {property.landlord.first_name} {property.landlord.surname}
                 </h4>
               </div>
-            </div>
-            
-            <div className="flex gap-4">
-              {property.landlord.phone && (
-                <a href={`tel:${property.landlord.phone}`}>
-                  <Button variant="outline" size="sm" className="flex items-center gap-2">
-                    <Phone className="h-4 w-4" />
-                    Call
+              <ContactOptionsSheet
+                phone={property.landlord.phone}
+                email={property.landlord.email}
+                name={`${property.landlord.first_name} ${property.landlord.surname}`.trim() || "Landlord"}
+                trigger={
+                  <Button variant="outline" size="sm">
+                    <MessageCircle className="h-4 w-4 mr-2" />
+                    Contact Landlord
                   </Button>
-                </a>
-              )}
-              {property.landlord.email && (
-                <a href={`mailto:${property.landlord.email}`}>
-                  <Button variant="outline" size="sm" className="flex items-center gap-2">
-                    <Mail className="h-4 w-4" />
-                    Email
-                  </Button>
-                </a>
-              )}
+                }
+              />
             </div>
           </CardContent>
         </Card>
