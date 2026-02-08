@@ -3,7 +3,7 @@ import { Card } from "@/components/ui/card";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { LogOut } from "lucide-react";
-import linkierLogo from "@/assets/linkier-logo.png";
+import { Logo } from "@/components/Logo";
 import landingBg from "@/assets/landing-background.jpg";
 
 const Landing = () => {
@@ -34,7 +34,7 @@ const Landing = () => {
       {/* Header */}
       <header className="relative z-10 p-6 text-center">
         <div className="flex items-center justify-center mb-4">
-          <img src={linkierLogo} alt="Linkier" className="w-48 h-32" />
+          <Logo size="lg" className="text-white drop-shadow-lg" />
         </div>
       </header>
 

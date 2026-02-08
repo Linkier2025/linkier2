@@ -8,7 +8,7 @@ import { useState, useEffect } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import linkierLogo from "@/assets/linkier-logo.png";
+import { Logo } from "@/components/Logo";
 import landingBg from "@/assets/landing-background.jpg";
 
 const StudentLogin = () => {
@@ -74,9 +74,8 @@ const StudentLogin = () => {
         >
           <ArrowLeft className="h-5 w-5" />
         </Button>
-        <div className="flex items-center justify-center gap-3 flex-1 mr-10">
-          <img src={linkierLogo} alt="Linkier" className="w-10 h-10" />
-          <h1 className="text-2xl font-bold text-white">Linkier</h1>
+        <div className="flex items-center justify-center flex-1 mr-10">
+          <Logo size="md" className="text-white drop-shadow-lg" />
         </div>
       </header>
 
