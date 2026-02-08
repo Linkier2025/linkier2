@@ -7,7 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { Users, Bell, Home, ChevronRight, LogOut, DollarSign, AlertCircle, Calendar, Building, TrendingUp, Clock, User, GraduationCap, Phone } from "lucide-react";
-import linkierLogo from "@/assets/linkier-logo.png";
+import { Logo } from "@/components/Logo";
 
 interface DashboardStats {
   totalProperties: number;
@@ -207,8 +207,7 @@ const LandlordDashboard = () => {
       <header className="bg-background border-b">
         <div className="max-w-4xl mx-auto px-4 py-4 flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <img src={linkierLogo} alt="Linkier" className="h-10 w-10" />
-            <h1 className="text-xl font-semibold text-foreground">Linkier</h1>
+            <Logo size="md" />
           </div>
           <div className="flex items-center gap-2">
             <Button variant="ghost" size="icon" onClick={() => navigate("/notifications")}>

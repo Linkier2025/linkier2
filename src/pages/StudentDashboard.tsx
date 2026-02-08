@@ -7,7 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
-import linkierLogo from "@/assets/linkier-logo.png";
+import { Logo } from "@/components/Logo";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { 
   Home, 
@@ -271,8 +271,7 @@ const StudentDashboard = () => {
       <header className="bg-background border-b">
         <div className="max-w-4xl mx-auto px-4 py-4 flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <img src={linkierLogo} alt="Linkier" className="h-10 w-10" />
-            <h1 className="text-xl font-semibold text-foreground">Linkier</h1>
+            <Logo size="md" />
           </div>
           <div className="flex items-center gap-2">
             <ThemeToggle />
