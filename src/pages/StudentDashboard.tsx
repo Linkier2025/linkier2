@@ -274,7 +274,6 @@ const StudentDashboard = () => {
             <Logo size="md" />
           </div>
           <div className="flex items-center gap-2">
-            <ThemeToggle />
             <Button variant="ghost" size="icon" onClick={() => navigate("/notifications")}>
               <Bell className="h-5 w-5" />
             </Button>
