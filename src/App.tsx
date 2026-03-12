@@ -34,9 +34,8 @@ import ViewingRequests from "./pages/ViewingRequests";
 const queryClient = new QueryClient();
 
 const App = () => (
-  <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
-    <QueryClientProvider client={queryClient}>
-      <TooltipProvider>
+  <QueryClientProvider client={queryClient}>
+    <TooltipProvider>
         <Toaster />
         <Sonner />
         <BrowserRouter>
