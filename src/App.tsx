@@ -5,7 +5,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/hooks/useAuth";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
-import { ThemeProvider } from "@/components/ThemeProvider";
+
 import Landing from "./pages/Landing";
 import SignupChoice from "./pages/SignupChoice";
 import StudentLogin from "./pages/StudentLogin";
@@ -34,9 +34,8 @@ import ViewingRequests from "./pages/ViewingRequests";
 const queryClient = new QueryClient();
 
 const App = () => (
-  <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
-    <QueryClientProvider client={queryClient}>
-      <TooltipProvider>
+  <QueryClientProvider client={queryClient}>
+    <TooltipProvider>
         <Toaster />
         <Sonner />
         <BrowserRouter>
@@ -135,7 +134,6 @@ const App = () => (
         </BrowserRouter>
       </TooltipProvider>
     </QueryClientProvider>
-  </ThemeProvider>
 );
 
 export default App;
