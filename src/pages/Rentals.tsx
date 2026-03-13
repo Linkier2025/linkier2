@@ -75,7 +75,7 @@ export default function Rentals() {
 
     try {
       // 1. Check for active room assignment
-      const { data: assignmentData, error: assignmentError } = await supabase
+      const { data: assignmentData, error: assignmentError } = await (supabase
         .from('room_assignments')
         .select(`
           id,
@@ -93,7 +93,7 @@ export default function Rentals() {
         `)
         .eq('student_id', user.id)
         .eq('status', 'active')
-        .maybeSingle();
+        .maybeSingle() as any);
 
       if (assignmentError && assignmentError.code !== 'PGRST116') {
         throw assignmentError;

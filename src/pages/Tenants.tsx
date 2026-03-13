@@ -74,7 +74,7 @@ export default function Tenants() {
     setLoading(true);
 
     try {
-      const { data: assignmentsData, error: assignmentsError } = await supabase
+      const { data: assignmentsData, error: assignmentsError } = await (supabase
         .from('room_assignments')
         .select(`
           id,
@@ -95,7 +95,7 @@ export default function Tenants() {
           )
         `)
         .eq('status', 'active')
-        .order('created_at', { ascending: false });
+        .order('created_at', { ascending: false }) as any);
 
       if (assignmentsError) throw assignmentsError;
 
