@@ -211,7 +211,7 @@ export default function Tenants() {
     setProcessing(true);
 
     try {
-      const { error } = await supabase.rpc('move_out_tenant', {
+      const { error } = await (supabase.rpc as any)('move_out_tenant', {
         p_assignment_id: confirmDialog.tenant.assignment_id,
       });
 
