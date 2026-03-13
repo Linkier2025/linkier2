@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ArrowLeft, Calendar, Clock, MapPin, Home, Mail, Phone, GraduationCap, User, MessageSquare, Check, X } from "lucide-react";
+import { ArrowLeft, Calendar, Clock, MapPin, Home, Mail, Phone, GraduationCap, User, MessageSquare, Check, X, DoorOpen } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
@@ -54,6 +54,8 @@ interface RentalRequest {
   status: string;
   requested_at: string;
   student_message: string | null;
+  room_id: string | null;
+  room_number: string | null;
   property: {
     title: string;
     location: string;
@@ -109,7 +111,6 @@ export default function ViewingRequests() {
       const { data: viewingsData, error } = await query;
       if (error) throw error;
 
-      // Fetch student profiles
       const studentIds = [...new Set(viewingsData?.map(v => v.student_id) || [])];
       const { data: studentsData } = await supabase
         .from('profiles')
@@ -150,7 +151,6 @@ export default function ViewingRequests() {
       const { data: requestsData, error } = await query;
       if (error) throw error;
 
-      // Fetch property and student details
       const requestsWithDetails = await Promise.all(
         (requestsData || []).map(async (request) => {
           const { data: propertyData } = await supabase
@@ -165,8 +165,21 @@ export default function ViewingRequests() {
             .eq('user_id', request.student_id)
             .maybeSingle();
 
+          // Fetch room number if room_id exists
+          let roomNumber: string | null = null;
+          if ((request as any).room_id) {
+            const { data: roomData } = await supabase
+              .from('rooms')
+              .select('room_number')
+              .eq('id', (request as any).room_id)
+              .maybeSingle();
+            roomNumber = roomData?.room_number || null;
+          }
+
           return {
             ...request,
+            room_id: (request as any).room_id || null,
+            room_number: roomNumber,
             property: propertyData || { title: 'Unknown', location: 'Unknown', rent_amount: 0, images: null },
             student: studentData
           };
@@ -224,11 +237,9 @@ export default function ViewingRequests() {
         .eq('id', viewingId);
 
       if (error) throw error;
-
       toast({ title: "Viewing marked as completed" });
       fetchViewings();
     } catch (error) {
-      console.error('Error:', error);
       toast({ title: "Error", description: "Failed to update.", variant: "destructive" });
     }
   };
@@ -241,11 +252,9 @@ export default function ViewingRequests() {
         .eq('id', viewingId);
 
       if (error) throw error;
-
       toast({ title: "Viewing request declined" });
       fetchViewings();
     } catch (error) {
-      console.error('Error:', error);
       toast({ title: "Error", description: "Failed to decline.", variant: "destructive" });
     }
   };
@@ -258,11 +267,9 @@ export default function ViewingRequests() {
         .eq('id', viewingId);
 
       if (error) throw error;
-
       toast({ title: "Request cancelled" });
       fetchViewings();
     } catch (error) {
-      console.error('Error:', error);
       toast({ title: "Error", description: "Failed to cancel.", variant: "destructive" });
     }
   };
@@ -279,15 +286,15 @@ export default function ViewingRequests() {
       const result = data as { success: boolean; room_number: string } | null;
       
       toast({
-        title: "Request Accepted",
-        description: `Student has been assigned to Room ${result?.room_number}. Awaiting their payment.`,
+        title: "Request Approved",
+        description: `Student has been assigned to Room ${result?.room_number}. They are now a tenant.`,
       });
       fetchRentalRequests();
     } catch (error: any) {
       console.error('Error:', error);
       toast({
         title: "Error",
-        description: error.message || "Failed to accept request. Make sure rooms are available.",
+        description: error.message || "Failed to accept request.",
         variant: "destructive"
       });
     } finally {
@@ -303,11 +310,9 @@ export default function ViewingRequests() {
         .eq('id', request.id);
 
       if (error) throw error;
-
       toast({ title: "Request declined" });
       fetchRentalRequests();
     } catch (error) {
-      console.error('Error:', error);
       toast({ title: "Error", description: "Failed to decline.", variant: "destructive" });
     }
   };
@@ -320,11 +325,9 @@ export default function ViewingRequests() {
         .eq('id', requestId);
 
       if (error) throw error;
-
       toast({ title: "Request cancelled" });
       fetchRentalRequests();
     } catch (error) {
-      console.error('Error:', error);
       toast({ title: "Error", description: "Failed to cancel.", variant: "destructive" });
     }
   };
@@ -403,7 +406,7 @@ export default function ViewingRequests() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-background to-secondary/20 p-4">
+      <div className="min-h-screen bg-background p-4">
         <div className="max-w-4xl mx-auto space-y-6">
           <Skeleton className="h-12 w-full" />
           <Skeleton className="h-32 w-full" />
@@ -417,7 +420,7 @@ export default function ViewingRequests() {
   const otherRentalRequests = rentalRequests.filter(r => r.status !== 'pending');
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background to-secondary/20 p-4">
+    <div className="min-h-screen bg-background p-4">
       <div className="max-w-4xl mx-auto space-y-6">
         <div className="flex items-center gap-4">
           <Link to={isLandlord ? "/landlord-dashboard" : "/student-dashboard"}>
@@ -434,7 +437,7 @@ export default function ViewingRequests() {
           <TabsList className="grid w-full grid-cols-2">
             <TabsTrigger value="rental" className="flex items-center gap-2">
               <Home className="h-4 w-4" />
-              Rental ({rentalRequests.length})
+              Room ({rentalRequests.length})
             </TabsTrigger>
             <TabsTrigger value="viewing" className="flex items-center gap-2">
               <Calendar className="h-4 w-4" />
@@ -448,9 +451,9 @@ export default function ViewingRequests() {
               <Card>
                 <CardContent className="py-12 text-center">
                   <Home className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
-                  <h3 className="text-lg font-semibold mb-2">No rental requests</h3>
+                  <h3 className="text-lg font-semibold mb-2">No room requests</h3>
                   <p className="text-muted-foreground">
-                    {isLandlord ? "No rental requests received yet." : "You haven't requested any rentals yet."}
+                    {isLandlord ? "No room requests received yet." : "You haven't requested any rooms yet."}
                   </p>
                 </CardContent>
               </Card>
@@ -470,6 +473,12 @@ export default function ViewingRequests() {
                                 <MapPin className="h-4 w-4" />
                                 {request.property.location}
                               </div>
+                              {request.room_number && (
+                                <div className="flex items-center gap-2 mt-1 text-sm">
+                                  <DoorOpen className="h-4 w-4 text-primary" />
+                                  <span className="font-medium">Requested Room: {request.room_number}</span>
+                                </div>
+                              )}
                             </div>
                             {getStatusBadge(request.status)}
                           </div>
@@ -499,7 +508,7 @@ export default function ViewingRequests() {
                               disabled={updating}
                             >
                               <Check className="h-4 w-4 mr-2" />
-                              Accept & Assign Room
+                              Approve
                             </Button>
                             <Button
                               variant="destructive"
@@ -507,7 +516,7 @@ export default function ViewingRequests() {
                               onClick={() => handleDeclineRental(request)}
                             >
                               <X className="h-4 w-4 mr-2" />
-                              Decline
+                              Reject
                             </Button>
                           </div>
                         </CardContent>
@@ -530,6 +539,12 @@ export default function ViewingRequests() {
                                 <MapPin className="h-4 w-4" />
                                 {request.property.location}
                               </div>
+                              {request.room_number && (
+                                <div className="flex items-center gap-2 mt-1 text-sm text-muted-foreground">
+                                  <DoorOpen className="h-4 w-4" />
+                                  Room {request.room_number}
+                                </div>
+                              )}
                             </div>
                             {getStatusBadge(request.status)}
                           </div>

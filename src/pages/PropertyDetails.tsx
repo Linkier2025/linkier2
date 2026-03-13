@@ -3,7 +3,7 @@ import { useParams, Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { ArrowLeft, MapPin, Users, Star, Heart, Calendar, Home, MessageCircle } from "lucide-react";
+import { ArrowLeft, MapPin, Users, Star, Heart, Calendar, Home, MessageCircle, DoorOpen } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -11,6 +11,15 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Textarea } from "@/components/ui/textarea";
 import { useAuth } from "@/hooks/useAuth";
 import { ContactOptionsSheet } from "@/components/ContactOptionsSheet";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Label } from "@/components/ui/label";
+
+interface RoomInfo {
+  id: string;
+  room_number: string;
+  capacity: number;
+  current_occupants: number;
+}
 
 interface PropertyData {
   id: string;
@@ -27,7 +36,6 @@ interface PropertyData {
   house_number: string;
   boarding_house_name: string;
   landlord_id: string;
-  room_configurations?: Array<{ room_number: string; capacity: number }>;
   landlord: {
     first_name: string;
     surname: string;
@@ -42,17 +50,20 @@ export default function PropertyDetails() {
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [isFavorite, setIsFavorite] = useState(false);
   const [property, setProperty] = useState<PropertyData | null>(null);
+  const [rooms, setRooms] = useState<RoomInfo[]>([]);
   const [loading, setLoading] = useState(true);
   const [viewingDialogOpen, setViewingDialogOpen] = useState(false);
   const [viewingMessage, setViewingMessage] = useState("");
   const [submittingViewing, setSubmittingViewing] = useState(false);
   const [rentalDialogOpen, setRentalDialogOpen] = useState(false);
   const [rentalMessage, setRentalMessage] = useState("");
+  const [selectedRoomId, setSelectedRoomId] = useState<string>("");
   const [submittingRental, setSubmittingRental] = useState(false);
 
   useEffect(() => {
-    const fetchProperty = async () => {
+    const fetchData = async () => {
       try {
+        // Fetch property
         const { data: propertyData, error: propertyError } = await supabase
           .from('properties')
           .select('*')
@@ -61,22 +72,45 @@ export default function PropertyDetails() {
 
         if (propertyError) throw propertyError;
 
-        // Try to fetch landlord profile but don't fail the whole page if not accessible
-        const { data: landlordData, error: landlordError } = await supabase
+        // Fetch landlord profile
+        const { data: landlordData } = await supabase
           .from('profiles')
           .select('first_name, surname, phone, email')
           .eq('user_id', propertyData.landlord_id)
           .maybeSingle();
 
-        if (landlordError) {
-          console.warn('Landlord profile not accessible due to RLS or missing data:', landlordError);
-        }
-
         setProperty({
           ...propertyData,
-          room_configurations: propertyData.room_configurations as Array<{ room_number: string; capacity: number }> | undefined,
           landlord: landlordData ?? { first_name: '', surname: '', phone: '', email: '' }
         });
+
+        // Fetch rooms with occupancy
+        const { data: roomsData, error: roomsError } = await supabase
+          .from('rooms')
+          .select('id, room_number, capacity')
+          .eq('property_id', id!)
+          .order('room_number');
+
+        if (roomsError) throw roomsError;
+
+        // Get occupancy counts for each room
+        const roomsWithOccupancy: RoomInfo[] = [];
+        for (const room of roomsData || []) {
+          const { count } = await supabase
+            .from('room_assignments')
+            .select('*', { count: 'exact', head: true })
+            .eq('room_id', room.id)
+            .in('status', ['active', 'reserved']);
+
+          roomsWithOccupancy.push({
+            id: room.id,
+            room_number: room.room_number,
+            capacity: room.capacity,
+            current_occupants: count || 0,
+          });
+        }
+
+        setRooms(roomsWithOccupancy);
       } catch (error) {
         console.error('Error fetching property:', error);
         toast({
@@ -89,9 +123,7 @@ export default function PropertyDetails() {
       }
     };
 
-    if (id) {
-      fetchProperty();
-    }
+    if (id) fetchData();
   }, [id]);
 
   const handleRequestViewing = async () => {
@@ -130,7 +162,7 @@ export default function PropertyDetails() {
   };
 
   const handleRequestRental = async () => {
-    if (!user || !property) return;
+    if (!user || !property || !selectedRoomId) return;
     
     setSubmittingRental(true);
     try {
@@ -141,22 +173,24 @@ export default function PropertyDetails() {
           student_id: user.id,
           landlord_id: property.landlord_id,
           student_message: rentalMessage,
+          room_id: selectedRoomId,
           status: 'pending'
         });
 
       if (error) throw error;
 
       toast({
-        title: "Rental request sent!",
+        title: "Room request sent!",
         description: "The landlord will review your request and get back to you.",
       });
       setRentalDialogOpen(false);
       setRentalMessage("");
+      setSelectedRoomId("");
     } catch (error) {
       console.error('Error submitting rental request:', error);
       toast({
         title: "Error",
-        description: "Failed to send rental request. Please try again.",
+        description: "Failed to send room request. Please try again.",
         variant: "destructive"
       });
     } finally {
@@ -174,7 +208,7 @@ export default function PropertyDetails() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-background to-secondary/20 p-4">
+      <div className="min-h-screen bg-background p-4">
         <div className="max-w-4xl mx-auto space-y-6">
           <Skeleton className="h-12 w-full" />
           <Skeleton className="h-96 w-full" />
@@ -186,7 +220,7 @@ export default function PropertyDetails() {
 
   if (!property) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-background to-secondary/20 p-4">
+      <div className="min-h-screen bg-background p-4">
         <div className="max-w-4xl mx-auto text-center">
           <h1 className="text-2xl font-bold">Property not found</h1>
           <Link to="/properties">
@@ -201,8 +235,10 @@ export default function PropertyDetails() {
     ? property.images 
     : ["/placeholder.svg"];
 
+  const availableRooms = rooms.filter(r => r.current_occupants < r.capacity);
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background to-secondary/20 p-4">
+    <div className="min-h-screen bg-background p-4">
       <div className="max-w-4xl mx-auto space-y-6">
         <div className="flex items-center gap-4">
           <Link to="/properties">
@@ -225,21 +261,20 @@ export default function PropertyDetails() {
               <Button
                 variant="ghost"
                 size="icon"
-                className="absolute top-2 right-2 bg-white/80 hover:bg-white"
+                className="absolute top-2 right-2 bg-background/80 hover:bg-background"
                 onClick={toggleFavorite}
               >
                 <Heart 
-                  className={`h-5 w-5 ${isFavorite ? 'fill-red-500 text-red-500' : 'text-gray-600'}`} 
+                  className={`h-5 w-5 ${isFavorite ? 'fill-destructive text-destructive' : 'text-muted-foreground'}`} 
                 />
               </Button>
               
-              {/* Image navigation dots */}
               {displayImages.length > 1 && (
                 <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 flex gap-2">
                   {displayImages.map((_, index) => (
                     <button
                       key={index}
-                      className={`w-2 h-2 rounded-full ${index === currentImageIndex ? 'bg-white' : 'bg-white/50'}`}
+                      className={`w-2 h-2 rounded-full ${index === currentImageIndex ? 'bg-background' : 'bg-background/50'}`}
                       onClick={() => setCurrentImageIndex(index)}
                     />
                   ))}
@@ -285,7 +320,7 @@ export default function PropertyDetails() {
             <div className="grid grid-cols-2 gap-4">
               <div className="flex items-center gap-2">
                 <Users className="h-4 w-4" />
-                <span>{property.rooms} rooms available</span>
+                <span>{property.rooms} rooms</span>
               </div>
               <div>
                 <span className="font-medium">Gender: </span>
@@ -318,6 +353,51 @@ export default function PropertyDetails() {
             )}
           </CardContent>
         </Card>
+
+        {/* Available Rooms */}
+        {rooms.length > 0 && (
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <DoorOpen className="h-5 w-5" />
+                Available Rooms
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="grid gap-3">
+                {rooms.map((room) => {
+                  const isFull = room.current_occupants >= room.capacity;
+                  return (
+                    <div
+                      key={room.id}
+                      className={`flex items-center justify-between p-4 rounded-lg border ${
+                        isFull ? 'bg-muted/50 opacity-60' : 'bg-background'
+                      }`}
+                    >
+                      <div className="flex items-center gap-3">
+                        <DoorOpen className="h-5 w-5 text-muted-foreground" />
+                        <div>
+                          <p className="font-medium">Room {room.room_number}</p>
+                          <p className="text-sm text-muted-foreground">
+                            Capacity: {room.capacity} student{room.capacity > 1 ? 's' : ''}
+                          </p>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Badge variant={isFull ? "destructive" : "secondary"}>
+                          {room.current_occupants}/{room.capacity} occupied
+                        </Badge>
+                        {isFull && (
+                          <Badge variant="outline" className="text-destructive">Full</Badge>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </CardContent>
+          </Card>
+        )}
 
         {/* Landlord Info */}
         <Card>
@@ -384,33 +464,53 @@ export default function PropertyDetails() {
 
           <Dialog open={rentalDialogOpen} onOpenChange={setRentalDialogOpen}>
             <DialogTrigger asChild>
-              <Button size="lg" className="flex-1">
+              <Button size="lg" className="flex-1" disabled={availableRooms.length === 0}>
                 <Home className="mr-2 h-5 w-5" />
-                Request to Rent
+                {availableRooms.length === 0 ? "No Rooms Available" : "Request Room"}
               </Button>
             </DialogTrigger>
             <DialogContent>
               <DialogHeader>
-                <DialogTitle>Request to Rent This Property</DialogTitle>
+                <DialogTitle>Request a Room</DialogTitle>
               </DialogHeader>
               <div className="space-y-4 pt-4">
+                {/* Room Selection */}
                 <div>
-                  <p className="text-sm text-muted-foreground mb-2">
-                    Send a message to the landlord with your rental request:
-                  </p>
+                  <Label className="text-sm font-medium mb-3 block">Select a Room</Label>
+                  <RadioGroup value={selectedRoomId} onValueChange={setSelectedRoomId}>
+                    <div className="grid gap-2">
+                      {availableRooms.map((room) => (
+                        <div key={room.id} className="flex items-center space-x-3 p-3 border rounded-lg hover:bg-muted/50">
+                          <RadioGroupItem value={room.id} id={`room-${room.id}`} />
+                          <Label htmlFor={`room-${room.id}`} className="flex-1 cursor-pointer">
+                            <div className="flex justify-between items-center">
+                              <span className="font-medium">Room {room.room_number}</span>
+                              <Badge variant="secondary">
+                                {room.current_occupants}/{room.capacity} occupied
+                              </Badge>
+                            </div>
+                          </Label>
+                        </div>
+                      ))}
+                    </div>
+                  </RadioGroup>
+                </div>
+
+                <div>
+                  <Label className="text-sm font-medium mb-2 block">Message (optional)</Label>
                   <Textarea
-                    placeholder="Introduce yourself and let the landlord know why you'd like to rent this property..."
+                    placeholder="Introduce yourself and let the landlord know why you'd like this room..."
                     value={rentalMessage}
                     onChange={(e) => setRentalMessage(e.target.value)}
-                    rows={4}
+                    rows={3}
                   />
                 </div>
                 <Button 
                   onClick={handleRequestRental} 
                   className="w-full"
-                  disabled={submittingRental}
+                  disabled={submittingRental || !selectedRoomId}
                 >
-                  {submittingRental ? "Sending..." : "Send Rental Request"}
+                  {submittingRental ? "Sending..." : "Send Room Request"}
                 </Button>
               </div>
             </DialogContent>
