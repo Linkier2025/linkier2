@@ -9,9 +9,10 @@ import {
   ArrowLeft,
   Clock,
   CheckCircle,
-  CreditCard,
+  DollarSign,
   Users,
-  User
+  User,
+  DoorOpen
 } from "lucide-react";
 import { Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -22,6 +23,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 interface RentalRequest {
   id: string;
   property_id: string;
+  room_id: string | null;
   student_message: string | null;
   status: string;
   created_at: string;
@@ -29,12 +31,14 @@ interface RentalRequest {
   property_location: string;
   property_rent: number;
   property_image: string | null;
+  room_number: string | null;
 }
 
 interface RoomAssignment {
   id: string;
   room_id: string;
   status: string;
+  payment_status: string;
   room_number: string;
   property_id: string;
   property_title: string;
@@ -48,7 +52,7 @@ interface Roommate {
   avatar_url: string | null;
 }
 
-type RentalStatus = 'none' | 'pending' | 'reserved' | 'active';
+type RentalStatus = 'none' | 'pending' | 'active';
 
 export default function Rentals() {
   const { user } = useAuth();
@@ -70,13 +74,14 @@ export default function Rentals() {
     setLoading(true);
 
     try {
-      // 1. Check for room assignment (reserved or active)
+      // 1. Check for active room assignment
       const { data: assignmentData, error: assignmentError } = await supabase
         .from('room_assignments')
         .select(`
           id,
           room_id,
           status,
+          payment_status,
           rooms!inner (
             room_number,
             property_id,
@@ -87,6 +92,7 @@ export default function Rentals() {
           )
         `)
         .eq('student_id', user.id)
+        .eq('status', 'active')
         .maybeSingle();
 
       if (assignmentError && assignmentError.code !== 'PGRST116') {
@@ -101,19 +107,15 @@ export default function Rentals() {
           id: assignmentData.id,
           room_id: assignmentData.room_id,
           status: assignmentData.status,
+          payment_status: (assignmentData as any).payment_status || 'unpaid',
           room_number: room.room_number,
           property_id: room.property_id,
           property_title: property.title,
           property_location: property.location,
         });
 
-        if (assignmentData.status === 'active') {
-          setRentalStatus('active');
-          // Fetch roommates (only active ones in the same room)
-          await fetchRoommates(assignmentData.room_id, user.id);
-        } else {
-          setRentalStatus('reserved');
-        }
+        setRentalStatus('active');
+        await fetchRoommates(assignmentData.room_id, user.id);
       } else {
         // 2. Check for pending rental requests
         const { data: requestsData, error: requestsError } = await supabase
@@ -126,7 +128,6 @@ export default function Rentals() {
         if (requestsError) throw requestsError;
 
         if (requestsData && requestsData.length > 0) {
-          // Fetch property details
           const propertyIds = [...new Set(requestsData.map(r => r.property_id))];
           const { data: propertiesData } = await supabase
             .from('properties')
@@ -135,11 +136,23 @@ export default function Rentals() {
 
           const propertiesMap = new Map(propertiesData?.map(p => [p.id, p]) || []);
 
+          // Fetch room info for requests that have room_id
+          const roomIds = requestsData.filter(r => (r as any).room_id).map(r => (r as any).room_id);
+          let roomsMap = new Map<string, string>();
+          if (roomIds.length > 0) {
+            const { data: roomsData } = await supabase
+              .from('rooms')
+              .select('id, room_number')
+              .in('id', roomIds);
+            roomsData?.forEach(r => roomsMap.set(r.id, r.room_number));
+          }
+
           const enrichedRequests = requestsData.map(request => {
             const property = propertiesMap.get(request.property_id);
             return {
               id: request.id,
               property_id: request.property_id,
+              room_id: (request as any).room_id || null,
               student_message: request.student_message,
               status: request.status,
               created_at: request.created_at,
@@ -147,6 +160,7 @@ export default function Rentals() {
               property_location: property?.location || '',
               property_rent: property?.rent_amount || 0,
               property_image: property?.images?.[0] || null,
+              room_number: (request as any).room_id ? roomsMap.get((request as any).room_id) || null : null,
             };
           });
 
@@ -170,7 +184,6 @@ export default function Rentals() {
 
   const fetchRoommates = async (roomId: string, currentUserId: string) => {
     try {
-      // Get other active students in the same room
       const { data: assignments, error } = await supabase
         .from('room_assignments')
         .select('student_id')
@@ -212,7 +225,7 @@ export default function Rentals() {
 
       toast({
         title: "Request cancelled",
-        description: "Your rental request has been cancelled.",
+        description: "Your room request has been cancelled.",
       });
       fetchRentalData();
     } catch (error) {
@@ -226,7 +239,7 @@ export default function Rentals() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-background to-secondary/20 p-4">
+      <div className="min-h-screen bg-background p-4">
         <div className="max-w-4xl mx-auto space-y-6">
           <Skeleton className="h-12 w-full" />
           <Skeleton className="h-64 w-full" />
@@ -236,14 +249,14 @@ export default function Rentals() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background to-secondary/20 p-4">
+    <div className="min-h-screen bg-background p-4">
       <div className="max-w-4xl mx-auto space-y-6">
         <div className="flex items-center justify-between">
-          <h1 className="text-2xl font-bold">My Rental Status</h1>
+          <h1 className="text-2xl font-bold">My Room</h1>
           <Link to="/student-dashboard">
             <Button variant="outline" className="flex items-center gap-2">
               <ArrowLeft className="h-4 w-4" />
-              Back to Dashboard
+              Dashboard
             </Button>
           </Link>
         </div>
@@ -253,9 +266,9 @@ export default function Rentals() {
           <Card className="text-center py-12">
             <CardContent>
               <Home className="h-16 w-16 mx-auto mb-4 text-muted-foreground" />
-              <h3 className="text-xl font-semibold mb-2">No Active Requests</h3>
+              <h3 className="text-xl font-semibold mb-2">No Active Room</h3>
               <p className="text-muted-foreground mb-6">
-                You haven't submitted any rental requests yet. Browse available properties to find your perfect room.
+                You haven't submitted any room requests yet. Browse properties to find your room.
               </p>
               <Link to="/properties">
                 <Button size="lg">Browse Properties</Button>
@@ -267,14 +280,14 @@ export default function Rentals() {
         {/* Pending State */}
         {rentalStatus === 'pending' && (
           <div className="space-y-4">
-            <Card className="border-amber-200 bg-amber-50/50 dark:bg-amber-950/20 dark:border-amber-800">
+            <Card className="border-l-4 border-l-amber-500">
               <CardContent className="p-6">
                 <div className="flex items-center gap-3 mb-2">
                   <Clock className="h-6 w-6 text-amber-600" />
                   <h3 className="text-lg font-semibold">Request Under Review</h3>
                 </div>
                 <p className="text-muted-foreground">
-                  Your rental request is being reviewed by the landlord. You'll be notified once they respond.
+                  Your room request is being reviewed by the landlord. You'll be notified once they respond.
                 </p>
               </CardContent>
             </Card>
@@ -296,6 +309,12 @@ export default function Rentals() {
                           <MapPin className="h-3 w-3" />
                           {request.property_location}
                         </div>
+                        {request.room_number && (
+                          <div className="flex items-center gap-1 text-sm text-muted-foreground mt-1">
+                            <DoorOpen className="h-3 w-3" />
+                            Room {request.room_number}
+                          </div>
+                        )}
                         <div className="text-sm font-medium text-primary mt-1">
                           ${request.property_rent}/month
                         </div>
@@ -324,49 +343,10 @@ export default function Rentals() {
           </div>
         )}
 
-        {/* Reserved State - Awaiting Payment */}
-        {rentalStatus === 'reserved' && roomAssignment && (
-          <div className="space-y-4">
-            <Card className="border-blue-200 bg-blue-50/50 dark:bg-blue-950/20 dark:border-blue-800">
-              <CardContent className="p-6">
-                <div className="flex items-center gap-3 mb-4">
-                  <CreditCard className="h-8 w-8 text-blue-600" />
-                  <div>
-                    <h3 className="text-xl font-semibold">Awaiting Payment</h3>
-                    <p className="text-muted-foreground">Your room has been reserved!</p>
-                  </div>
-                </div>
-                
-                <div className="bg-background rounded-lg p-4 space-y-3">
-                  <div className="flex items-center gap-2">
-                    <Home className="h-5 w-5 text-muted-foreground" />
-                    <span className="font-medium">{roomAssignment.property_title}</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <MapPin className="h-5 w-5 text-muted-foreground" />
-                    <span>{roomAssignment.property_location}</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <Badge variant="outline" className="text-lg px-3 py-1">
-                      Room {roomAssignment.room_number}
-                    </Badge>
-                  </div>
-                </div>
-
-                <div className="mt-4 p-4 bg-amber-100 dark:bg-amber-900/30 rounded-lg">
-                  <p className="text-sm font-medium text-amber-800 dark:text-amber-200">
-                    Please complete your payment to confirm your tenancy. Contact your landlord for payment details.
-                  </p>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-        )}
-
         {/* Active Tenant State */}
         {rentalStatus === 'active' && roomAssignment && (
           <div className="space-y-6">
-            <Card className="border-green-200 bg-green-50/50 dark:bg-green-950/20 dark:border-green-800">
+            <Card className="border-l-4 border-l-green-500">
               <CardContent className="p-6">
                 <div className="flex items-center gap-3 mb-4">
                   <CheckCircle className="h-8 w-8 text-green-600" />
@@ -376,7 +356,7 @@ export default function Rentals() {
                   </div>
                 </div>
                 
-                <div className="bg-background rounded-lg p-4 space-y-3">
+                <div className="bg-muted/50 rounded-lg p-4 space-y-3">
                   <div className="flex items-center gap-2">
                     <Home className="h-5 w-5 text-muted-foreground" />
                     <span className="font-medium">{roomAssignment.property_title}</span>
@@ -386,10 +366,32 @@ export default function Rentals() {
                     <span>{roomAssignment.property_location}</span>
                   </div>
                   <div className="flex items-center gap-2">
-                    <Badge className="text-lg px-3 py-1 bg-green-600">
+                    <DoorOpen className="h-5 w-5 text-muted-foreground" />
+                    <Badge variant="outline" className="text-lg px-3 py-1">
                       Room {roomAssignment.room_number}
                     </Badge>
                   </div>
+                </div>
+
+                {/* Payment Status */}
+                <div className={`mt-4 p-4 rounded-lg ${
+                  roomAssignment.payment_status === 'paid' 
+                    ? 'bg-green-50 border border-green-200' 
+                    : 'bg-amber-50 border border-amber-200'
+                }`}>
+                  <div className="flex items-center gap-2">
+                    <DollarSign className={`h-5 w-5 ${
+                      roomAssignment.payment_status === 'paid' ? 'text-green-600' : 'text-amber-600'
+                    }`} />
+                    <span className="font-medium">
+                      Rent Status: {roomAssignment.payment_status === 'paid' ? 'Paid' : 'Unpaid'}
+                    </span>
+                  </div>
+                  {roomAssignment.payment_status !== 'paid' && (
+                    <p className="text-sm text-muted-foreground mt-1">
+                      Please pay your rent to the landlord outside the platform.
+                    </p>
+                  )}
                 </div>
               </CardContent>
             </Card>
@@ -405,7 +407,7 @@ export default function Rentals() {
               <CardContent>
                 {roommates.length === 0 ? (
                   <p className="text-muted-foreground text-center py-4">
-                    No other active tenants in your room yet.
+                    No other tenants in your room yet.
                   </p>
                 ) : (
                   <div className="grid gap-4">

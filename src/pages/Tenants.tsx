@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { ArrowLeft, User, CreditCard, CheckCircle, XCircle, Home, Users, MessageCircle } from "lucide-react";
+import { ArrowLeft, User, CheckCircle, Home, Users, MessageCircle, DollarSign, LogOut as LogOutIcon } from "lucide-react";
 import { Link } from "react-router-dom";
 import { toast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
@@ -27,15 +27,9 @@ interface StudentProfile {
   email: string | null;
   phone: string | null;
   avatar_url: string | null;
-}
-
-interface ReservedTenant {
-  assignment_id: string;
-  student_id: string;
-  room_number: string;
-  property_id: string;
-  property_title: string;
-  student: StudentProfile | null;
+  gender: string | null;
+  university: string | null;
+  year_of_study: string | null;
 }
 
 interface ActiveTenant {
@@ -45,6 +39,7 @@ interface ActiveTenant {
   room_id: string;
   property_id: string;
   property_title: string;
+  payment_status: string;
   student: StudentProfile | null;
 }
 
@@ -59,10 +54,9 @@ interface RoomOccupancy {
 
 export default function Tenants() {
   const { user } = useAuth();
-  const [reservedTenants, setReservedTenants] = useState<ReservedTenant[]>([]);
   const [roomOccupancies, setRoomOccupancies] = useState<RoomOccupancy[]>([]);
   const [loading, setLoading] = useState(true);
-  const [confirmDialog, setConfirmDialog] = useState<{ open: boolean; type: 'payment' | 'cancel'; tenant: ReservedTenant | null }>({
+  const [confirmDialog, setConfirmDialog] = useState<{ open: boolean; type: 'payment' | 'moveout'; tenant: ActiveTenant | null; newStatus?: string }>({
     open: false,
     type: 'payment',
     tenant: null,
@@ -80,7 +74,6 @@ export default function Tenants() {
     setLoading(true);
 
     try {
-      // Fetch all room assignments for landlord's properties
       const { data: assignmentsData, error: assignmentsError } = await supabase
         .from('room_assignments')
         .select(`
@@ -88,6 +81,7 @@ export default function Tenants() {
           room_id,
           student_id,
           status,
+          payment_status,
           rooms!inner (
             id,
             room_number,
@@ -100,6 +94,7 @@ export default function Tenants() {
             )
           )
         `)
+        .eq('status', 'active')
         .order('created_at', { ascending: false });
 
       if (assignmentsError) throw assignmentsError;
@@ -117,7 +112,7 @@ export default function Tenants() {
       if (studentIds.length > 0) {
         const { data: studentsData } = await supabase
           .from('profiles')
-          .select('user_id, first_name, surname, email, phone, avatar_url')
+          .select('user_id, first_name, surname, email, phone, avatar_url, gender, university, year_of_study')
           .in('user_id', studentIds);
 
         if (studentsData) {
@@ -128,13 +123,15 @@ export default function Tenants() {
               email: s.email,
               phone: s.phone,
               avatar_url: s.avatar_url,
+              gender: s.gender,
+              university: s.university,
+              year_of_study: s.year_of_study,
             });
           });
         }
       }
 
-      // Separate reserved and active tenants
-      const reserved: ReservedTenant[] = [];
+      // Group by room
       const activeByRoom = new Map<string, RoomOccupancy>();
 
       landlordAssignments.forEach((assignment: any) => {
@@ -142,41 +139,30 @@ export default function Tenants() {
         const property = room.properties;
         const student = studentsMap.get(assignment.student_id) || null;
 
-        if (assignment.status === 'reserved') {
-          reserved.push({
-            assignment_id: assignment.id,
-            student_id: assignment.student_id,
-            room_number: room.room_number,
-            property_id: property.id,
-            property_title: property.title,
-            student,
-          });
-        } else if (assignment.status === 'active') {
-          const tenant: ActiveTenant = {
-            assignment_id: assignment.id,
-            student_id: assignment.student_id,
-            room_number: room.room_number,
-            room_id: room.id,
-            property_id: property.id,
-            property_title: property.title,
-            student,
-          };
+        const tenant: ActiveTenant = {
+          assignment_id: assignment.id,
+          student_id: assignment.student_id,
+          room_number: room.room_number,
+          room_id: room.id,
+          property_id: property.id,
+          property_title: property.title,
+          payment_status: assignment.payment_status || 'unpaid',
+          student,
+        };
 
-          if (!activeByRoom.has(room.id)) {
-            activeByRoom.set(room.id, {
-              room_id: room.id,
-              room_number: room.room_number,
-              capacity: room.capacity,
-              property_id: property.id,
-              property_title: property.title,
-              tenants: [],
-            });
-          }
-          activeByRoom.get(room.id)!.tenants.push(tenant);
+        if (!activeByRoom.has(room.id)) {
+          activeByRoom.set(room.id, {
+            room_id: room.id,
+            room_number: room.room_number,
+            capacity: room.capacity,
+            property_id: property.id,
+            property_title: property.title,
+            tenants: [],
+          });
         }
+        activeByRoom.get(room.id)!.tenants.push(tenant);
       });
 
-      setReservedTenants(reserved);
       setRoomOccupancies(Array.from(activeByRoom.values()));
     } catch (error) {
       console.error('Error fetching tenants:', error);
@@ -190,28 +176,29 @@ export default function Tenants() {
     }
   };
 
-  const handleConfirmPayment = async () => {
-    if (!confirmDialog.tenant) return;
+  const handleTogglePayment = async () => {
+    if (!confirmDialog.tenant || !confirmDialog.newStatus) return;
     setProcessing(true);
 
     try {
-      const { error } = await supabase.rpc('confirm_payment', {
+      const { error } = await supabase.rpc('toggle_payment_status', {
         p_assignment_id: confirmDialog.tenant.assignment_id,
+        p_status: confirmDialog.newStatus,
       });
 
       if (error) throw error;
 
       toast({
-        title: "Payment Confirmed",
-        description: "The tenant is now active.",
+        title: "Payment Status Updated",
+        description: `Status changed to ${confirmDialog.newStatus}.`,
       });
       setConfirmDialog({ open: false, type: 'payment', tenant: null });
       fetchTenants();
     } catch (error: any) {
-      console.error('Error confirming payment:', error);
+      console.error('Error toggling payment:', error);
       toast({
         title: "Error",
-        description: error.message || "Failed to confirm payment",
+        description: error.message || "Failed to update payment status",
         variant: "destructive",
       });
     } finally {
@@ -219,28 +206,28 @@ export default function Tenants() {
     }
   };
 
-  const handleCancelReservation = async () => {
+  const handleMoveOut = async () => {
     if (!confirmDialog.tenant) return;
     setProcessing(true);
 
     try {
-      const { error } = await supabase.rpc('cancel_reservation', {
+      const { error } = await supabase.rpc('move_out_tenant', {
         p_assignment_id: confirmDialog.tenant.assignment_id,
       });
 
       if (error) throw error;
 
       toast({
-        title: "Reservation Cancelled",
-        description: "The room is now available again.",
+        title: "Tenant Moved Out",
+        description: "The room space is now available again.",
       });
-      setConfirmDialog({ open: false, type: 'cancel', tenant: null });
+      setConfirmDialog({ open: false, type: 'moveout', tenant: null });
       fetchTenants();
     } catch (error: any) {
-      console.error('Error cancelling reservation:', error);
+      console.error('Error moving out tenant:', error);
       toast({
         title: "Error",
-        description: error.message || "Failed to cancel reservation",
+        description: error.message || "Failed to process move-out",
         variant: "destructive",
       });
     } finally {
@@ -260,12 +247,13 @@ export default function Tenants() {
     return (first + last).toUpperCase() || '?';
   };
 
+  const totalTenants = roomOccupancies.reduce((acc, room) => acc + room.tenants.length, 0);
+
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-background to-secondary/20 p-4">
+      <div className="min-h-screen bg-background p-4">
         <div className="max-w-6xl mx-auto space-y-6">
           <Skeleton className="h-12 w-full" />
-          <Skeleton className="h-64 w-full" />
           <Skeleton className="h-64 w-full" />
         </div>
       </div>
@@ -273,7 +261,7 @@ export default function Tenants() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background to-secondary/20 p-4">
+    <div className="min-h-screen bg-background p-4">
       <div className="max-w-6xl mx-auto space-y-6">
         <div className="flex items-center gap-4">
           <Link to="/landlord-dashboard">
@@ -281,182 +269,143 @@ export default function Tenants() {
               <ArrowLeft className="h-5 w-5" />
             </Button>
           </Link>
-          <h1 className="text-2xl font-bold">Tenants</h1>
+          <h1 className="text-2xl font-bold">My Tenants</h1>
+          <Badge variant="secondary">{totalTenants} active</Badge>
         </div>
 
-        {/* Reserved Tenants Section */}
-        <div className="space-y-4">
-          <div className="flex items-center gap-2">
-            <CreditCard className="h-5 w-5 text-amber-600" />
-            <h2 className="text-xl font-semibold">Reserved (Awaiting Payment)</h2>
-            <Badge variant="secondary">{reservedTenants.length}</Badge>
-          </div>
-
-          {reservedTenants.length === 0 ? (
-            <Card>
-              <CardContent className="py-8 text-center text-muted-foreground">
-                No students awaiting payment confirmation.
-              </CardContent>
-            </Card>
-          ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {reservedTenants.map((tenant) => (
-                <Card key={tenant.assignment_id} className="border-amber-200 dark:border-amber-800">
-                  <CardContent className="p-4">
-                    <div className="flex items-start gap-4">
-                      <Avatar className="h-12 w-12">
-                        <AvatarImage src={tenant.student?.avatar_url || undefined} />
-                        <AvatarFallback>{getStudentInitials(tenant.student)}</AvatarFallback>
-                      </Avatar>
-                      <div className="flex-1 min-w-0">
-                        <h3 className="font-semibold truncate">{getStudentName(tenant.student)}</h3>
-                        <p className="text-sm text-muted-foreground">{tenant.property_title}</p>
-                        <Badge variant="outline" className="mt-1">Room {tenant.room_number}</Badge>
+        {roomOccupancies.length === 0 ? (
+          <Card>
+            <CardContent className="py-12 text-center text-muted-foreground">
+              <Users className="h-12 w-12 mx-auto mb-4 text-muted-foreground/50" />
+              <p className="text-lg font-medium">No active tenants yet</p>
+              <p className="text-sm">Approved room requests will appear here.</p>
+            </CardContent>
+          </Card>
+        ) : (
+          <div className="space-y-4">
+            {roomOccupancies.map((room) => (
+              <Card key={room.room_id}>
+                <CardHeader className="pb-3">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <Home className="h-5 w-5 text-muted-foreground" />
+                      <div>
+                        <CardTitle className="text-lg">{room.property_title}</CardTitle>
+                        <p className="text-sm text-muted-foreground">Room {room.room_number}</p>
                       </div>
-                      <Badge className="bg-amber-100 text-amber-800 dark:bg-amber-900 dark:text-amber-200">
-                        Not Paid
-                      </Badge>
                     </div>
-
-                    <div className="mt-4">
-                      <ContactOptionsSheet
-                        phone={tenant.student?.phone}
-                        email={tenant.student?.email}
-                        name={getStudentName(tenant.student)}
-                        trigger={
-                          <Button variant="outline" size="sm" className="w-full">
-                            <MessageCircle className="h-4 w-4 mr-2" />
-                            Contact Student
-                          </Button>
-                        }
-                      />
-                    </div>
-
-                    <div className="mt-3 flex gap-2">
-                      <Button
-                        size="sm"
-                        className="flex-1 bg-green-600 hover:bg-green-700"
-                        onClick={() => setConfirmDialog({ open: true, type: 'payment', tenant })}
+                    <Badge 
+                      variant={room.tenants.length >= room.capacity ? "default" : "secondary"}
+                    >
+                      {room.tenants.length}/{room.capacity} occupied
+                    </Badge>
+                  </div>
+                </CardHeader>
+                <CardContent>
+                  <div className="grid gap-3">
+                    {room.tenants.map((tenant) => (
+                      <div
+                        key={tenant.assignment_id}
+                        className="p-4 bg-muted/50 rounded-lg space-y-3"
                       >
-                        <CheckCircle className="h-4 w-4 mr-2" />
-                        Mark as Paid
-                      </Button>
-                      <Button
-                        size="sm"
-                        variant="destructive"
-                        className="flex-1"
-                        onClick={() => setConfirmDialog({ open: true, type: 'cancel', tenant })}
-                      >
-                        <XCircle className="h-4 w-4 mr-2" />
-                        Cancel
-                      </Button>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-          )}
-        </div>
-
-        {/* Active Tenants Section */}
-        <div className="space-y-4">
-          <div className="flex items-center gap-2">
-            <CheckCircle className="h-5 w-5 text-green-600" />
-            <h2 className="text-xl font-semibold">Active Tenants</h2>
-            <Badge variant="secondary">
-              {roomOccupancies.reduce((acc, room) => acc + room.tenants.length, 0)}
-            </Badge>
-          </div>
-
-          {roomOccupancies.length === 0 ? (
-            <Card>
-              <CardContent className="py-8 text-center text-muted-foreground">
-                <Users className="h-12 w-12 mx-auto mb-4 text-muted-foreground/50" />
-                <p>No active tenants yet.</p>
-              </CardContent>
-            </Card>
-          ) : (
-            <div className="space-y-4">
-              {roomOccupancies.map((room) => (
-                <Card key={room.room_id}>
-                  <CardHeader className="pb-3">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-3">
-                        <Home className="h-5 w-5 text-muted-foreground" />
-                        <div>
-                          <CardTitle className="text-lg">{room.property_title}</CardTitle>
-                          <p className="text-sm text-muted-foreground">Room {room.room_number}</p>
-                        </div>
-                      </div>
-                      <Badge 
-                        variant={room.tenants.length >= room.capacity ? "default" : "secondary"}
-                        className={room.tenants.length >= room.capacity ? "bg-green-600" : ""}
-                      >
-                        {room.tenants.length}/{room.capacity} occupied
-                      </Badge>
-                    </div>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="grid gap-3">
-                      {room.tenants.map((tenant) => (
-                        <div
-                          key={tenant.assignment_id}
-                          className="flex items-center justify-between p-3 bg-muted/50 rounded-lg"
-                        >
+                        <div className="flex items-center justify-between">
                           <div className="flex items-center gap-3">
                             <Avatar>
                               <AvatarImage src={tenant.student?.avatar_url || undefined} />
-                              <AvatarFallback>
-                                <User className="h-4 w-4" />
-                              </AvatarFallback>
+                              <AvatarFallback>{getStudentInitials(tenant.student)}</AvatarFallback>
                             </Avatar>
                             <div>
                               <p className="font-medium">{getStudentName(tenant.student)}</p>
-                              <p className="text-sm text-muted-foreground">{tenant.student?.email}</p>
+                              <div className="flex flex-wrap gap-2 text-xs text-muted-foreground">
+                                {tenant.student?.phone && <span>{tenant.student.phone}</span>}
+                                {tenant.student?.gender && <span>• {tenant.student.gender}</span>}
+                                {tenant.student?.university && <span>• {tenant.student.university}</span>}
+                                {tenant.student?.year_of_study && <span>• {tenant.student.year_of_study}</span>}
+                              </div>
                             </div>
                           </div>
-                          <div className="flex gap-2">
-                            <ContactOptionsSheet
-                              phone={tenant.student?.phone}
-                              email={tenant.student?.email}
-                              name={getStudentName(tenant.student)}
-                              trigger={
-                                <Button variant="ghost" size="icon">
-                                  <MessageCircle className="h-4 w-4" />
-                                </Button>
-                              }
-                            />
-                          </div>
+                          <Badge 
+                            variant={tenant.payment_status === 'paid' ? 'default' : 'destructive'}
+                            className={tenant.payment_status === 'paid' ? 'bg-green-600' : ''}
+                          >
+                            <DollarSign className="h-3 w-3 mr-1" />
+                            {tenant.payment_status === 'paid' ? 'Paid' : 'Unpaid'}
+                          </Badge>
                         </div>
-                      ))}
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-          )}
-        </div>
+
+                        <div className="flex flex-wrap gap-2">
+                          {/* Payment Toggle */}
+                          <Button
+                            size="sm"
+                            variant={tenant.payment_status === 'paid' ? 'outline' : 'default'}
+                            className={tenant.payment_status !== 'paid' ? 'bg-green-600 hover:bg-green-700' : ''}
+                            onClick={() => setConfirmDialog({
+                              open: true,
+                              type: 'payment',
+                              tenant,
+                              newStatus: tenant.payment_status === 'paid' ? 'unpaid' : 'paid',
+                            })}
+                          >
+                            <DollarSign className="h-4 w-4 mr-1" />
+                            {tenant.payment_status === 'paid' ? 'Mark Unpaid' : 'Mark Paid'}
+                          </Button>
+
+                          {/* Contact */}
+                          <ContactOptionsSheet
+                            phone={tenant.student?.phone}
+                            email={tenant.student?.email}
+                            name={getStudentName(tenant.student)}
+                            trigger={
+                              <Button variant="outline" size="sm">
+                                <MessageCircle className="h-4 w-4 mr-1" />
+                                Contact
+                              </Button>
+                            }
+                          />
+
+                          {/* Move Out */}
+                          <Button
+                            size="sm"
+                            variant="destructive"
+                            onClick={() => setConfirmDialog({
+                              open: true,
+                              type: 'moveout',
+                              tenant,
+                            })}
+                          >
+                            <LogOutIcon className="h-4 w-4 mr-1" />
+                            Move Out
+                          </Button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        )}
 
         {/* Confirmation Dialog */}
         <AlertDialog open={confirmDialog.open} onOpenChange={(open) => setConfirmDialog({ ...confirmDialog, open })}>
           <AlertDialogContent>
             <AlertDialogHeader>
               <AlertDialogTitle>
-                {confirmDialog.type === 'payment' ? 'Confirm Payment' : 'Cancel Reservation'}
+                {confirmDialog.type === 'payment' ? 'Update Payment Status' : 'Confirm Move-Out'}
               </AlertDialogTitle>
               <AlertDialogDescription>
                 {confirmDialog.type === 'payment'
-                  ? `Are you sure you want to mark ${getStudentName(confirmDialog.tenant?.student || null)} as paid? They will become an active tenant.`
-                  : `Are you sure you want to cancel the reservation for ${getStudentName(confirmDialog.tenant?.student || null)}? The room will become available again.`
+                  ? `Mark ${getStudentName(confirmDialog.tenant?.student || null)} as "${confirmDialog.newStatus}"?`
+                  : `Are you sure you want to move out ${getStudentName(confirmDialog.tenant?.student || null)}? The room space will become available again.`
                 }
               </AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter>
               <AlertDialogCancel disabled={processing}>Cancel</AlertDialogCancel>
               <AlertDialogAction
-                onClick={confirmDialog.type === 'payment' ? handleConfirmPayment : handleCancelReservation}
+                onClick={confirmDialog.type === 'payment' ? handleTogglePayment : handleMoveOut}
                 disabled={processing}
-                className={confirmDialog.type === 'payment' ? 'bg-green-600 hover:bg-green-700' : ''}
+                className={confirmDialog.type === 'moveout' ? 'bg-destructive hover:bg-destructive/90' : ''}
               >
                 {processing ? 'Processing...' : 'Confirm'}
               </AlertDialogAction>
