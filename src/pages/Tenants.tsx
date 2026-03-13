@@ -181,7 +181,7 @@ export default function Tenants() {
     setProcessing(true);
 
     try {
-      const { error } = await supabase.rpc('toggle_payment_status', {
+      const { error } = await (supabase.rpc as any)('toggle_payment_status', {
         p_assignment_id: confirmDialog.tenant.assignment_id,
         p_status: confirmDialog.newStatus,
       });
