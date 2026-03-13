@@ -113,7 +113,7 @@ export default function Tenants() {
         const { data: studentsData } = await supabase
           .from('profiles')
           .select('user_id, first_name, surname, email, phone, avatar_url, gender, university, year_of_study')
-          .in('user_id', studentIds);
+          .in('user_id', studentIds as string[]);
 
         if (studentsData) {
           studentsData.forEach((s) => {
