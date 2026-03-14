@@ -199,6 +199,51 @@ export default function AddProperty() {
     ));
   };
 
+  const syncRoomsTable = async (propertyId: string, configs: RoomConfiguration[]) => {
+    // Get existing rooms for this property
+    const { data: existingRooms } = await supabase
+      .from('rooms')
+      .select('id, room_number')
+      .eq('property_id', propertyId);
+
+    const existingRoomNumbers = new Set((existingRooms || []).map(r => r.room_number));
+    const newRoomNumbers = new Set(configs.map(c => c.room_number));
+
+    // Delete rooms that are no longer in configurations (only if they have no active assignments)
+    const toDelete = (existingRooms || []).filter(r => !newRoomNumbers.has(r.room_number));
+    for (const room of toDelete) {
+      const { count } = await supabase
+        .from('room_assignments')
+        .select('*', { count: 'exact', head: true })
+        .eq('room_id', room.id)
+        .in('status', ['active', 'reserved']);
+      if (!count || count === 0) {
+        await supabase.from('rooms').delete().eq('id', room.id);
+      }
+    }
+
+    // Insert new rooms that don't exist yet
+    const toInsert = configs.filter(c => !existingRoomNumbers.has(c.room_number));
+    if (toInsert.length > 0) {
+      await supabase.from('rooms').insert(
+        toInsert.map(c => ({
+          property_id: propertyId,
+          room_number: c.room_number,
+          capacity: c.capacity,
+        }))
+      );
+    }
+
+    // Update capacity for existing rooms
+    const toUpdate = configs.filter(c => existingRoomNumbers.has(c.room_number));
+    for (const config of toUpdate) {
+      const room = (existingRooms || []).find(r => r.room_number === config.room_number);
+      if (room) {
+        await supabase.from('rooms').update({ capacity: config.capacity }).eq('id', room.id);
+      }
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
