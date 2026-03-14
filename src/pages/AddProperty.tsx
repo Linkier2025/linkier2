@@ -241,17 +241,27 @@ export default function AddProperty() {
 
         if (error) throw error;
 
+        // Sync rooms table: delete old rooms (that have no assignments) and re-create
+        await syncRoomsTable(id, roomConfigurations);
+
         toast({
           title: "Property updated!",
           description: "Your property has been successfully updated.",
         });
       } else {
         // Insert new property
-        const { error } = await supabase
+        const { data: newProperty, error } = await supabase
           .from('properties')
-          .insert([propertyData]);
+          .insert([propertyData])
+          .select('id')
+          .single();
 
         if (error) throw error;
+
+        // Create room records in the rooms table
+        if (newProperty) {
+          await syncRoomsTable(newProperty.id, roomConfigurations);
+        }
 
         toast({
           title: "Property added!",
