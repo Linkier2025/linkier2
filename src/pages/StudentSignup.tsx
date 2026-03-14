@@ -80,7 +80,7 @@ const StudentSignup = () => {
     const userData = {
       user_type: 'student',
       first_name: formData.firstName,
-      last_name: formData.surname,
+      surname: formData.surname,
       phone: formData.phone,
       university: formData.university,
       year_of_study: formData.yearOfStudy,

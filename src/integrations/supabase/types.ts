@@ -409,6 +409,7 @@ export type Database = {
           landlord_id: string
           property_id: string
           requested_at: string
+          room_id: string | null
           status: string
           student_id: string
           student_message: string | null
@@ -420,6 +421,7 @@ export type Database = {
           landlord_id: string
           property_id: string
           requested_at?: string
+          room_id?: string | null
           status?: string
           student_id: string
           student_message?: string | null
@@ -431,12 +433,21 @@ export type Database = {
           landlord_id?: string
           property_id?: string
           requested_at?: string
+          room_id?: string | null
           status?: string
           student_id?: string
           student_message?: string | null
           updated_at?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "rental_requests_room_id_fkey"
+            columns: ["room_id"]
+            isOneToOne: false
+            referencedRelation: "rooms"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       rentals: {
         Row: {
@@ -492,6 +503,7 @@ export type Database = {
         Row: {
           created_at: string
           id: string
+          payment_status: string
           room_id: string
           status: string
           student_id: string
@@ -500,6 +512,7 @@ export type Database = {
         Insert: {
           created_at?: string
           id?: string
+          payment_status?: string
           room_id: string
           status?: string
           student_id: string
@@ -508,6 +521,7 @@ export type Database = {
         Update: {
           created_at?: string
           id?: string
+          payment_status?: string
           room_id?: string
           status?: string
           student_id?: string
@@ -570,6 +584,11 @@ export type Database = {
       }
       confirm_payment: { Args: { p_assignment_id: string }; Returns: boolean }
       get_available_room: { Args: { p_property_id: string }; Returns: string }
+      move_out_tenant: { Args: { p_assignment_id: string }; Returns: boolean }
+      toggle_payment_status: {
+        Args: { p_assignment_id: string; p_status: string }
+        Returns: boolean
+      }
     }
     Enums: {
       [_ in never]: never

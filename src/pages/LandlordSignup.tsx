@@ -65,7 +65,7 @@ const LandlordSignup = () => {
     const userData = {
       user_type: 'landlord',
       first_name: formData.firstName,
-      last_name: formData.surname,
+      surname: formData.surname,
       phone: formData.phone
     };
     
