@@ -12,13 +12,24 @@ import {
   DollarSign,
   Users,
   User,
-  DoorOpen
+  DoorOpen,
+  Gift
 } from "lucide-react";
 import { Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
 import { Skeleton } from "@/components/ui/skeleton";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 interface RentalRequest {
   id: string;
@@ -52,7 +63,7 @@ interface Roommate {
   avatar_url: string | null;
 }
 
-type RentalStatus = 'none' | 'pending' | 'active';
+type RentalStatus = 'none' | 'pending' | 'offers' | 'active';
 
 export default function Rentals() {
   const { user } = useAuth();
@@ -60,8 +71,11 @@ export default function Rentals() {
   const [loading, setLoading] = useState(true);
   const [rentalStatus, setRentalStatus] = useState<RentalStatus>('none');
   const [pendingRequests, setPendingRequests] = useState<RentalRequest[]>([]);
+  const [offers, setOffers] = useState<RentalRequest[]>([]);
   const [roomAssignment, setRoomAssignment] = useState<RoomAssignment | null>(null);
   const [roommates, setRoommates] = useState<Roommate[]>([]);
+  const [acceptingOffer, setAcceptingOffer] = useState(false);
+  const [confirmDialog, setConfirmDialog] = useState<{ open: boolean; offer: RentalRequest | null }>({ open: false, offer: null });
 
   useEffect(() => {
     if (user) {
@@ -116,59 +130,72 @@ export default function Rentals() {
 
         setRentalStatus('active');
         await fetchRoommates(assignmentData.room_id, user.id);
+        return;
+      }
+
+      // 2. Fetch all non-terminal requests
+      const { data: requestsData, error: requestsError } = await supabase
+        .from('rental_requests')
+        .select('*')
+        .eq('student_id', user.id)
+        .in('status', ['pending', 'approved'])
+        .order('created_at', { ascending: false });
+
+      if (requestsError) throw requestsError;
+
+      if (!requestsData || requestsData.length === 0) {
+        setRentalStatus('none');
+        setLoading(false);
+        return;
+      }
+
+      // Enrich with property + room info
+      const propertyIds = [...new Set(requestsData.map(r => r.property_id))];
+      const { data: propertiesData } = await supabase
+        .from('properties')
+        .select('id, title, location, rent_amount, images')
+        .in('id', propertyIds);
+      const propertiesMap = new Map(propertiesData?.map(p => [p.id, p]) || []);
+
+      const roomIds = requestsData.filter(r => (r as any).room_id).map(r => (r as any).room_id);
+      let roomsMap = new Map<string, string>();
+      if (roomIds.length > 0) {
+        const { data: roomsData } = await supabase
+          .from('rooms')
+          .select('id, room_number')
+          .in('id', roomIds);
+        roomsData?.forEach(r => roomsMap.set(r.id, r.room_number));
+      }
+
+      const enriched = requestsData.map(request => {
+        const property = propertiesMap.get(request.property_id);
+        return {
+          id: request.id,
+          property_id: request.property_id,
+          room_id: (request as any).room_id || null,
+          student_message: request.student_message,
+          status: request.status,
+          created_at: request.created_at,
+          property_title: property?.title || 'Unknown Property',
+          property_location: property?.location || '',
+          property_rent: property?.rent_amount || 0,
+          property_image: property?.images?.[0] || null,
+          room_number: (request as any).room_id ? roomsMap.get((request as any).room_id) || null : null,
+        };
+      });
+
+      const approvedOffers = enriched.filter(r => r.status === 'approved');
+      const pendingReqs = enriched.filter(r => r.status === 'pending');
+
+      setOffers(approvedOffers);
+      setPendingRequests(pendingReqs);
+
+      if (approvedOffers.length > 0) {
+        setRentalStatus('offers');
+      } else if (pendingReqs.length > 0) {
+        setRentalStatus('pending');
       } else {
-        // 2. Check for pending rental requests
-        const { data: requestsData, error: requestsError } = await supabase
-          .from('rental_requests')
-          .select('*')
-          .eq('student_id', user.id)
-          .eq('status', 'pending')
-          .order('created_at', { ascending: false });
-
-        if (requestsError) throw requestsError;
-
-        if (requestsData && requestsData.length > 0) {
-          const propertyIds = [...new Set(requestsData.map(r => r.property_id))];
-          const { data: propertiesData } = await supabase
-            .from('properties')
-            .select('id, title, location, rent_amount, images')
-            .in('id', propertyIds);
-
-          const propertiesMap = new Map(propertiesData?.map(p => [p.id, p]) || []);
-
-          // Fetch room info for requests that have room_id
-          const roomIds = requestsData.filter(r => (r as any).room_id).map(r => (r as any).room_id);
-          let roomsMap = new Map<string, string>();
-          if (roomIds.length > 0) {
-            const { data: roomsData } = await supabase
-              .from('rooms')
-              .select('id, room_number')
-              .in('id', roomIds);
-            roomsData?.forEach(r => roomsMap.set(r.id, r.room_number));
-          }
-
-          const enrichedRequests = requestsData.map(request => {
-            const property = propertiesMap.get(request.property_id);
-            return {
-              id: request.id,
-              property_id: request.property_id,
-              room_id: (request as any).room_id || null,
-              student_message: request.student_message,
-              status: request.status,
-              created_at: request.created_at,
-              property_title: property?.title || 'Unknown Property',
-              property_location: property?.location || '',
-              property_rent: property?.rent_amount || 0,
-              property_image: property?.images?.[0] || null,
-              room_number: (request as any).room_id ? roomsMap.get((request as any).room_id) || null : null,
-            };
-          });
-
-          setPendingRequests(enrichedRequests);
-          setRentalStatus('pending');
-        } else {
-          setRentalStatus('none');
-        }
+        setRentalStatus('none');
       }
     } catch (error) {
       console.error('Error fetching rental data:', error);
@@ -214,11 +241,41 @@ export default function Rentals() {
     }
   };
 
+  const handleAcceptOffer = async () => {
+    const offer = confirmDialog.offer;
+    if (!offer) return;
+    setAcceptingOffer(true);
+
+    try {
+      const { data, error } = await (supabase.rpc as any)('accept_offer', {
+        p_request_id: offer.id,
+      });
+
+      if (error) throw error;
+
+      toast({
+        title: "Offer Accepted! 🎉",
+        description: `You are now a tenant in Room ${(data as any)?.room_number}. All other requests have been cancelled.`,
+      });
+      setConfirmDialog({ open: false, offer: null });
+      fetchRentalData();
+    } catch (error: any) {
+      console.error('Error accepting offer:', error);
+      toast({
+        title: "Error",
+        description: error.message || "Failed to accept offer",
+        variant: "destructive",
+      });
+    } finally {
+      setAcceptingOffer(false);
+    }
+  };
+
   const cancelRequest = async (requestId: string) => {
     try {
       const { error } = await supabase
         .from('rental_requests')
-        .delete()
+        .update({ status: 'cancelled' })
         .eq('id', requestId);
 
       if (error) throw error;
@@ -277,22 +334,84 @@ export default function Rentals() {
           </Card>
         )}
 
-        {/* Pending State */}
-        {rentalStatus === 'pending' && (
+        {/* Offers Section */}
+        {offers.length > 0 && rentalStatus !== 'active' && (
+          <div className="space-y-4">
+            <Card className="border-l-4 border-l-green-500">
+              <CardContent className="p-6">
+                <div className="flex items-center gap-3 mb-2">
+                  <Gift className="h-6 w-6 text-green-600" />
+                  <h3 className="text-lg font-semibold">You Have Offers!</h3>
+                </div>
+                <p className="text-muted-foreground">
+                  A landlord has approved your request. Accept an offer to become a tenant. You can only accept one.
+                </p>
+              </CardContent>
+            </Card>
+
+            <h2 className="text-lg font-semibold">Your Offers</h2>
+            <div className="grid gap-4">
+              {offers.map((offer) => (
+                <Card key={offer.id} className="border-green-200">
+                  <CardContent className="p-4">
+                    <div className="flex gap-4">
+                      <img
+                        src={offer.property_image || "/placeholder.svg"}
+                        alt={offer.property_title}
+                        className="w-24 h-24 object-cover rounded-lg"
+                      />
+                      <div className="flex-1">
+                        <h3 className="font-semibold">{offer.property_title}</h3>
+                        <div className="flex items-center gap-1 text-sm text-muted-foreground">
+                          <MapPin className="h-3 w-3" />
+                          {offer.property_location}
+                        </div>
+                        {offer.room_number && (
+                          <div className="flex items-center gap-1 text-sm text-muted-foreground mt-1">
+                            <DoorOpen className="h-3 w-3" />
+                            Room {offer.room_number}
+                          </div>
+                        )}
+                        <div className="text-sm font-medium text-primary mt-1">
+                          ${offer.property_rent}/month
+                        </div>
+                      </div>
+                      <div className="flex flex-col gap-2">
+                        <Badge className="bg-green-600">
+                          <CheckCircle className="h-3 w-3 mr-1" />
+                          Approved
+                        </Badge>
+                        <Button
+                          size="sm"
+                          className="bg-green-600 hover:bg-green-700"
+                          onClick={() => setConfirmDialog({ open: true, offer })}
+                        >
+                          Accept Offer
+                        </Button>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Pending Requests */}
+        {pendingRequests.length > 0 && rentalStatus !== 'active' && (
           <div className="space-y-4">
             <Card className="border-l-4 border-l-amber-500">
               <CardContent className="p-6">
                 <div className="flex items-center gap-3 mb-2">
                   <Clock className="h-6 w-6 text-amber-600" />
-                  <h3 className="text-lg font-semibold">Request Under Review</h3>
+                  <h3 className="text-lg font-semibold">Pending Requests</h3>
                 </div>
                 <p className="text-muted-foreground">
-                  Your room request is being reviewed by the landlord. You'll be notified once they respond.
+                  These requests are being reviewed by landlords. You'll receive an offer if approved.
                 </p>
               </CardContent>
             </Card>
 
-            <h2 className="text-lg font-semibold">Pending Requests</h2>
             <div className="grid gap-4">
               {pendingRequests.map((request) => (
                 <Card key={request.id}>
@@ -430,6 +549,31 @@ export default function Rentals() {
             </Card>
           </div>
         )}
+
+        {/* Accept Offer Confirmation */}
+        <AlertDialog open={confirmDialog.open} onOpenChange={(open) => setConfirmDialog({ ...confirmDialog, open })}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Accept This Offer?</AlertDialogTitle>
+              <AlertDialogDescription>
+                You will become a tenant at <strong>{confirmDialog.offer?.property_title}</strong>
+                {confirmDialog.offer?.room_number && <> in <strong>Room {confirmDialog.offer.room_number}</strong></>}.
+                <br /><br />
+                <strong>Important:</strong> All your other pending and approved requests will be automatically cancelled. You can only be a tenant in one room.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel disabled={acceptingOffer}>Cancel</AlertDialogCancel>
+              <AlertDialogAction
+                onClick={handleAcceptOffer}
+                disabled={acceptingOffer}
+                className="bg-green-600 hover:bg-green-700"
+              >
+                {acceptingOffer ? 'Accepting...' : 'Accept Offer'}
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
       </div>
     </div>
   );
