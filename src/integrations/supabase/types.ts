@@ -577,6 +577,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      accept_offer: { Args: { p_request_id: string }; Returns: Json }
       accept_rental_request: { Args: { p_request_id: string }; Returns: Json }
       cancel_reservation: {
         Args: { p_assignment_id: string }

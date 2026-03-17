@@ -283,11 +283,9 @@ export default function ViewingRequests() {
 
       if (error) throw error;
 
-      const result = data as { success: boolean; room_number: string } | null;
-      
       toast({
-        title: "Request Approved",
-        description: `Student has been assigned to Room ${result?.room_number}. They are now a tenant.`,
+        title: "Offer Sent",
+        description: "The student has been notified. They must accept the offer to become a tenant.",
       });
       fetchRentalRequests();
     } catch (error: any) {
@@ -338,6 +336,7 @@ export default function ViewingRequests() {
       scheduled: "default",
       completed: "outline",
       cancelled: "destructive",
+      approved: "default",
       accepted: "default",
       declined: "destructive"
     };
@@ -346,8 +345,9 @@ export default function ViewingRequests() {
       scheduled: "Scheduled",
       completed: "Completed",
       cancelled: "Cancelled",
-      accepted: "Accepted",
-      declined: "Declined"
+      approved: "Offer Sent",
+      accepted: "Tenant Created",
+      declined: "Rejected"
     };
     return <Badge variant={variants[status] || "default"}>{labels[status] || status}</Badge>;
   };
@@ -508,7 +508,7 @@ export default function ViewingRequests() {
                               disabled={updating}
                             >
                               <Check className="h-4 w-4 mr-2" />
-                              Approve
+                              Send Offer
                             </Button>
                             <Button
                               variant="destructive"
