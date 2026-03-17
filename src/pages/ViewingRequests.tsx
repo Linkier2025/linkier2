@@ -283,11 +283,9 @@ export default function ViewingRequests() {
 
       if (error) throw error;
 
-      const result = data as { success: boolean; room_number: string } | null;
-      
       toast({
-        title: "Request Approved",
-        description: `Student has been assigned to Room ${result?.room_number}. They are now a tenant.`,
+        title: "Offer Sent",
+        description: "The student has been notified. They must accept the offer to become a tenant.",
       });
       fetchRentalRequests();
     } catch (error: any) {
