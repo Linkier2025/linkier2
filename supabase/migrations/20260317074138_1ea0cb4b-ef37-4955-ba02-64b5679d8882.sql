@@ -1,0 +1,2 @@
+ALTER TABLE public.rental_requests DROP CONSTRAINT rental_requests_status_check;
+ALTER TABLE public.rental_requests ADD CONSTRAINT rental_requests_status_check CHECK (status IN ('pending', 'approved', 'accepted', 'rejected', 'declined', 'cancelled'));
