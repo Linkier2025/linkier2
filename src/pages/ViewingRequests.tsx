@@ -336,6 +336,7 @@ export default function ViewingRequests() {
       scheduled: "default",
       completed: "outline",
       cancelled: "destructive",
+      approved: "default",
       accepted: "default",
       declined: "destructive"
     };
@@ -344,8 +345,9 @@ export default function ViewingRequests() {
       scheduled: "Scheduled",
       completed: "Completed",
       cancelled: "Cancelled",
-      accepted: "Accepted",
-      declined: "Declined"
+      approved: "Offer Sent",
+      accepted: "Tenant Created",
+      declined: "Rejected"
     };
     return <Badge variant={variants[status] || "default"}>{labels[status] || status}</Badge>;
   };
