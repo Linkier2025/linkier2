@@ -482,7 +482,8 @@ export default function ViewingRequests() {
   }
 
   const pendingRentalRequests = rentalRequests.filter(r => r.status === 'pending');
-  const otherRentalRequests = rentalRequests.filter(r => r.status !== 'pending');
+  const approvedRentalRequests = rentalRequests.filter(r => r.status === 'approved');
+  const otherRentalRequests = rentalRequests.filter(r => !['pending', 'approved'].includes(r.status));
 
   return (
     <div className="min-h-screen bg-background p-4">
