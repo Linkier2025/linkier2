@@ -585,6 +585,10 @@ export type Database = {
       }
       confirm_payment: { Args: { p_assignment_id: string }; Returns: boolean }
       get_available_room: { Args: { p_property_id: string }; Returns: string }
+      is_roommate: {
+        Args: { p_room_id: string; p_user_id: string }
+        Returns: boolean
+      }
       move_out_tenant: { Args: { p_assignment_id: string }; Returns: boolean }
       toggle_payment_status: {
         Args: { p_assignment_id: string; p_status: string }
