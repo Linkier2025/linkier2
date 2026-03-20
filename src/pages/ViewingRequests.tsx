@@ -950,6 +950,24 @@ export default function ViewingRequests() {
             </DialogFooter>
           </DialogContent>
         </Dialog>
+
+        {/* Accept Offer Confirmation Dialog */}
+        <AlertDialog open={confirmOfferDialog.open} onOpenChange={(open) => setConfirmOfferDialog({ open, request: open ? confirmOfferDialog.request : null })}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Accept this offer?</AlertDialogTitle>
+              <AlertDialogDescription>
+                You will be assigned to this room and all other pending and approved requests will be automatically cancelled. You can only have one active room.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Cancel</AlertDialogCancel>
+              <AlertDialogAction onClick={handleAcceptOffer} disabled={acceptingOffer}>
+                {acceptingOffer ? "Accepting..." : "Confirm"}
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
       </div>
     </div>
   );
