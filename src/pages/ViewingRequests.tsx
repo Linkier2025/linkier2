@@ -94,10 +94,24 @@ export default function ViewingRequests() {
     }
   }, [user, isLandlord]);
 
+  const [confirmOfferDialog, setConfirmOfferDialog] = useState<{ open: boolean; request: RentalRequest | null }>({ open: false, request: null });
+  const [acceptingOffer, setAcceptingOffer] = useState(false);
+  const [hasActiveTenant, setHasActiveTenant] = useState(false);
+
   const fetchAllRequests = async () => {
     setLoading(true);
-    await Promise.all([fetchViewings(), fetchRentalRequests()]);
+    await Promise.all([fetchViewings(), fetchRentalRequests(), checkActiveTenant()]);
     setLoading(false);
+  };
+
+  const checkActiveTenant = async () => {
+    if (!user) return;
+    const { count } = await supabase
+      .from('room_assignments')
+      .select('*', { count: 'exact', head: true })
+      .eq('student_id', user.id)
+      .eq('status', 'active');
+    setHasActiveTenant((count || 0) > 0);
   };
 
   const fetchViewings = async () => {
