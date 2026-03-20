@@ -591,11 +591,99 @@ export default function ViewingRequests() {
                   </div>
                 )}
 
-                {/* Other Requests */}
-                {(isLandlord ? otherRentalRequests : rentalRequests).length > 0 && (
+                {/* Student: Offers Section */}
+                {!isLandlord && approvedRentalRequests.length > 0 && (
                   <div className="space-y-4">
-                    {isLandlord && <h2 className="text-lg font-semibold">Previous Requests</h2>}
-                    {(isLandlord ? otherRentalRequests : rentalRequests).map((request) => (
+                    <Card className="border-l-4 border-l-primary">
+                      <CardContent className="p-6">
+                        <div className="flex items-center gap-3 mb-2">
+                          <Gift className="h-6 w-6 text-primary" />
+                          <h3 className="text-lg font-semibold">You Have Offers!</h3>
+                        </div>
+                        <p className="text-muted-foreground">
+                          {hasActiveTenant
+                            ? "You already have an active room. You cannot accept more offers."
+                            : "A landlord has approved your request. Accept an offer to become a tenant."}
+                        </p>
+                      </CardContent>
+                    </Card>
+
+                    {approvedRentalRequests.map((request) => (
+                      <Card key={request.id} className="border-primary/30">
+                        <CardHeader>
+                          <div className="flex justify-between items-start">
+                            <div>
+                              <CardTitle>{request.property.title}</CardTitle>
+                              <div className="flex items-center gap-2 mt-2 text-sm text-muted-foreground">
+                                <MapPin className="h-4 w-4" />
+                                {request.property.location}
+                              </div>
+                              {request.room_number && (
+                                <div className="flex items-center gap-2 mt-1 text-sm text-muted-foreground">
+                                  <DoorOpen className="h-4 w-4" />
+                                  Room {request.room_number}
+                                </div>
+                              )}
+                              {request.property.rent_amount && (
+                                <div className="text-sm font-medium text-primary mt-1">
+                                  R{request.property.rent_amount}/month
+                                </div>
+                              )}
+                            </div>
+                            <Badge className="bg-primary">Offer Sent</Badge>
+                          </div>
+                        </CardHeader>
+                        <CardContent className="space-y-4">
+                          <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                            <Clock className="h-4 w-4" />
+                            Requested: {format(new Date(request.requested_at), "PPP")}
+                          </div>
+
+                          {request.student_message && (
+                            <div className="p-3 bg-muted/30 rounded-lg">
+                              <div className="flex items-center gap-2 text-sm font-medium mb-1">
+                                <MessageSquare className="h-4 w-4" />
+                                Your Message
+                              </div>
+                              <p className="text-sm text-muted-foreground">{request.student_message}</p>
+                            </div>
+                          )}
+
+                          <div className="flex gap-2 pt-2">
+                            {hasActiveTenant ? (
+                              <Button disabled className="flex-1">
+                                <CheckCircle className="h-4 w-4 mr-2" />
+                                Already a tenant
+                              </Button>
+                            ) : (
+                              <>
+                                <Button
+                                  className="flex-1"
+                                  onClick={() => setConfirmOfferDialog({ open: true, request })}
+                                >
+                                  <Check className="h-4 w-4 mr-2" />
+                                  Accept Offer
+                                </Button>
+                                <Button
+                                  variant="outline"
+                                  onClick={() => handleDeclineOffer(request.id)}
+                                >
+                                  Decline
+                                </Button>
+                              </>
+                            )}
+                          </div>
+                        </CardContent>
+                      </Card>
+                    ))}
+                  </div>
+                )}
+
+                {/* Student: Pending Requests */}
+                {!isLandlord && pendingRentalRequests.length > 0 && (
+                  <div className="space-y-4">
+                    <h2 className="text-lg font-semibold">Pending Requests</h2>
+                    {pendingRentalRequests.map((request) => (
                       <Card key={request.id}>
                         <CardHeader>
                           <div className="flex justify-between items-start">
@@ -616,30 +704,93 @@ export default function ViewingRequests() {
                           </div>
                         </CardHeader>
                         <CardContent className="space-y-4">
-                          {isLandlord && <StudentInfoCard student={request.student} />}
-
                           <div className="flex items-center gap-2 text-sm text-muted-foreground">
                             <Clock className="h-4 w-4" />
                             Requested: {format(new Date(request.requested_at), "PPP")}
                           </div>
+                          <Button
+                            variant="outline"
+                            onClick={() => handleCancelRental(request.id)}
+                          >
+                            Cancel Request
+                          </Button>
+                        </CardContent>
+                      </Card>
+                    ))}
+                  </div>
+                )}
 
-                          {request.student_message && (
-                            <div className="p-3 bg-muted/30 rounded-lg">
-                              <div className="flex items-center gap-2 text-sm font-medium mb-1">
-                                <MessageSquare className="h-4 w-4" />
-                                {isLandlord ? "Student's Message" : "Your Message"}
+                {/* Student: No offers empty state */}
+                {!isLandlord && approvedRentalRequests.length === 0 && pendingRentalRequests.length === 0 && rentalRequests.length > 0 && (
+                  <Card>
+                    <CardContent className="py-8 text-center">
+                      <Gift className="mx-auto h-10 w-10 text-muted-foreground mb-3" />
+                      <h3 className="text-lg font-semibold mb-1">No offers yet</h3>
+                      <p className="text-muted-foreground">Keep applying to rooms. You'll see offers here when a landlord approves your request.</p>
+                    </CardContent>
+                  </Card>
+                )}
+
+                {/* Landlord: Other/History Requests */}
+                {isLandlord && otherRentalRequests.length > 0 && (
+                  <div className="space-y-4">
+                    <h2 className="text-lg font-semibold">Previous Requests</h2>
+                    {otherRentalRequests.map((request) => (
+                      <Card key={request.id}>
+                        <CardHeader>
+                          <div className="flex justify-between items-start">
+                            <div>
+                              <CardTitle>{request.property.title}</CardTitle>
+                              <div className="flex items-center gap-2 mt-2 text-sm text-muted-foreground">
+                                <MapPin className="h-4 w-4" />
+                                {request.property.location}
                               </div>
-                              <p className="text-sm text-muted-foreground">{request.student_message}</p>
+                              {request.room_number && (
+                                <div className="flex items-center gap-2 mt-1 text-sm text-muted-foreground">
+                                  <DoorOpen className="h-4 w-4" />
+                                  Room {request.room_number}
+                                </div>
+                              )}
                             </div>
-                          )}
+                            {getStatusBadge(request.status)}
+                          </div>
+                        </CardHeader>
+                        <CardContent className="space-y-4">
+                          <StudentInfoCard student={request.student} />
+                          <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                            <Clock className="h-4 w-4" />
+                            Requested: {format(new Date(request.requested_at), "PPP")}
+                          </div>
+                        </CardContent>
+                      </Card>
+                    ))}
+                  </div>
+                )}
 
-                          {!isLandlord && request.status === 'pending' && (
-                            <Button
-                              variant="outline"
-                              onClick={() => handleCancelRental(request.id)}
-                            >
-                              Cancel Request
-                            </Button>
+                {/* Student: Request History */}
+                {!isLandlord && rentalRequests.filter(r => ['accepted', 'declined', 'cancelled', 'rejected'].includes(r.status)).length > 0 && (
+                  <div className="space-y-4">
+                    <h2 className="text-lg font-semibold">Request History</h2>
+                    {rentalRequests.filter(r => ['accepted', 'declined', 'cancelled', 'rejected'].includes(r.status)).map((request) => (
+                      <Card key={request.id}>
+                        <CardHeader>
+                          <div className="flex justify-between items-start">
+                            <div>
+                              <CardTitle>{request.property.title}</CardTitle>
+                              <div className="flex items-center gap-2 mt-2 text-sm text-muted-foreground">
+                                <MapPin className="h-4 w-4" />
+                                {request.property.location}
+                              </div>
+                            </div>
+                            {getStatusBadge(request.status)}
+                          </div>
+                        </CardHeader>
+                        <CardContent>
+                          {request.status === 'accepted' && (
+                            <Badge variant="outline" className="text-primary border-primary">
+                              <CheckCircle className="h-3 w-3 mr-1" />
+                              You are now a tenant
+                            </Badge>
                           )}
                         </CardContent>
                       </Card>
