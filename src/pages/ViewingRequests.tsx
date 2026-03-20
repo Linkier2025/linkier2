@@ -354,6 +354,47 @@ export default function ViewingRequests() {
     }
   };
 
+  const handleAcceptOffer = async () => {
+    const request = confirmOfferDialog.request;
+    if (!request) return;
+    setAcceptingOffer(true);
+    try {
+      const { data, error } = await (supabase.rpc as any)('accept_offer', {
+        p_request_id: request.id,
+      });
+      if (error) throw error;
+      toast({
+        title: "Offer Accepted! 🎉",
+        description: `You are now a tenant! All other requests have been cancelled.`,
+      });
+      setConfirmOfferDialog({ open: false, request: null });
+      fetchAllRequests();
+    } catch (error: any) {
+      console.error('Error accepting offer:', error);
+      toast({
+        title: "Error",
+        description: error.message || "Failed to accept offer",
+        variant: "destructive",
+      });
+    } finally {
+      setAcceptingOffer(false);
+    }
+  };
+
+  const handleDeclineOffer = async (requestId: string) => {
+    try {
+      const { error } = await supabase
+        .from('rental_requests')
+        .update({ status: 'declined' })
+        .eq('id', requestId);
+      if (error) throw error;
+      toast({ title: "Offer declined" });
+      fetchAllRequests();
+    } catch (error) {
+      toast({ title: "Error", description: "Failed to decline offer.", variant: "destructive" });
+    }
+  };
+
   const getStatusBadge = (status: string) => {
     const variants: Record<string, "default" | "secondary" | "destructive" | "outline"> = {
       pending: "secondary",
@@ -370,7 +411,7 @@ export default function ViewingRequests() {
       completed: "Completed",
       cancelled: "Cancelled",
       approved: "Offer Sent",
-      accepted: "Tenant Created",
+      accepted: "Accepted",
       declined: "Rejected"
     };
     return <Badge variant={variants[status] || "default"}>{labels[status] || status}</Badge>;
