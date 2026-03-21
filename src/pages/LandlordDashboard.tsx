@@ -349,7 +349,7 @@ const LandlordDashboard = () => {
           )}
 
           {/* Menu Items */}
-          <div className="space-y-3">
+          <div className="space-y-3 overflow-y-auto max-h-[60vh]">
             {menuItems.map((item) => (
               <Card 
                 key={item.title}
