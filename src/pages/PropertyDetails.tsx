@@ -89,7 +89,7 @@ export default function PropertyDetails() {
         // Fetch rooms with occupancy
         const { data: roomsData, error: roomsError } = await supabase
           .from('rooms')
-          .select('id, room_number, capacity')
+          .select('id, room_number, capacity, renovation_status, renovation_description')
           .eq('property_id', id!)
           .order('room_number');
 
