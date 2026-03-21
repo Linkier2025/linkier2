@@ -19,6 +19,8 @@ interface RoomInfo {
   room_number: string;
   capacity: number;
   current_occupants: number;
+  renovation_status: string;
+  renovation_description: string | null;
 }
 
 interface PropertyData {
@@ -87,7 +89,7 @@ export default function PropertyDetails() {
         // Fetch rooms with occupancy
         const { data: roomsData, error: roomsError } = await supabase
           .from('rooms')
-          .select('id, room_number, capacity')
+          .select('id, room_number, capacity, renovation_status, renovation_description')
           .eq('property_id', id!)
           .order('room_number');
 
@@ -107,6 +109,8 @@ export default function PropertyDetails() {
             room_number: room.room_number,
             capacity: room.capacity,
             current_occupants: count || 0,
+            renovation_status: (room as any).renovation_status || 'available',
+            renovation_description: (room as any).renovation_description || null,
           });
         }
 
@@ -235,7 +239,7 @@ export default function PropertyDetails() {
     ? property.images 
     : ["/placeholder.svg"];
 
-  const availableRooms = rooms.filter(r => r.current_occupants < r.capacity);
+  const availableRooms = rooms.filter(r => r.current_occupants < r.capacity && r.renovation_status !== 'under_renovation');
 
   return (
     <div className="min-h-screen bg-background p-4">
@@ -367,11 +371,12 @@ export default function PropertyDetails() {
               <div className="grid gap-3">
                 {rooms.map((room) => {
                   const isFull = room.current_occupants >= room.capacity;
+                  const isRenovation = room.renovation_status === 'under_renovation';
                   return (
                     <div
                       key={room.id}
                       className={`flex items-center justify-between p-4 rounded-lg border ${
-                        isFull ? 'bg-muted/50 opacity-60' : 'bg-background'
+                        isRenovation ? 'bg-amber-50 border-amber-300 opacity-70' : isFull ? 'bg-muted/50 opacity-60' : 'bg-background'
                       }`}
                     >
                       <div className="flex items-center gap-3">
@@ -381,14 +386,23 @@ export default function PropertyDetails() {
                           <p className="text-sm text-muted-foreground">
                             Capacity: {room.capacity} student{room.capacity > 1 ? 's' : ''}
                           </p>
+                          {isRenovation && room.renovation_description && (
+                            <p className="text-xs text-amber-700 mt-1">{room.renovation_description}</p>
+                          )}
                         </div>
                       </div>
                       <div className="flex items-center gap-2">
-                        <Badge variant={isFull ? "destructive" : "secondary"}>
-                          {room.current_occupants}/{room.capacity} occupied
-                        </Badge>
-                        {isFull && (
-                          <Badge variant="outline" className="text-destructive">Full</Badge>
+                        {isRenovation ? (
+                          <Badge variant="outline" className="border-amber-500 text-amber-700">🔧 Under Renovation</Badge>
+                        ) : (
+                          <>
+                            <Badge variant={isFull ? "destructive" : "secondary"}>
+                              {room.current_occupants}/{room.capacity} occupied
+                            </Badge>
+                            {isFull && (
+                              <Badge variant="outline" className="text-destructive">Full</Badge>
+                            )}
+                          </>
                         )}
                       </div>
                     </div>

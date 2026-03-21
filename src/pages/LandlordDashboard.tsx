@@ -246,7 +246,7 @@ const LandlordDashboard = () => {
           </Card>
 
           {/* Stats Grid */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 overflow-x-auto">
             {statsCards.map((stat) => (
               <Card key={stat.label}>
                 <CardContent className="p-4 text-center">
@@ -349,7 +349,7 @@ const LandlordDashboard = () => {
           )}
 
           {/* Menu Items */}
-          <div className="space-y-3">
+          <div className="space-y-3 overflow-y-auto max-h-[60vh]">
             {menuItems.map((item) => (
               <Card 
                 key={item.title}

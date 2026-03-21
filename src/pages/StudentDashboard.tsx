@@ -437,7 +437,7 @@ const StudentDashboard = () => {
           )}
 
           {/* Menu Items */}
-          <div className="space-y-2">
+          <div className="space-y-2 overflow-y-auto max-h-[60vh]">
             {menuItems.map((item) => (
               <Card 
                 key={item.title}
