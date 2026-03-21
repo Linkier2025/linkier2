@@ -138,41 +138,66 @@ export type Database = {
       payments: {
         Row: {
           amount: number
+          assignment_id: string | null
           created_at: string
           id: string
+          months_paid_for: number
+          next_due_date: string | null
           notes: string | null
           payment_date: string
           payment_method: string
+          payment_period_end: string | null
+          payment_period_start: string | null
           receipt_number: string | null
-          rental_id: string
+          remaining_balance: number | null
+          rental_id: string | null
           status: string | null
           updated_at: string
         }
         Insert: {
           amount: number
+          assignment_id?: string | null
           created_at?: string
           id?: string
+          months_paid_for?: number
+          next_due_date?: string | null
           notes?: string | null
           payment_date: string
           payment_method: string
+          payment_period_end?: string | null
+          payment_period_start?: string | null
           receipt_number?: string | null
-          rental_id: string
+          remaining_balance?: number | null
+          rental_id?: string | null
           status?: string | null
           updated_at?: string
         }
         Update: {
           amount?: number
+          assignment_id?: string | null
           created_at?: string
           id?: string
+          months_paid_for?: number
+          next_due_date?: string | null
           notes?: string | null
           payment_date?: string
           payment_method?: string
+          payment_period_end?: string | null
+          payment_period_start?: string | null
           receipt_number?: string | null
-          rental_id?: string
+          remaining_balance?: number | null
+          rental_id?: string | null
           status?: string | null
           updated_at?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "payments_assignment_id_fkey"
+            columns: ["assignment_id"]
+            isOneToOne: false
+            referencedRelation: "room_assignments"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "payments_rental_id_fkey"
             columns: ["rental_id"]
@@ -543,6 +568,9 @@ export type Database = {
           created_at: string
           id: string
           property_id: string
+          renovation_description: string | null
+          renovation_start_date: string | null
+          renovation_status: string
           room_number: string
           updated_at: string
         }
@@ -551,6 +579,9 @@ export type Database = {
           created_at?: string
           id?: string
           property_id: string
+          renovation_description?: string | null
+          renovation_start_date?: string | null
+          renovation_status?: string
           room_number: string
           updated_at?: string
         }
@@ -559,6 +590,9 @@ export type Database = {
           created_at?: string
           id?: string
           property_id?: string
+          renovation_description?: string | null
+          renovation_start_date?: string | null
+          renovation_status?: string
           room_number?: string
           updated_at?: string
         }
