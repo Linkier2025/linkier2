@@ -19,6 +19,8 @@ interface RoomInfo {
   room_number: string;
   capacity: number;
   current_occupants: number;
+  renovation_status: string;
+  renovation_description: string | null;
 }
 
 interface PropertyData {
