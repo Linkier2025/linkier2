@@ -109,6 +109,8 @@ export default function PropertyDetails() {
             room_number: room.room_number,
             capacity: room.capacity,
             current_occupants: count || 0,
+            renovation_status: (room as any).renovation_status || 'available',
+            renovation_description: (room as any).renovation_description || null,
           });
         }
 
