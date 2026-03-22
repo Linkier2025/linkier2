@@ -441,94 +441,96 @@ export default function PropertyDetails() {
         </Card>
 
         {/* Action Buttons */}
-        <div className="sticky bottom-4 flex gap-3">
-          <Dialog open={viewingDialogOpen} onOpenChange={setViewingDialogOpen}>
-            <DialogTrigger asChild>
-              <Button size="lg" variant="outline" className="flex-1">
-                <Calendar className="mr-2 h-5 w-5" />
-                Request Viewing
-              </Button>
-            </DialogTrigger>
-            <DialogContent>
-              <DialogHeader>
-                <DialogTitle>Request a Property Viewing</DialogTitle>
-              </DialogHeader>
-              <div className="space-y-4 pt-4">
-                <div>
-                  <p className="text-sm text-muted-foreground mb-2">
-                    Send a message to the landlord with your viewing request:
-                  </p>
-                  <Textarea
-                    placeholder="Let the landlord know when you'd like to view the property..."
-                    value={viewingMessage}
-                    onChange={(e) => setViewingMessage(e.target.value)}
-                    rows={4}
-                  />
-                </div>
-                <Button 
-                  onClick={handleRequestViewing} 
-                  className="w-full"
-                  disabled={submittingViewing}
-                >
-                  {submittingViewing ? "Sending..." : "Send Viewing Request"}
+        <div className="sticky bottom-4 z-10 bg-background/95 backdrop-blur-sm p-3 -mx-4 border-t">
+          <div className="flex gap-3 max-w-4xl mx-auto">
+            <Dialog open={viewingDialogOpen} onOpenChange={setViewingDialogOpen}>
+              <DialogTrigger asChild>
+                <Button size="lg" variant="outline" className="flex-1 min-w-0">
+                  <Calendar className="mr-2 h-5 w-5 shrink-0" />
+                  <span className="truncate">Request Viewing</span>
                 </Button>
-              </div>
-            </DialogContent>
-          </Dialog>
-
-          <Dialog open={rentalDialogOpen} onOpenChange={setRentalDialogOpen}>
-            <DialogTrigger asChild>
-              <Button size="lg" className="flex-1" disabled={availableRooms.length === 0}>
-                <Home className="mr-2 h-5 w-5" />
-                {availableRooms.length === 0 ? "No Rooms Available" : "Request Room"}
-              </Button>
-            </DialogTrigger>
-            <DialogContent>
-              <DialogHeader>
-                <DialogTitle>Request a Room</DialogTitle>
-              </DialogHeader>
-              <div className="space-y-4 pt-4">
-                {/* Room Selection */}
-                <div>
-                  <Label className="text-sm font-medium mb-3 block">Select a Room</Label>
-                  <RadioGroup value={selectedRoomId} onValueChange={setSelectedRoomId}>
-                    <div className="grid gap-2">
-                      {availableRooms.map((room) => (
-                        <div key={room.id} className="flex items-center space-x-3 p-3 border rounded-lg hover:bg-muted/50">
-                          <RadioGroupItem value={room.id} id={`room-${room.id}`} />
-                          <Label htmlFor={`room-${room.id}`} className="flex-1 cursor-pointer">
-                            <div className="flex justify-between items-center">
-                              <span className="font-medium">Room {room.room_number}</span>
-                              <Badge variant="secondary">
-                                {room.current_occupants}/{room.capacity} occupied
-                              </Badge>
-                            </div>
-                          </Label>
-                        </div>
-                      ))}
-                    </div>
-                  </RadioGroup>
+              </DialogTrigger>
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle>Request a Property Viewing</DialogTitle>
+                </DialogHeader>
+                <div className="space-y-4 pt-4">
+                  <div>
+                    <p className="text-sm text-muted-foreground mb-2">
+                      Send a message to the landlord with your viewing request:
+                    </p>
+                    <Textarea
+                      placeholder="Let the landlord know when you'd like to view the property..."
+                      value={viewingMessage}
+                      onChange={(e) => setViewingMessage(e.target.value)}
+                      rows={4}
+                    />
+                  </div>
+                  <Button 
+                    onClick={handleRequestViewing} 
+                    className="w-full"
+                    disabled={submittingViewing}
+                  >
+                    {submittingViewing ? "Sending..." : "Send Viewing Request"}
+                  </Button>
                 </div>
+              </DialogContent>
+            </Dialog>
 
-                <div>
-                  <Label className="text-sm font-medium mb-2 block">Message (optional)</Label>
-                  <Textarea
-                    placeholder="Introduce yourself and let the landlord know why you'd like this room..."
-                    value={rentalMessage}
-                    onChange={(e) => setRentalMessage(e.target.value)}
-                    rows={3}
-                  />
-                </div>
-                <Button 
-                  onClick={handleRequestRental} 
-                  className="w-full"
-                  disabled={submittingRental || !selectedRoomId}
-                >
-                  {submittingRental ? "Sending..." : "Send Room Request"}
+            <Dialog open={rentalDialogOpen} onOpenChange={setRentalDialogOpen}>
+              <DialogTrigger asChild>
+                <Button size="lg" className="flex-1 min-w-0" disabled={availableRooms.length === 0}>
+                  <Home className="mr-2 h-5 w-5 shrink-0" />
+                  <span className="truncate">{availableRooms.length === 0 ? "No Rooms Available" : "Request Room"}</span>
                 </Button>
-              </div>
-            </DialogContent>
-          </Dialog>
+              </DialogTrigger>
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle>Request a Room</DialogTitle>
+                </DialogHeader>
+                <div className="space-y-4 pt-4">
+                  {/* Room Selection */}
+                  <div>
+                    <Label className="text-sm font-medium mb-3 block">Select a Room</Label>
+                    <RadioGroup value={selectedRoomId} onValueChange={setSelectedRoomId}>
+                      <div className="grid gap-2">
+                        {availableRooms.map((room) => (
+                          <div key={room.id} className="flex items-center space-x-3 p-3 border rounded-lg hover:bg-muted/50">
+                            <RadioGroupItem value={room.id} id={`room-${room.id}`} />
+                            <Label htmlFor={`room-${room.id}`} className="flex-1 cursor-pointer">
+                              <div className="flex justify-between items-center">
+                                <span className="font-medium">Room {room.room_number}</span>
+                                <Badge variant="secondary">
+                                  {room.current_occupants}/{room.capacity} occupied
+                                </Badge>
+                              </div>
+                            </Label>
+                          </div>
+                        ))}
+                      </div>
+                    </RadioGroup>
+                  </div>
+
+                  <div>
+                    <Label className="text-sm font-medium mb-2 block">Message (optional)</Label>
+                    <Textarea
+                      placeholder="Introduce yourself and let the landlord know why you'd like this room..."
+                      value={rentalMessage}
+                      onChange={(e) => setRentalMessage(e.target.value)}
+                      rows={3}
+                    />
+                  </div>
+                  <Button 
+                    onClick={handleRequestRental} 
+                    className="w-full"
+                    disabled={submittingRental || !selectedRoomId}
+                  >
+                    {submittingRental ? "Sending..." : "Send Room Request"}
+                  </Button>
+                </div>
+              </DialogContent>
+            </Dialog>
+          </div>
         </div>
       </div>
     </div>
