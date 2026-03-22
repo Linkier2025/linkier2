@@ -465,7 +465,7 @@ export default function MyProperties() {
                                         ? 'bg-green-500/10 border-green-500/30' 
                                         : 'bg-muted border-border'
                                   }`}
-                                  onClick={() => openRenovationDialog(property.id, undefined)}
+                                  onClick={() => openRenovationDialog(property.id, undefined, room.room_number)}
                                   title="Click to manage renovation"
                                 >
                                   <div className="font-medium">Room {room.room_number}</div>
