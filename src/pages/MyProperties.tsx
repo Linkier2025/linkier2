@@ -222,7 +222,7 @@ export default function MyProperties() {
     setEditingRenovation(null);
   };
 
-  const openRenovationDialog = (propertyId: string, renovation?: Renovation) => {
+  const openRenovationDialog = (propertyId: string, renovation?: Renovation, roomNumber?: string) => {
     setSelectedPropertyId(propertyId);
     if (renovation) {
       setEditingRenovation(renovation);
@@ -237,6 +237,9 @@ export default function MyProperties() {
       });
     } else {
       resetRenovationForm();
+      if (roomNumber) {
+        setRenovationForm(prev => ({ ...prev, room_number: roomNumber }));
+      }
     }
     setRenovationDialogOpen(true);
   };
