@@ -455,13 +455,15 @@ export default function MyProperties() {
                               {roomStatuses.map((room) => (
                                 <div 
                                   key={room.room_number}
-                                  className={`p-3 rounded-lg border ${
+                                  className={`p-3 rounded-lg border cursor-pointer hover:ring-2 hover:ring-primary/50 transition-all ${
                                     room.isUnderRenovation 
                                       ? 'bg-yellow-500/10 border-yellow-500/30' 
                                       : room.isOccupied 
                                         ? 'bg-green-500/10 border-green-500/30' 
                                         : 'bg-muted border-border'
                                   }`}
+                                  onClick={() => openRenovationDialog(property.id, undefined)}
+                                  title="Click to manage renovation"
                                 >
                                   <div className="font-medium">Room {room.room_number}</div>
                                   <div className="text-xs text-muted-foreground">Capacity: {room.capacity}</div>
