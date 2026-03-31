@@ -9,6 +9,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { z } from "zod";
+import { validatePasswordStrength } from "@/lib/validation";
 import { Logo } from "@/components/Logo";
 import landingBg from "@/assets/landing-background.jpg";
 
@@ -63,6 +64,13 @@ const LandlordSignup = () => {
     
     if (!validateEmail(formData.email)) return;
 
+    // Validate password strength
+    const pwValidation = validatePasswordStrength(formData.password);
+    if (!pwValidation.valid) {
+      toast({ title: "Weak Password", description: pwValidation.error, variant: "destructive" });
+      return;
+    }
+
     // Check duplicate phone
     const { data: existingPhone } = await supabase
       .from('profiles')
@@ -88,8 +96,9 @@ const LandlordSignup = () => {
 
   const getPasswordStrength = (password: string) => {
     if (password.length === 0) return { strength: "", color: "" };
-    if (password.length < 6) return { strength: "Weak", color: "text-destructive" };
-    if (password.length < 10) return { strength: "Medium", color: "text-warning" };
+    const result = validatePasswordStrength(password);
+    if (!result.valid) return { strength: "Weak", color: "text-destructive" };
+    if (result.strength === 'medium') return { strength: "Medium", color: "text-warning" };
     return { strength: "Strong", color: "text-success" };
   };
 

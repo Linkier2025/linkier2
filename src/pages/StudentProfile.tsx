@@ -77,6 +77,13 @@ export default function StudentProfile() {
     const file = event.target.files?.[0];
     if (!file || !user) return;
 
+    const { validateAvatarFile } = await import("@/lib/validation");
+    const validation = validateAvatarFile(file);
+    if (!validation.valid) {
+      toast({ title: "Invalid file", description: validation.error, variant: "destructive" });
+      return;
+    }
+
     try {
       const fileExt = file.name.split('.').pop();
       const fileName = `${user.id}/${Date.now()}.${fileExt}`;
