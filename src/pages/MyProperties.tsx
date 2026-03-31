@@ -41,13 +41,6 @@ interface Renovation {
   estimated_cost: number | null;
 }
 
-interface Rental {
-  id: string;
-  property_id: string;
-  room_number: string | null;
-  status: string;
-}
-
 interface Property {
   id: string;
   title: string;
@@ -62,10 +55,20 @@ interface Property {
   room_configurations?: RoomConfig[];
 }
 
+interface RoomWithOccupancy {
+  id: string;
+  room_number: string;
+  capacity: number;
+  property_id: string;
+  renovation_status: string;
+  current_occupants: number;
+}
+
 interface RoomStatus {
   room_number: string;
   capacity: number;
-  isOccupied: boolean;
+  current_occupants: number;
+  isFull: boolean;
   isUnderRenovation: boolean;
   renovationStatus?: string;
 }
