@@ -570,35 +570,41 @@ export default function MyProperties() {
                                   key={room.room_number}
                                   className={`p-3 rounded-lg border cursor-pointer hover:ring-2 hover:ring-primary/50 transition-all ${
                                     room.isUnderRenovation 
-                                      ? 'bg-yellow-500/10 border-yellow-500/30' 
+                                      ? 'bg-orange-50 border-orange-300' 
                                       : room.isFull 
                                         ? 'bg-destructive/10 border-destructive/30' 
                                         : room.current_occupants > 0
-                                          ? 'bg-green-500/10 border-green-500/30'
+                                          ? 'bg-green-50 border-green-300'
                                           : 'bg-muted border-border'
                                   }`}
-                                  onClick={() => openRenovationDialog(property.id, undefined, room.room_number)}
-                                  title="Click to manage renovation"
+                                  onClick={() => openRoomRenovationDialog(room)}
+                                  title="Click to manage room status"
                                 >
-                                  <div className="font-medium">Room {room.room_number}</div>
+                                  <div className="font-medium text-foreground">Room {room.room_number}</div>
                                   <div className="text-xs text-muted-foreground">
                                     {room.current_occupants}/{room.capacity} occupied
                                   </div>
                                   <div className="mt-1">
                                     {room.isUnderRenovation ? (
-                                      <Badge variant="outline" className="text-xs bg-yellow-500/20 text-yellow-600">
-                                        {statusLabels[room.renovationStatus || 'planned']}
+                                      <Badge variant="outline" className="text-xs border-orange-400 text-orange-600 bg-orange-100">
+                                        Under Renovation
                                       </Badge>
                                     ) : room.isFull ? (
                                       <Badge variant="destructive" className="text-xs">
                                         Full
                                       </Badge>
                                     ) : (
-                                      <Badge variant="outline" className="text-xs">
+                                      <Badge variant="outline" className="text-xs border-green-400 text-green-600 bg-green-100">
                                         Available
                                       </Badge>
                                     )}
                                   </div>
+                                  {room.isUnderRenovation && room.renovation_description && (
+                                    <p className="text-xs text-muted-foreground mt-1 truncate">{room.renovation_description}</p>
+                                  )}
+                                  {room.isUnderRenovation && room.renovation_end_date && (
+                                    <p className="text-xs text-muted-foreground">Until {new Date(room.renovation_end_date).toLocaleDateString()}</p>
+                                  )}
                                 </div>
                               ))}
                             </div>
