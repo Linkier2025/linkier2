@@ -827,6 +827,82 @@ export default function MyProperties() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Room Renovation Dialog */}
+      <Dialog open={roomRenovationDialogOpen} onOpenChange={setRoomRenovationDialogOpen}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>
+              Room {selectedRoom?.room_number} — Status
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 py-2">
+            <div className="flex items-center justify-between p-3 bg-muted rounded-lg">
+              <span className="text-sm font-medium text-foreground">Current Status</span>
+              {selectedRoom?.isUnderRenovation ? (
+                <Badge variant="outline" className="border-orange-400 text-orange-600 bg-orange-100">Under Renovation</Badge>
+              ) : selectedRoom?.isFull ? (
+                <Badge variant="destructive">Full</Badge>
+              ) : (
+                <Badge variant="outline" className="border-green-400 text-green-600 bg-green-100">Available</Badge>
+              )}
+            </div>
+            <div className="text-sm text-muted-foreground">
+              Occupancy: {selectedRoom?.current_occupants}/{selectedRoom?.capacity}
+            </div>
+
+            {selectedRoom?.isUnderRenovation ? (
+              <div className="space-y-3">
+                {selectedRoom.renovation_description && (
+                  <div className="text-sm"><strong>Reason:</strong> {selectedRoom.renovation_description}</div>
+                )}
+                {selectedRoom.renovation_start_date && (
+                  <div className="text-sm"><strong>Start:</strong> {new Date(selectedRoom.renovation_start_date).toLocaleDateString()}</div>
+                )}
+                {selectedRoom.renovation_end_date && (
+                  <div className="text-sm"><strong>End:</strong> {new Date(selectedRoom.renovation_end_date).toLocaleDateString()}</div>
+                )}
+                <Button className="w-full" onClick={() => { handleMarkAvailable(selectedRoom.id); setRoomRenovationDialogOpen(false); }}>
+                  Mark as Available
+                </Button>
+              </div>
+            ) : (
+              <div className="space-y-3">
+                <div className="space-y-2">
+                  <Label>Reason for Renovation</Label>
+                  <Input
+                    placeholder="e.g. Painting, plumbing repairs"
+                    value={roomRenovationForm.reason}
+                    onChange={(e) => setRoomRenovationForm(prev => ({ ...prev, reason: e.target.value }))}
+                  />
+                </div>
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="space-y-2">
+                    <Label>Start Date</Label>
+                    <Input
+                      type="date"
+                      value={roomRenovationForm.start_date}
+                      onChange={(e) => setRoomRenovationForm(prev => ({ ...prev, start_date: e.target.value }))}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>End Date</Label>
+                    <Input
+                      type="date"
+                      value={roomRenovationForm.end_date}
+                      onChange={(e) => setRoomRenovationForm(prev => ({ ...prev, end_date: e.target.value }))}
+                    />
+                  </div>
+                </div>
+                <Button className="w-full" variant="default" onClick={handleMarkUnderRenovation}>
+                  <Hammer className="h-4 w-4 mr-2" />
+                  Mark as Under Renovation
+                </Button>
+              </div>
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
