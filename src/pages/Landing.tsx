@@ -1,14 +1,18 @@
+import { useState, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { LogOut } from "lucide-react";
 import { Logo } from "@/components/Logo";
+import { SplashScreen } from "@/components/SplashScreen";
 import landingBg from "@/assets/landing-background.jpg";
 
 const Landing = () => {
   const navigate = useNavigate();
   const { user, profile, signOut } = useAuth();
+  const [showSplash, setShowSplash] = useState(true);
+  const handleSplashFinished = useCallback(() => setShowSplash(false), []);
 
   const handleGoToDashboard = () => {
     if (profile?.user_type === 'student') {
@@ -24,6 +28,7 @@ const Landing = () => {
 
   return (
     <div className="min-h-screen relative flex flex-col">
+      {showSplash && <SplashScreen onFinished={handleSplashFinished} />}
       {/* Background Image */}
       <div 
         className="absolute inset-0 bg-cover bg-center"
