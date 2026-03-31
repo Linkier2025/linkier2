@@ -620,6 +620,7 @@ export type Database = {
           id: string
           property_id: string
           renovation_description: string | null
+          renovation_end_date: string | null
           renovation_start_date: string | null
           renovation_status: string
           room_number: string
@@ -631,6 +632,7 @@ export type Database = {
           id?: string
           property_id: string
           renovation_description?: string | null
+          renovation_end_date?: string | null
           renovation_start_date?: string | null
           renovation_status?: string
           room_number: string
@@ -642,6 +644,7 @@ export type Database = {
           id?: string
           property_id?: string
           renovation_description?: string | null
+          renovation_end_date?: string | null
           renovation_start_date?: string | null
           renovation_status?: string
           room_number?: string
