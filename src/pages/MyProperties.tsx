@@ -119,6 +119,15 @@ export default function MyProperties() {
     estimated_cost: "",
   });
 
+  // Room renovation dialog state
+  const [roomRenovationDialogOpen, setRoomRenovationDialogOpen] = useState(false);
+  const [selectedRoom, setSelectedRoom] = useState<RoomStatus | null>(null);
+  const [roomRenovationForm, setRoomRenovationForm] = useState({
+    reason: "",
+    start_date: "",
+    end_date: "",
+  });
+
   useEffect(() => {
     if (user) {
       fetchData();
