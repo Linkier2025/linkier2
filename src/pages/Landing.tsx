@@ -6,6 +6,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { LogOut } from "lucide-react";
 import { Logo } from "@/components/Logo";
 import { SplashScreen } from "@/components/SplashScreen";
+import { InstallBanner } from "@/components/InstallBanner";
 import landingBg from "@/assets/landing-background.jpg";
 
 const Landing = () => {
