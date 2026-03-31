@@ -21,6 +21,8 @@ interface RoomInfo {
   current_occupants: number;
   renovation_status: string;
   renovation_description: string | null;
+  renovation_start_date: string | null;
+  renovation_end_date: string | null;
 }
 
 interface PropertyData {
@@ -89,7 +91,7 @@ export default function PropertyDetails() {
         // Fetch rooms with occupancy
         const { data: roomsData, error: roomsError } = await supabase
           .from('rooms')
-          .select('id, room_number, capacity, renovation_status, renovation_description')
+          .select('id, room_number, capacity, renovation_status, renovation_description, renovation_start_date, renovation_end_date')
           .eq('property_id', id!)
           .order('room_number');
 
@@ -111,6 +113,8 @@ export default function PropertyDetails() {
             current_occupants: count || 0,
             renovation_status: (room as any).renovation_status || 'available',
             renovation_description: (room as any).renovation_description || null,
+            renovation_start_date: (room as any).renovation_start_date || null,
+            renovation_end_date: (room as any).renovation_end_date || null,
           });
         }
 
@@ -408,7 +412,12 @@ export default function PropertyDetails() {
                             Capacity: {room.capacity} student{room.capacity > 1 ? 's' : ''}
                           </p>
                           {isRenovation && room.renovation_description && (
-                            <p className="text-xs text-amber-700 mt-1">{room.renovation_description}</p>
+                            <p className="text-xs text-orange-600 mt-1">{room.renovation_description}</p>
+                          )}
+                          {isRenovation && room.renovation_end_date && (
+                            <p className="text-xs text-muted-foreground mt-0.5">
+                              Available after: {new Date(room.renovation_end_date).toLocaleDateString()}
+                            </p>
                           )}
                         </div>
                       </div>

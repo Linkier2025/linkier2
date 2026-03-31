@@ -61,16 +61,23 @@ interface RoomWithOccupancy {
   capacity: number;
   property_id: string;
   renovation_status: string;
+  renovation_description: string | null;
+  renovation_start_date: string | null;
+  renovation_end_date: string | null;
   current_occupants: number;
 }
 
 interface RoomStatus {
+  id: string;
   room_number: string;
   capacity: number;
   current_occupants: number;
   isFull: boolean;
   isUnderRenovation: boolean;
   renovationStatus?: string;
+  renovation_description: string | null;
+  renovation_start_date: string | null;
+  renovation_end_date: string | null;
 }
 
 const statusColors: Record<string, string> = {
@@ -112,6 +119,15 @@ export default function MyProperties() {
     estimated_cost: "",
   });
 
+  // Room renovation dialog state
+  const [roomRenovationDialogOpen, setRoomRenovationDialogOpen] = useState(false);
+  const [selectedRoom, setSelectedRoom] = useState<RoomStatus | null>(null);
+  const [roomRenovationForm, setRoomRenovationForm] = useState({
+    reason: "",
+    start_date: "",
+    end_date: "",
+  });
+
   useEffect(() => {
     if (user) {
       fetchData();
@@ -150,7 +166,7 @@ export default function MyProperties() {
       if (propertyIds.length > 0) {
         const { data: rooms } = await supabase
           .from('rooms')
-          .select('id, room_number, capacity, property_id, renovation_status')
+          .select('id, room_number, capacity, property_id, renovation_status, renovation_description, renovation_start_date, renovation_end_date')
           .in('property_id', propertyIds);
 
         const roomIds = (rooms || []).map(r => r.id);
@@ -174,6 +190,9 @@ export default function MyProperties() {
           capacity: r.capacity,
           property_id: r.property_id,
           renovation_status: r.renovation_status,
+          renovation_description: r.renovation_description,
+          renovation_start_date: r.renovation_start_date,
+          renovation_end_date: r.renovation_end_date,
           current_occupants: assignmentCounts[r.id] || 0,
         }));
         setRoomsData(roomsWithOcc);
@@ -218,18 +237,21 @@ export default function MyProperties() {
 
   const getRoomStatuses = (property: Property): RoomStatus[] => {
     const propRooms = roomsData.filter(r => r.property_id === property.id);
-    const propertyRenovations = renovations.filter(r => r.property_id === property.id && r.status !== 'completed' && r.status !== 'cancelled');
 
     return propRooms.map(room => {
-      const renovation = propertyRenovations.find(r => r.room_number === room.room_number);
+      const isUnderRenovation = room.renovation_status === 'under_renovation';
       
       return {
+        id: room.id,
         room_number: room.room_number,
         capacity: room.capacity,
         current_occupants: room.current_occupants,
-        isFull: room.current_occupants >= room.capacity,
-        isUnderRenovation: room.renovation_status === 'under_renovation' || !!renovation,
-        renovationStatus: renovation?.status || (room.renovation_status === 'under_renovation' ? 'in_progress' : undefined)
+        isFull: !isUnderRenovation && room.current_occupants >= room.capacity,
+        isUnderRenovation,
+        renovationStatus: isUnderRenovation ? 'under_renovation' : undefined,
+        renovation_description: room.renovation_description,
+        renovation_start_date: room.renovation_start_date,
+        renovation_end_date: room.renovation_end_date,
       };
     });
   };
@@ -368,6 +390,58 @@ export default function MyProperties() {
     }
   };
 
+  const openRoomRenovationDialog = (room: RoomStatus) => {
+    setSelectedRoom(room);
+    setRoomRenovationForm({
+      reason: room.renovation_description || "",
+      start_date: room.renovation_start_date || "",
+      end_date: room.renovation_end_date || "",
+    });
+    setRoomRenovationDialogOpen(true);
+  };
+
+  const handleMarkUnderRenovation = async () => {
+    if (!selectedRoom) return;
+    try {
+      const { error } = await supabase
+        .from('rooms')
+        .update({
+          renovation_status: 'under_renovation',
+          renovation_description: roomRenovationForm.reason || null,
+          renovation_start_date: roomRenovationForm.start_date || null,
+          renovation_end_date: roomRenovationForm.end_date || null,
+        })
+        .eq('id', selectedRoom.id);
+
+      if (error) throw error;
+      toast({ title: "Room marked as under renovation" });
+      setRoomRenovationDialogOpen(false);
+      fetchData();
+    } catch (error: any) {
+      toast({ title: "Error", description: error.message, variant: "destructive" });
+    }
+  };
+
+  const handleMarkAvailable = async (roomId: string) => {
+    try {
+      const { error } = await supabase
+        .from('rooms')
+        .update({
+          renovation_status: 'available',
+          renovation_description: null,
+          renovation_start_date: null,
+          renovation_end_date: null,
+        })
+        .eq('id', roomId);
+
+      if (error) throw error;
+      toast({ title: "Room marked as available" });
+      fetchData();
+    } catch (error: any) {
+      toast({ title: "Error", description: error.message, variant: "destructive" });
+    }
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-background to-secondary/20 p-4 flex items-center justify-center">
@@ -496,35 +570,41 @@ export default function MyProperties() {
                                   key={room.room_number}
                                   className={`p-3 rounded-lg border cursor-pointer hover:ring-2 hover:ring-primary/50 transition-all ${
                                     room.isUnderRenovation 
-                                      ? 'bg-yellow-500/10 border-yellow-500/30' 
+                                      ? 'bg-orange-50 border-orange-300' 
                                       : room.isFull 
                                         ? 'bg-destructive/10 border-destructive/30' 
                                         : room.current_occupants > 0
-                                          ? 'bg-green-500/10 border-green-500/30'
+                                          ? 'bg-green-50 border-green-300'
                                           : 'bg-muted border-border'
                                   }`}
-                                  onClick={() => openRenovationDialog(property.id, undefined, room.room_number)}
-                                  title="Click to manage renovation"
+                                  onClick={() => openRoomRenovationDialog(room)}
+                                  title="Click to manage room status"
                                 >
-                                  <div className="font-medium">Room {room.room_number}</div>
+                                  <div className="font-medium text-foreground">Room {room.room_number}</div>
                                   <div className="text-xs text-muted-foreground">
                                     {room.current_occupants}/{room.capacity} occupied
                                   </div>
                                   <div className="mt-1">
                                     {room.isUnderRenovation ? (
-                                      <Badge variant="outline" className="text-xs bg-yellow-500/20 text-yellow-600">
-                                        {statusLabels[room.renovationStatus || 'planned']}
+                                      <Badge variant="outline" className="text-xs border-orange-400 text-orange-600 bg-orange-100">
+                                        Under Renovation
                                       </Badge>
                                     ) : room.isFull ? (
                                       <Badge variant="destructive" className="text-xs">
                                         Full
                                       </Badge>
                                     ) : (
-                                      <Badge variant="outline" className="text-xs">
+                                      <Badge variant="outline" className="text-xs border-green-400 text-green-600 bg-green-100">
                                         Available
                                       </Badge>
                                     )}
                                   </div>
+                                  {room.isUnderRenovation && room.renovation_description && (
+                                    <p className="text-xs text-muted-foreground mt-1 truncate">{room.renovation_description}</p>
+                                  )}
+                                  {room.isUnderRenovation && room.renovation_end_date && (
+                                    <p className="text-xs text-muted-foreground">Until {new Date(room.renovation_end_date).toLocaleDateString()}</p>
+                                  )}
                                 </div>
                               ))}
                             </div>
@@ -745,6 +825,82 @@ export default function MyProperties() {
             <Button variant="outline" onClick={() => setRenovationDialogOpen(false)}>Cancel</Button>
             <Button onClick={handleRenovationSubmit}>{editingRenovation ? "Update" : "Add"}</Button>
           </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Room Renovation Dialog */}
+      <Dialog open={roomRenovationDialogOpen} onOpenChange={setRoomRenovationDialogOpen}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>
+              Room {selectedRoom?.room_number} — Status
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 py-2">
+            <div className="flex items-center justify-between p-3 bg-muted rounded-lg">
+              <span className="text-sm font-medium text-foreground">Current Status</span>
+              {selectedRoom?.isUnderRenovation ? (
+                <Badge variant="outline" className="border-orange-400 text-orange-600 bg-orange-100">Under Renovation</Badge>
+              ) : selectedRoom?.isFull ? (
+                <Badge variant="destructive">Full</Badge>
+              ) : (
+                <Badge variant="outline" className="border-green-400 text-green-600 bg-green-100">Available</Badge>
+              )}
+            </div>
+            <div className="text-sm text-muted-foreground">
+              Occupancy: {selectedRoom?.current_occupants}/{selectedRoom?.capacity}
+            </div>
+
+            {selectedRoom?.isUnderRenovation ? (
+              <div className="space-y-3">
+                {selectedRoom.renovation_description && (
+                  <div className="text-sm"><strong>Reason:</strong> {selectedRoom.renovation_description}</div>
+                )}
+                {selectedRoom.renovation_start_date && (
+                  <div className="text-sm"><strong>Start:</strong> {new Date(selectedRoom.renovation_start_date).toLocaleDateString()}</div>
+                )}
+                {selectedRoom.renovation_end_date && (
+                  <div className="text-sm"><strong>End:</strong> {new Date(selectedRoom.renovation_end_date).toLocaleDateString()}</div>
+                )}
+                <Button className="w-full" onClick={() => { handleMarkAvailable(selectedRoom.id); setRoomRenovationDialogOpen(false); }}>
+                  Mark as Available
+                </Button>
+              </div>
+            ) : (
+              <div className="space-y-3">
+                <div className="space-y-2">
+                  <Label>Reason for Renovation</Label>
+                  <Input
+                    placeholder="e.g. Painting, plumbing repairs"
+                    value={roomRenovationForm.reason}
+                    onChange={(e) => setRoomRenovationForm(prev => ({ ...prev, reason: e.target.value }))}
+                  />
+                </div>
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="space-y-2">
+                    <Label>Start Date</Label>
+                    <Input
+                      type="date"
+                      value={roomRenovationForm.start_date}
+                      onChange={(e) => setRoomRenovationForm(prev => ({ ...prev, start_date: e.target.value }))}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>End Date</Label>
+                    <Input
+                      type="date"
+                      value={roomRenovationForm.end_date}
+                      onChange={(e) => setRoomRenovationForm(prev => ({ ...prev, end_date: e.target.value }))}
+                    />
+                  </div>
+                </div>
+                <Button className="w-full" variant="default" onClick={handleMarkUnderRenovation}>
+                  <Hammer className="h-4 w-4 mr-2" />
+                  Mark as Under Renovation
+                </Button>
+              </div>
+            )}
+          </div>
         </DialogContent>
       </Dialog>
     </div>
