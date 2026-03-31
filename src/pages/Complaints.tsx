@@ -394,8 +394,8 @@ export default function Complaints() {
                     </div>
                   </div>
 
-                  {/* Landlord resolve button */}
-                  {!isStudent && c.status === 'pending' && (
+                  {/* Resolve button for both landlord and student */}
+                  {c.status === 'pending' && (
                     <Button size="sm" onClick={() => resolveComplaint(c.id)}>
                       <CheckCircle className="h-4 w-4 mr-1" />
                       Mark Resolved
