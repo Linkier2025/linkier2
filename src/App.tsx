@@ -128,6 +128,11 @@ const App = () => (
                   <ViewingRequests />
                 </ProtectedRoute>
               } />
+              <Route path="/announcements" element={
+                <ProtectedRoute>
+                  <Announcements />
+                </ProtectedRoute>
+              } />
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
               <Route path="*" element={<NotFound />} />
             </Routes>
