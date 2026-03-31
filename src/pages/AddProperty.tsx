@@ -93,15 +93,35 @@ export default function AddProperty() {
 
   const [uploading, setUploading] = useState(false);
 
+  const MAX_IMAGES = 10;
+
   const handleImageUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(event.target.files || []);
     if (files.length === 0 || !user) return;
+
+    const remaining = MAX_IMAGES - images.length;
+    if (remaining <= 0) {
+      toast({
+        title: "Limit reached",
+        description: `You can upload a maximum of ${MAX_IMAGES} images.`,
+        variant: "destructive",
+      });
+      return;
+    }
+
+    const filesToUpload = files.slice(0, remaining);
+    if (filesToUpload.length < files.length) {
+      toast({
+        title: "Some images skipped",
+        description: `Only ${remaining} more image(s) can be added (max ${MAX_IMAGES}).`,
+      });
+    }
 
     setUploading(true);
     const uploadedUrls: string[] = [];
 
     try {
-      for (const file of files) {
+      for (const file of filesToUpload) {
         const fileExt = file.name.split('.').pop();
         const fileName = `${user.id}/${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`;
 
