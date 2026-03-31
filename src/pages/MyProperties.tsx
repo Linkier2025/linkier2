@@ -103,6 +103,8 @@ export default function MyProperties() {
   const [roomsData, setRoomsData] = useState<RoomWithOccupancy[]>([]);
   const [loading, setLoading] = useState(true);
   const [deleteId, setDeleteId] = useState<string | null>(null);
+  const [deleteConfirmText, setDeleteConfirmText] = useState("");
+  const [deleteError, setDeleteError] = useState("");
   const [expandedProperty, setExpandedProperty] = useState<string | null>(null);
   
   // Renovation dialog state
