@@ -113,6 +113,8 @@ export default function PropertyDetails() {
             current_occupants: count || 0,
             renovation_status: (room as any).renovation_status || 'available',
             renovation_description: (room as any).renovation_description || null,
+            renovation_start_date: (room as any).renovation_start_date || null,
+            renovation_end_date: (room as any).renovation_end_date || null,
           });
         }
 
