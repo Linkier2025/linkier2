@@ -21,6 +21,8 @@ interface RoomInfo {
   current_occupants: number;
   renovation_status: string;
   renovation_description: string | null;
+  renovation_start_date: string | null;
+  renovation_end_date: string | null;
 }
 
 interface PropertyData {
