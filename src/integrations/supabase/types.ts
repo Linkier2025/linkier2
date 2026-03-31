@@ -64,8 +64,10 @@ export type Database = {
           created_at: string
           description: string
           id: string
+          landlord_id: string | null
           priority: string
           property_id: string
+          room_id: string | null
           status: string
           student_id: string
           title: string
@@ -75,8 +77,10 @@ export type Database = {
           created_at?: string
           description: string
           id?: string
+          landlord_id?: string | null
           priority?: string
           property_id: string
+          room_id?: string | null
           status?: string
           student_id: string
           title: string
@@ -86,8 +90,10 @@ export type Database = {
           created_at?: string
           description?: string
           id?: string
+          landlord_id?: string | null
           priority?: string
           property_id?: string
+          room_id?: string | null
           status?: string
           student_id?: string
           title?: string
