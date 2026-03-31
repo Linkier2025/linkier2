@@ -72,29 +72,6 @@ export default function StudentProfile() {
     }
   };
 
-  const handleDeleteProfile = async () => {
-    if (!user) return;
-
-    try {
-      const { error } = await supabase.auth.admin.deleteUser(user.id);
-      
-      if (error) throw error;
-
-      toast({
-        title: "Profile deleted",
-        description: "Your account has been permanently deleted.",
-        variant: "destructive",
-      });
-      
-      navigate("/");
-    } catch (error) {
-      toast({
-        title: "Error",
-        description: "Failed to delete profile. Please try again.",
-        variant: "destructive",
-      });
-    }
-  };
 
   const handleImageUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
