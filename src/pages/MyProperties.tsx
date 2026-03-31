@@ -713,12 +713,12 @@ export default function MyProperties() {
                         Edit
                       </Button>
                       <Button 
-                        className="flex-1" 
-                        variant="destructive"
-                        onClick={() => setDeleteId(property.id)}
+                        variant="ghost" 
+                        size="icon"
+                        className="text-destructive hover:text-destructive hover:bg-destructive/10"
+                        onClick={() => { setDeleteId(property.id); setDeleteConfirmText(""); setDeleteError(""); }}
                       >
-                        <Trash2 className="h-4 w-4 mr-2" />
-                        Delete
+                        <Trash2 className="h-4 w-4" />
                       </Button>
                     </div>
                   </CardContent>
