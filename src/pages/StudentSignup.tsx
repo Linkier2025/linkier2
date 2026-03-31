@@ -7,6 +7,8 @@ import { useNavigate } from "react-router-dom";
 import { ArrowLeft, Eye, EyeOff } from "lucide-react";
 import { useState, useEffect } from "react";
 import { useAuth } from "@/hooks/useAuth";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
 import { z } from "zod";
 import { Logo } from "@/components/Logo";
 import landingBg from "@/assets/landing-background.jpg";
@@ -16,8 +18,10 @@ const emailSchema = z.string().trim().email({ message: "Please enter a valid ema
 const StudentSignup = () => {
   const navigate = useNavigate();
   const { signUp, user, profile } = useAuth();
+  const { toast } = useToast();
   const [showPassword, setShowPassword] = useState(false);
   const [emailError, setEmailError] = useState("");
+  const [phoneError, setPhoneError] = useState("");
   const [formData, setFormData] = useState({
     firstName: "",
     surname: "",
@@ -42,9 +46,8 @@ const StudentSignup = () => {
 
   const handleInputChange = (field: string, value: string) => {
     setFormData(prev => ({ ...prev, [field]: value }));
-    if (field === 'email') {
-      setEmailError("");
-    }
+    if (field === 'email') setEmailError("");
+    if (field === 'phone') setPhoneError("");
   };
 
   const validateEmail = (email: string) => {
@@ -71,9 +74,20 @@ const StudentSignup = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!formData.email || !formData.password) return;
+    if (!formData.email || !formData.password || !formData.phone) return;
     
-    if (!validateEmail(formData.email)) {
+    if (!validateEmail(formData.email)) return;
+
+    // Check duplicate phone
+    const { data: existingPhone } = await supabase
+      .from('profiles')
+      .select('id')
+      .eq('phone', formData.phone)
+      .maybeSingle();
+
+    if (existingPhone) {
+      setPhoneError("This phone number is already in use");
+      toast({ title: "Duplicate Phone", description: "This phone number is already in use", variant: "destructive" });
       return;
     }
     
@@ -228,7 +242,11 @@ const StudentSignup = () => {
                     value={formData.phone}
                     onChange={(e) => handleInputChange('phone', e.target.value)}
                     required
+                    className={phoneError ? "border-destructive" : ""}
                   />
+                  {phoneError && (
+                    <p className="text-sm text-destructive">{phoneError}</p>
+                  )}
                 </div>
 
                 <div className="space-y-2">

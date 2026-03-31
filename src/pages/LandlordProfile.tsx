@@ -9,6 +9,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { toast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
+import { ChangePassword } from "@/components/ChangePassword";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -239,6 +240,8 @@ export default function LandlordProfile() {
             </div>
           </CardContent>
         </Card>
+
+        <ChangePassword />
       </div>
     </div>
   );

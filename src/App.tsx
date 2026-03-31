@@ -30,7 +30,8 @@ import Rentals from "./pages/Rentals";
 import MyProperties from "./pages/MyProperties";
 import ViewingRequests from "./pages/ViewingRequests";
 import Announcements from "./pages/Announcements";
-
+import ForgotPassword from "./pages/ForgotPassword";
+import ResetPassword from "./pages/ResetPassword";
 
 const queryClient = new QueryClient();
 
@@ -48,6 +49,8 @@ const App = () => (
               <Route path="/landlord-login" element={<LandlordLogin />} />
               <Route path="/student-signup" element={<StudentSignup />} />
               <Route path="/landlord-signup" element={<LandlordSignup />} />
+              <Route path="/forgot-password" element={<ForgotPassword />} />
+              <Route path="/reset-password" element={<ResetPassword />} />
               <Route path="/student-dashboard" element={
                 <ProtectedRoute userType="student">
                   <StudentDashboard />
