@@ -93,7 +93,7 @@ export default function MyProperties() {
   const { toast } = useToast();
   const [properties, setProperties] = useState<Property[]>([]);
   const [renovations, setRenovations] = useState<Renovation[]>([]);
-  const [rentals, setRentals] = useState<Rental[]>([]);
+  const [roomsData, setRoomsData] = useState<RoomWithOccupancy[]>([]);
   const [loading, setLoading] = useState(true);
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [expandedProperty, setExpandedProperty] = useState<string | null>(null);
