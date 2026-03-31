@@ -621,13 +621,13 @@ export default function AddProperty() {
                 </div>
               ) : (
                 <>
-                  <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                  <div className="flex gap-3 overflow-x-auto pb-2 snap-x snap-mandatory">
                     {images.map((image, index) => (
-                      <div key={index} className="relative group">
+                      <div key={index} className="relative group flex-shrink-0 w-40 snap-start">
                         <img
                           src={image}
                           alt={`Property ${index + 1}`}
-                          className="w-full h-32 object-cover rounded-lg"
+                          className="w-40 h-32 object-cover rounded-lg"
                         />
                         {index === 0 && (
                           <Badge className="absolute bottom-2 left-2 text-xs">Main</Badge>
