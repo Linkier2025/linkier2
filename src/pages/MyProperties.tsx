@@ -157,7 +157,7 @@ export default function MyProperties() {
       if (propertyIds.length > 0) {
         const { data: rooms } = await supabase
           .from('rooms')
-          .select('id, room_number, capacity, property_id, renovation_status')
+          .select('id, room_number, capacity, property_id, renovation_status, renovation_description, renovation_start_date, renovation_end_date')
           .in('property_id', propertyIds);
 
         const roomIds = (rooms || []).map(r => r.id);
@@ -181,6 +181,9 @@ export default function MyProperties() {
           capacity: r.capacity,
           property_id: r.property_id,
           renovation_status: r.renovation_status,
+          renovation_description: r.renovation_description,
+          renovation_start_date: r.renovation_start_date,
+          renovation_end_date: r.renovation_end_date,
           current_occupants: assignmentCounts[r.id] || 0,
         }));
         setRoomsData(roomsWithOcc);
