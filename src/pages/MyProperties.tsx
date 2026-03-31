@@ -41,13 +41,6 @@ interface Renovation {
   estimated_cost: number | null;
 }
 
-interface Rental {
-  id: string;
-  property_id: string;
-  room_number: string | null;
-  status: string;
-}
-
 interface Property {
   id: string;
   title: string;
@@ -62,10 +55,20 @@ interface Property {
   room_configurations?: RoomConfig[];
 }
 
+interface RoomWithOccupancy {
+  id: string;
+  room_number: string;
+  capacity: number;
+  property_id: string;
+  renovation_status: string;
+  current_occupants: number;
+}
+
 interface RoomStatus {
   room_number: string;
   capacity: number;
-  isOccupied: boolean;
+  current_occupants: number;
+  isFull: boolean;
   isUnderRenovation: boolean;
   renovationStatus?: string;
 }
@@ -90,7 +93,7 @@ export default function MyProperties() {
   const { toast } = useToast();
   const [properties, setProperties] = useState<Property[]>([]);
   const [renovations, setRenovations] = useState<Renovation[]>([]);
-  const [rentals, setRentals] = useState<Rental[]>([]);
+  const [roomsData, setRoomsData] = useState<RoomWithOccupancy[]>([]);
   const [loading, setLoading] = useState(true);
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [expandedProperty, setExpandedProperty] = useState<string | null>(null);
@@ -119,7 +122,7 @@ export default function MyProperties() {
     if (!user) return;
 
     try {
-      const [propertiesRes, renovationsRes, rentalsRes] = await Promise.all([
+      const [propertiesRes, renovationsRes] = await Promise.all([
         supabase
           .from('properties')
           .select('*')
@@ -129,16 +132,10 @@ export default function MyProperties() {
           .from('renovations')
           .select('*')
           .eq('landlord_id', user.id),
-        supabase
-          .from('rentals')
-          .select('id, property_id, room_number, status')
-          .eq('landlord_id', user.id)
-          .eq('status', 'active')
       ]);
 
       if (propertiesRes.error) throw propertiesRes.error;
       if (renovationsRes.error) throw renovationsRes.error;
-      if (rentalsRes.error) throw rentalsRes.error;
 
       const typedProperties = (propertiesRes.data || []).map(property => ({
         ...property,
@@ -147,7 +144,40 @@ export default function MyProperties() {
 
       setProperties(typedProperties);
       setRenovations(renovationsRes.data || []);
-      setRentals(rentalsRes.data || []);
+
+      // Fetch real rooms + assignments for occupancy
+      const propertyIds = typedProperties.map(p => p.id);
+      if (propertyIds.length > 0) {
+        const { data: rooms } = await supabase
+          .from('rooms')
+          .select('id, room_number, capacity, property_id, renovation_status')
+          .in('property_id', propertyIds);
+
+        const roomIds = (rooms || []).map(r => r.id);
+        let assignmentCounts: Record<string, number> = {};
+
+        if (roomIds.length > 0) {
+          const { data: assignments } = await supabase
+            .from('room_assignments')
+            .select('room_id')
+            .in('room_id', roomIds)
+            .in('status', ['active', 'reserved']);
+
+          (assignments || []).forEach(a => {
+            assignmentCounts[a.room_id] = (assignmentCounts[a.room_id] || 0) + 1;
+          });
+        }
+
+        const roomsWithOcc: RoomWithOccupancy[] = (rooms || []).map(r => ({
+          id: r.id,
+          room_number: r.room_number,
+          capacity: r.capacity,
+          property_id: r.property_id,
+          renovation_status: r.renovation_status,
+          current_occupants: assignmentCounts[r.id] || 0,
+        }));
+        setRoomsData(roomsWithOcc);
+      }
     } catch (error) {
       toast({
         title: "Error",
@@ -187,20 +217,19 @@ export default function MyProperties() {
   };
 
   const getRoomStatuses = (property: Property): RoomStatus[] => {
-    const rooms = property.room_configurations || [];
-    const propertyRentals = rentals.filter(r => r.property_id === property.id);
+    const propRooms = roomsData.filter(r => r.property_id === property.id);
     const propertyRenovations = renovations.filter(r => r.property_id === property.id && r.status !== 'completed' && r.status !== 'cancelled');
 
-    return rooms.map(room => {
-      const isOccupied = propertyRentals.some(r => r.room_number === room.room_number);
+    return propRooms.map(room => {
       const renovation = propertyRenovations.find(r => r.room_number === room.room_number);
       
       return {
         room_number: room.room_number,
         capacity: room.capacity,
-        isOccupied,
-        isUnderRenovation: !!renovation,
-        renovationStatus: renovation?.status
+        current_occupants: room.current_occupants,
+        isFull: room.current_occupants >= room.capacity,
+        isUnderRenovation: room.renovation_status === 'under_renovation' || !!renovation,
+        renovationStatus: renovation?.status || (room.renovation_status === 'under_renovation' ? 'in_progress' : undefined)
       };
     });
   };
@@ -381,8 +410,9 @@ export default function MyProperties() {
             {properties.map((property) => {
               const roomStatuses = getRoomStatuses(property);
               const propertyRenovations = getPropertyRenovations(property.id);
-              const occupiedCount = roomStatuses.filter(r => r.isOccupied).length;
-              const unoccupiedCount = roomStatuses.filter(r => !r.isOccupied).length;
+              const occupiedCount = roomStatuses.filter(r => r.current_occupants > 0).length;
+              const availableCount = roomStatuses.filter(r => !r.isFull && !r.isUnderRenovation).length;
+              const isFullyOccupied = roomStatuses.length > 0 && availableCount === 0;
               const underRenovationCount = roomStatuses.filter(r => r.isUnderRenovation).length;
               const isExpanded = expandedProperty === property.id;
 
@@ -394,12 +424,18 @@ export default function MyProperties() {
                       alt={property.title}
                       className="w-full h-48 object-cover"
                     />
-                    <Badge 
-                      className="absolute top-2 right-2"
-                      variant={property.status === 'available' ? 'default' : 'secondary'}
-                    >
-                      {property.status}
-                    </Badge>
+                    {isFullyOccupied ? (
+                      <Badge className="absolute top-2 right-2 bg-destructive text-destructive-foreground">
+                        Fully Occupied
+                      </Badge>
+                    ) : (
+                      <Badge 
+                        className="absolute top-2 right-2"
+                        variant={property.status === 'available' ? 'default' : 'secondary'}
+                      >
+                        {property.status}
+                      </Badge>
+                    )}
                   </div>
                   <CardHeader className="pb-2">
                     <div className="flex justify-between items-start">
@@ -424,8 +460,8 @@ export default function MyProperties() {
                         <div className="text-xs text-muted-foreground">Occupied</div>
                       </div>
                       <div className="text-center p-3 bg-orange-500/10 rounded-lg">
-                        <div className="text-2xl font-bold text-orange-600">{unoccupiedCount}</div>
-                        <div className="text-xs text-muted-foreground">Unoccupied</div>
+                        <div className="text-2xl font-bold text-orange-600">{availableCount}</div>
+                        <div className="text-xs text-muted-foreground">Available</div>
                       </div>
                     </div>
 
@@ -461,23 +497,27 @@ export default function MyProperties() {
                                   className={`p-3 rounded-lg border cursor-pointer hover:ring-2 hover:ring-primary/50 transition-all ${
                                     room.isUnderRenovation 
                                       ? 'bg-yellow-500/10 border-yellow-500/30' 
-                                      : room.isOccupied 
-                                        ? 'bg-green-500/10 border-green-500/30' 
-                                        : 'bg-muted border-border'
+                                      : room.isFull 
+                                        ? 'bg-destructive/10 border-destructive/30' 
+                                        : room.current_occupants > 0
+                                          ? 'bg-green-500/10 border-green-500/30'
+                                          : 'bg-muted border-border'
                                   }`}
                                   onClick={() => openRenovationDialog(property.id, undefined, room.room_number)}
                                   title="Click to manage renovation"
                                 >
                                   <div className="font-medium">Room {room.room_number}</div>
-                                  <div className="text-xs text-muted-foreground">Capacity: {room.capacity}</div>
+                                  <div className="text-xs text-muted-foreground">
+                                    {room.current_occupants}/{room.capacity} occupied
+                                  </div>
                                   <div className="mt-1">
                                     {room.isUnderRenovation ? (
                                       <Badge variant="outline" className="text-xs bg-yellow-500/20 text-yellow-600">
                                         {statusLabels[room.renovationStatus || 'planned']}
                                       </Badge>
-                                    ) : room.isOccupied ? (
-                                      <Badge variant="outline" className="text-xs bg-green-500/20 text-green-600">
-                                        Occupied
+                                    ) : room.isFull ? (
+                                      <Badge variant="destructive" className="text-xs">
+                                        Full
                                       </Badge>
                                     ) : (
                                       <Badge variant="outline" className="text-xs">
