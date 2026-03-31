@@ -122,7 +122,7 @@ export default function MyProperties() {
     if (!user) return;
 
     try {
-      const [propertiesRes, renovationsRes, rentalsRes] = await Promise.all([
+      const [propertiesRes, renovationsRes] = await Promise.all([
         supabase
           .from('properties')
           .select('*')
@@ -132,16 +132,10 @@ export default function MyProperties() {
           .from('renovations')
           .select('*')
           .eq('landlord_id', user.id),
-        supabase
-          .from('rentals')
-          .select('id, property_id, room_number, status')
-          .eq('landlord_id', user.id)
-          .eq('status', 'active')
       ]);
 
       if (propertiesRes.error) throw propertiesRes.error;
       if (renovationsRes.error) throw renovationsRes.error;
-      if (rentalsRes.error) throw rentalsRes.error;
 
       const typedProperties = (propertiesRes.data || []).map(property => ({
         ...property,
@@ -150,7 +144,40 @@ export default function MyProperties() {
 
       setProperties(typedProperties);
       setRenovations(renovationsRes.data || []);
-      setRentals(rentalsRes.data || []);
+
+      // Fetch real rooms + assignments for occupancy
+      const propertyIds = typedProperties.map(p => p.id);
+      if (propertyIds.length > 0) {
+        const { data: rooms } = await supabase
+          .from('rooms')
+          .select('id, room_number, capacity, property_id, renovation_status')
+          .in('property_id', propertyIds);
+
+        const roomIds = (rooms || []).map(r => r.id);
+        let assignmentCounts: Record<string, number> = {};
+
+        if (roomIds.length > 0) {
+          const { data: assignments } = await supabase
+            .from('room_assignments')
+            .select('room_id')
+            .in('room_id', roomIds)
+            .in('status', ['active', 'reserved']);
+
+          (assignments || []).forEach(a => {
+            assignmentCounts[a.room_id] = (assignmentCounts[a.room_id] || 0) + 1;
+          });
+        }
+
+        const roomsWithOcc: RoomWithOccupancy[] = (rooms || []).map(r => ({
+          id: r.id,
+          room_number: r.room_number,
+          capacity: r.capacity,
+          property_id: r.property_id,
+          renovation_status: r.renovation_status,
+          current_occupants: assignmentCounts[r.id] || 0,
+        }));
+        setRoomsData(roomsWithOcc);
+      }
     } catch (error) {
       toast({
         title: "Error",
@@ -190,20 +217,19 @@ export default function MyProperties() {
   };
 
   const getRoomStatuses = (property: Property): RoomStatus[] => {
-    const rooms = property.room_configurations || [];
-    const propertyRentals = rentals.filter(r => r.property_id === property.id);
+    const propRooms = roomsData.filter(r => r.property_id === property.id);
     const propertyRenovations = renovations.filter(r => r.property_id === property.id && r.status !== 'completed' && r.status !== 'cancelled');
 
-    return rooms.map(room => {
-      const isOccupied = propertyRentals.some(r => r.room_number === room.room_number);
+    return propRooms.map(room => {
       const renovation = propertyRenovations.find(r => r.room_number === room.room_number);
       
       return {
         room_number: room.room_number,
         capacity: room.capacity,
-        isOccupied,
-        isUnderRenovation: !!renovation,
-        renovationStatus: renovation?.status
+        current_occupants: room.current_occupants,
+        isFull: room.current_occupants >= room.capacity,
+        isUnderRenovation: room.renovation_status === 'under_renovation' || !!renovation,
+        renovationStatus: renovation?.status || (room.renovation_status === 'under_renovation' ? 'in_progress' : undefined)
       };
     });
   };
