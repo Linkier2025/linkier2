@@ -491,23 +491,27 @@ export default function MyProperties() {
                                   className={`p-3 rounded-lg border cursor-pointer hover:ring-2 hover:ring-primary/50 transition-all ${
                                     room.isUnderRenovation 
                                       ? 'bg-yellow-500/10 border-yellow-500/30' 
-                                      : room.isOccupied 
-                                        ? 'bg-green-500/10 border-green-500/30' 
-                                        : 'bg-muted border-border'
+                                      : room.isFull 
+                                        ? 'bg-destructive/10 border-destructive/30' 
+                                        : room.current_occupants > 0
+                                          ? 'bg-green-500/10 border-green-500/30'
+                                          : 'bg-muted border-border'
                                   }`}
                                   onClick={() => openRenovationDialog(property.id, undefined, room.room_number)}
                                   title="Click to manage renovation"
                                 >
                                   <div className="font-medium">Room {room.room_number}</div>
-                                  <div className="text-xs text-muted-foreground">Capacity: {room.capacity}</div>
+                                  <div className="text-xs text-muted-foreground">
+                                    {room.current_occupants}/{room.capacity} occupied
+                                  </div>
                                   <div className="mt-1">
                                     {room.isUnderRenovation ? (
                                       <Badge variant="outline" className="text-xs bg-yellow-500/20 text-yellow-600">
                                         {statusLabels[room.renovationStatus || 'planned']}
                                       </Badge>
-                                    ) : room.isOccupied ? (
-                                      <Badge variant="outline" className="text-xs bg-green-500/20 text-green-600">
-                                        Occupied
+                                    ) : room.isFull ? (
+                                      <Badge variant="destructive" className="text-xs">
+                                        Full
                                       </Badge>
                                     ) : (
                                       <Badge variant="outline" className="text-xs">
