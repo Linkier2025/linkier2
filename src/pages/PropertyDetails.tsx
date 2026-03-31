@@ -412,7 +412,12 @@ export default function PropertyDetails() {
                             Capacity: {room.capacity} student{room.capacity > 1 ? 's' : ''}
                           </p>
                           {isRenovation && room.renovation_description && (
-                            <p className="text-xs text-amber-700 mt-1">{room.renovation_description}</p>
+                            <p className="text-xs text-orange-600 mt-1">{room.renovation_description}</p>
+                          )}
+                          {isRenovation && room.renovation_end_date && (
+                            <p className="text-xs text-muted-foreground mt-0.5">
+                              Available after: {new Date(room.renovation_end_date).toLocaleDateString()}
+                            </p>
                           )}
                         </div>
                       </div>
