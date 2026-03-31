@@ -228,18 +228,21 @@ export default function MyProperties() {
 
   const getRoomStatuses = (property: Property): RoomStatus[] => {
     const propRooms = roomsData.filter(r => r.property_id === property.id);
-    const propertyRenovations = renovations.filter(r => r.property_id === property.id && r.status !== 'completed' && r.status !== 'cancelled');
 
     return propRooms.map(room => {
-      const renovation = propertyRenovations.find(r => r.room_number === room.room_number);
+      const isUnderRenovation = room.renovation_status === 'under_renovation';
       
       return {
+        id: room.id,
         room_number: room.room_number,
         capacity: room.capacity,
         current_occupants: room.current_occupants,
-        isFull: room.current_occupants >= room.capacity,
-        isUnderRenovation: room.renovation_status === 'under_renovation' || !!renovation,
-        renovationStatus: renovation?.status || (room.renovation_status === 'under_renovation' ? 'in_progress' : undefined)
+        isFull: !isUnderRenovation && room.current_occupants >= room.capacity,
+        isUnderRenovation,
+        renovationStatus: isUnderRenovation ? 'under_renovation' : undefined,
+        renovation_description: room.renovation_description,
+        renovation_start_date: room.renovation_start_date,
+        renovation_end_date: room.renovation_end_date,
       };
     });
   };
