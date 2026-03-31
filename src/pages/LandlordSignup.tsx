@@ -59,9 +59,20 @@ const LandlordSignup = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!formData.email || !formData.password) return;
+    if (!formData.email || !formData.password || !formData.phone) return;
     
-    if (!validateEmail(formData.email)) {
+    if (!validateEmail(formData.email)) return;
+
+    // Check duplicate phone
+    const { data: existingPhone } = await supabase
+      .from('profiles')
+      .select('id')
+      .eq('phone', formData.phone)
+      .maybeSingle();
+
+    if (existingPhone) {
+      setPhoneError("This phone number is already in use");
+      toast({ title: "Duplicate Phone", description: "This phone number is already in use", variant: "destructive" });
       return;
     }
     
