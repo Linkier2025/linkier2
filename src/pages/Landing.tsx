@@ -129,6 +129,7 @@ const Landing = () => {
           )}
         </div>
       </main>
+      <InstallBanner />
     </div>
   );
 };
