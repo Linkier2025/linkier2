@@ -240,6 +240,8 @@ export default function LandlordProfile() {
             </div>
           </CardContent>
         </Card>
+
+        <ChangePassword />
       </div>
     </div>
   );

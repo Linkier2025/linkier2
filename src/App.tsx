@@ -49,6 +49,8 @@ const App = () => (
               <Route path="/landlord-login" element={<LandlordLogin />} />
               <Route path="/student-signup" element={<StudentSignup />} />
               <Route path="/landlord-signup" element={<LandlordSignup />} />
+              <Route path="/forgot-password" element={<ForgotPassword />} />
+              <Route path="/reset-password" element={<ResetPassword />} />
               <Route path="/student-dashboard" element={
                 <ProtectedRoute userType="student">
                   <StudentDashboard />
