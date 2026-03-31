@@ -31,9 +31,8 @@ const LandlordSignup = () => {
 
   const handleInputChange = (field: string, value: string) => {
     setFormData(prev => ({ ...prev, [field]: value }));
-    if (field === 'email') {
-      setEmailError("");
-    }
+    if (field === 'email') setEmailError("");
+    if (field === 'phone') setPhoneError("");
   };
 
   const validateEmail = (email: string) => {
