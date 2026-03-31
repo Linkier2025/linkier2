@@ -61,6 +61,9 @@ interface RoomWithOccupancy {
   capacity: number;
   property_id: string;
   renovation_status: string;
+  renovation_description: string | null;
+  renovation_start_date: string | null;
+  renovation_end_date: string | null;
   current_occupants: number;
 }
 
