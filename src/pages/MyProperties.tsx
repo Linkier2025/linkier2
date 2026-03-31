@@ -68,12 +68,16 @@ interface RoomWithOccupancy {
 }
 
 interface RoomStatus {
+  id: string;
   room_number: string;
   capacity: number;
   current_occupants: number;
   isFull: boolean;
   isUnderRenovation: boolean;
   renovationStatus?: string;
+  renovation_description: string | null;
+  renovation_start_date: string | null;
+  renovation_end_date: string | null;
 }
 
 const statusColors: Record<string, string> = {
