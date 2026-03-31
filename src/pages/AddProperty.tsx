@@ -123,6 +123,13 @@ export default function AddProperty() {
 
     try {
       for (const file of filesToUpload) {
+        const { validatePropertyImage } = await import("@/lib/validation");
+        const validation = validatePropertyImage(file);
+        if (!validation.valid) {
+          toast({ title: "Invalid file", description: `${file.name}: ${validation.error}`, variant: "destructive" });
+          continue;
+        }
+
         const fileExt = file.name.split('.').pop();
         const fileName = `${user.id}/${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`;
 
