@@ -181,32 +181,9 @@ export default function LandlordProfile() {
               <Button onClick={handleSave} className="flex-1" disabled={loading}>
                 {loading ? "Saving..." : "Save Changes"}
               </Button>
-              <AlertDialog>
-                <AlertDialogTrigger asChild>
-                  <Button variant="destructive" size="icon">
-                    <Trash2 className="h-4 w-4" />
-                  </Button>
-                </AlertDialogTrigger>
-                <AlertDialogContent>
-                  <AlertDialogHeader>
-                    <AlertDialogTitle>Delete Profile</AlertDialogTitle>
-                    <AlertDialogDescription>
-                      Are you sure you want to delete your profile? This action cannot be undone.
-                    </AlertDialogDescription>
-                  </AlertDialogHeader>
-                  <AlertDialogFooter>
-                    <AlertDialogCancel>Cancel</AlertDialogCancel>
-                    <AlertDialogAction onClick={handleDeleteProfile} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
-                      Delete Profile
-                    </AlertDialogAction>
-                  </AlertDialogFooter>
-                </AlertDialogContent>
-              </AlertDialog>
             </div>
           </CardContent>
         </Card>
-
-        <ChangePassword />
       </div>
     </div>
   );
