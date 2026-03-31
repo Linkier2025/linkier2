@@ -730,20 +730,39 @@ export default function MyProperties() {
       </div>
 
       {/* Delete Property Dialog */}
-      <AlertDialog open={!!deleteId} onOpenChange={() => setDeleteId(null)}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Are you sure?</AlertDialogTitle>
-            <AlertDialogDescription>
-              This action cannot be undone. This will permanently delete the property.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={handleDelete}>Delete</AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+      <Dialog open={!!deleteId} onOpenChange={(open) => { if (!open) { setDeleteId(null); setDeleteConfirmText(""); setDeleteError(""); } }}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle className="text-destructive flex items-center gap-2">
+              <AlertCircle className="h-5 w-5" />
+              Delete Property
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-3">
+            <p className="text-sm text-muted-foreground">
+              Are you sure you want to delete this property? This action cannot be undone. Type <span className="font-bold text-foreground">DELETE</span> to confirm.
+            </p>
+            <Input
+              value={deleteConfirmText}
+              onChange={(e) => { setDeleteConfirmText(e.target.value); setDeleteError(""); }}
+              placeholder="Type DELETE to confirm"
+            />
+            {deleteError && (
+              <p className="text-sm text-destructive font-medium">{deleteError}</p>
+            )}
+          </div>
+          <DialogFooter className="gap-2">
+            <Button variant="outline" onClick={() => { setDeleteId(null); setDeleteConfirmText(""); setDeleteError(""); }}>Cancel</Button>
+            <Button
+              variant="destructive"
+              disabled={deleteConfirmText !== "DELETE"}
+              onClick={handleDelete}
+            >
+              Delete Property
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       {/* Renovation Dialog */}
       <Dialog open={renovationDialogOpen} onOpenChange={setRenovationDialogOpen}>
