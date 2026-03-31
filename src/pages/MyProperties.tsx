@@ -211,7 +211,16 @@ export default function MyProperties() {
   };
 
   const handleDelete = async () => {
-    if (!deleteId) return;
+    if (!deleteId || deleteConfirmText !== "DELETE") return;
+
+    // Check for active tenants
+    const propertyRooms = roomsData.filter(r => r.property_id === deleteId);
+    const hasActiveTenants = propertyRooms.some(r => r.current_occupants > 0);
+
+    if (hasActiveTenants) {
+      setDeleteError("Cannot delete property with active tenants.");
+      return;
+    }
 
     try {
       const { error } = await supabase
@@ -234,6 +243,8 @@ export default function MyProperties() {
       });
     } finally {
       setDeleteId(null);
+      setDeleteConfirmText("");
+      setDeleteError("");
     }
   };
 
