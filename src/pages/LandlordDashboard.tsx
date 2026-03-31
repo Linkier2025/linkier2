@@ -193,6 +193,7 @@ const LandlordDashboard = () => {
     { title: "My Tenants", icon: Users, route: "/tenants" },
     { title: "Rent Tracking", icon: DollarSign, route: "/rent-tracking" },
     { title: "Complaints", icon: AlertCircle, route: "/complaints" },
+    { title: "Announcements", icon: Megaphone, route: "/announcements" },
   ];
 
   const statsCards = [
