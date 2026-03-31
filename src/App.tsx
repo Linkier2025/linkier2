@@ -29,6 +29,7 @@ import Notifications from "./pages/Notifications";
 import Rentals from "./pages/Rentals";
 import MyProperties from "./pages/MyProperties";
 import ViewingRequests from "./pages/ViewingRequests";
+import Announcements from "./pages/Announcements";
 
 
 const queryClient = new QueryClient();
