@@ -4,7 +4,7 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Search, MapPin, Users, Heart, Star } from "lucide-react";
+import { Search, MapPin, Users, Heart, Star, AlertCircle } from "lucide-react";
 import { Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
@@ -22,9 +22,18 @@ interface Property {
   amenities: string[] | null;
 }
 
+interface PropertyOccupancy {
+  totalCapacity: number;
+  totalOccupants: number;
+  availableRooms: number;
+  totalRooms: number;
+  isFullyOccupied: boolean;
+}
+
 export default function Properties() {
   const [searchTerm, setSearchTerm] = useState("");
   const [properties, setProperties] = useState<Property[]>([]);
+  const [occupancyMap, setOccupancyMap] = useState<Record<string, PropertyOccupancy>>({});
   const [loading, setLoading] = useState(true);
   const [filters, setFilters] = useState({
     university: "",
@@ -49,6 +58,52 @@ export default function Properties() {
 
       if (error) throw error;
       setProperties(data || []);
+
+      // Fetch occupancy for all properties
+      const propertyIds = (data || []).map(p => p.id);
+      if (propertyIds.length > 0) {
+        const { data: roomsData } = await supabase
+          .from('rooms')
+          .select('id, property_id, capacity, renovation_status')
+          .in('property_id', propertyIds);
+
+        const roomIds = (roomsData || []).map(r => r.id);
+        let assignmentCounts: Record<string, number> = {};
+
+        if (roomIds.length > 0) {
+          const { data: assignments } = await supabase
+            .from('room_assignments')
+            .select('room_id')
+            .in('room_id', roomIds)
+            .in('status', ['active', 'reserved']);
+
+          (assignments || []).forEach(a => {
+            assignmentCounts[a.room_id] = (assignmentCounts[a.room_id] || 0) + 1;
+          });
+        }
+
+        const occMap: Record<string, PropertyOccupancy> = {};
+        propertyIds.forEach(pid => {
+          const propRooms = (roomsData || []).filter(r => r.property_id === pid);
+          const availableRooms = propRooms.filter(r => {
+            if (r.renovation_status === 'under_renovation') return false;
+            const occupants = assignmentCounts[r.id] || 0;
+            return occupants < r.capacity;
+          });
+
+          const totalCapacity = propRooms.reduce((sum, r) => sum + r.capacity, 0);
+          const totalOccupants = propRooms.reduce((sum, r) => sum + (assignmentCounts[r.id] || 0), 0);
+
+          occMap[pid] = {
+            totalCapacity,
+            totalOccupants,
+            availableRooms: availableRooms.length,
+            totalRooms: propRooms.length,
+            isFullyOccupied: availableRooms.length === 0 && propRooms.length > 0,
+          };
+        });
+        setOccupancyMap(occMap);
+      }
     } catch (error) {
       toast({
         title: "Error",
@@ -178,74 +233,98 @@ export default function Properties() {
           </Card>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {filteredProperties.map((property) => (
-              <Card key={property.id} className="overflow-hidden hover:shadow-lg transition-shadow">
-                <div className="relative">
-                  <img
-                    src={property.images?.[0] || "/placeholder.svg"}
-                    alt={property.title}
-                    className="w-full h-48 object-cover"
-                  />
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="absolute top-2 right-2 bg-white/80 hover:bg-white"
-                    onClick={() => toggleFavorite(property.id)}
-                  >
-                    <Heart 
-                      className={`h-4 w-4 ${favorites.includes(property.id) ? 'fill-red-500 text-red-500' : 'text-gray-600'}`} 
+            {filteredProperties.map((property) => {
+              const occ = occupancyMap[property.id];
+              const isFullyOccupied = occ?.isFullyOccupied ?? false;
+
+              return (
+                <Card key={property.id} className={`overflow-hidden hover:shadow-lg transition-shadow ${isFullyOccupied ? 'opacity-75' : ''}`}>
+                  <div className="relative">
+                    <img
+                      src={property.images?.[0] || "/placeholder.svg"}
+                      alt={property.title}
+                      className="w-full h-48 object-cover"
                     />
-                  </Button>
-                </div>
-                <CardHeader className="pb-2">
-                  <div className="flex justify-between items-start">
-                    <CardTitle className="text-lg">{property.title}</CardTitle>
-                    <div className="flex items-center gap-1">
-                      <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
-                      <span className="text-sm">{property.rating || 0}</span>
-                    </div>
-                  </div>
-                </CardHeader>
-                <CardContent className="space-y-3">
-                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                    <MapPin className="h-4 w-4" />
-                    {property.location}
-                  </div>
-                  
-                  <div className="flex items-center gap-2 text-sm">
-                    <Users className="h-4 w-4" />
-                    {property.rooms} rooms • {property.gender_preference || 'Mixed'}
-                  </div>
-
-                  {property.amenities && property.amenities.length > 0 && (
-                    <div className="flex flex-wrap gap-1">
-                      {property.amenities.slice(0, 3).map((amenity) => (
-                        <Badge key={amenity} variant="secondary" className="text-xs">
-                          {amenity}
-                        </Badge>
-                      ))}
-                    </div>
-                  )}
-
-                  <div className="flex justify-between items-center pt-2">
-                    <span className="text-xl font-bold text-primary">
-                      ${property.rent_amount.toLocaleString()} USD/month
-                    </span>
-                  </div>
-
-                  <div className="flex gap-2">
-                    <Link to={`/property/${property.id}`} className="flex-1">
-                      <Button className="w-full" variant="outline">
-                        View Details
-                      </Button>
-                    </Link>
-                    <Button className="flex-1">
-                      Request to Rent
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="absolute top-2 right-2 bg-white/80 hover:bg-white"
+                      onClick={() => toggleFavorite(property.id)}
+                    >
+                      <Heart 
+                        className={`h-4 w-4 ${favorites.includes(property.id) ? 'fill-red-500 text-red-500' : 'text-gray-600'}`} 
+                      />
                     </Button>
+                    {isFullyOccupied && (
+                      <Badge className="absolute top-2 left-2 bg-destructive text-destructive-foreground">
+                        <AlertCircle className="h-3 w-3 mr-1" />
+                        Fully Occupied
+                      </Badge>
+                    )}
                   </div>
-                </CardContent>
-              </Card>
-            ))}
+                  <CardHeader className="pb-2">
+                    <div className="flex justify-between items-start">
+                      <CardTitle className="text-lg">{property.title}</CardTitle>
+                      <div className="flex items-center gap-1">
+                        <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
+                        <span className="text-sm">{property.rating || 0}</span>
+                      </div>
+                    </div>
+                  </CardHeader>
+                  <CardContent className="space-y-3">
+                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                      <MapPin className="h-4 w-4" />
+                      {property.location}
+                    </div>
+                    
+                    <div className="flex items-center gap-2 text-sm">
+                      <Users className="h-4 w-4" />
+                      {property.rooms} rooms • {property.gender_preference || 'Mixed'}
+                      {occ && (
+                        <Badge variant={isFullyOccupied ? "destructive" : "secondary"} className="ml-auto text-xs">
+                          {occ.totalOccupants}/{occ.totalCapacity} occupied
+                        </Badge>
+                      )}
+                    </div>
+
+                    {property.amenities && property.amenities.length > 0 && (
+                      <div className="flex flex-wrap gap-1">
+                        {property.amenities.slice(0, 3).map((amenity) => (
+                          <Badge key={amenity} variant="secondary" className="text-xs">
+                            {amenity}
+                          </Badge>
+                        ))}
+                      </div>
+                    )}
+
+                    <div className="flex justify-between items-center pt-2">
+                      <span className="text-xl font-bold text-primary">
+                        ${property.rent_amount.toLocaleString()} USD/month
+                      </span>
+                    </div>
+
+                    <div className="flex gap-2">
+                      <Link to={`/property/${property.id}`} className="flex-1">
+                        <Button className="w-full" variant="outline">
+                          View Details
+                        </Button>
+                      </Link>
+                      {isFullyOccupied ? (
+                        <Button className="flex-1" disabled>
+                          No Rooms Available
+                        </Button>
+                      ) : (
+                        <Link to={`/property/${property.id}`} className="flex-1">
+                          <Button className="w-full">
+                            Request to Rent
+                          </Button>
+                        </Link>
+                      )}
+                    </div>
+                  </CardContent>
+                </Card>
+              );
+            })}
           </div>
         )}
       </div>
