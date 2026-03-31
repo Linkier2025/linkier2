@@ -28,6 +28,7 @@ const Landing = () => {
 
   return (
     <div className="min-h-screen relative flex flex-col">
+      {showSplash && <SplashScreen onFinished={handleSplashFinished} />}
       {/* Background Image */}
       <div 
         className="absolute inset-0 bg-cover bg-center"
