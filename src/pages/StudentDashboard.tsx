@@ -22,7 +22,8 @@ import {
   Clock,
   MapPin,
   Eye,
-  ClipboardList
+  ClipboardList,
+  Megaphone
 } from "lucide-react";
 
 interface DashboardStats {
