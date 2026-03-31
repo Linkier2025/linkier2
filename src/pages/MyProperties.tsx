@@ -390,6 +390,58 @@ export default function MyProperties() {
     }
   };
 
+  const openRoomRenovationDialog = (room: RoomStatus) => {
+    setSelectedRoom(room);
+    setRoomRenovationForm({
+      reason: room.renovation_description || "",
+      start_date: room.renovation_start_date || "",
+      end_date: room.renovation_end_date || "",
+    });
+    setRoomRenovationDialogOpen(true);
+  };
+
+  const handleMarkUnderRenovation = async () => {
+    if (!selectedRoom) return;
+    try {
+      const { error } = await supabase
+        .from('rooms')
+        .update({
+          renovation_status: 'under_renovation',
+          renovation_description: roomRenovationForm.reason || null,
+          renovation_start_date: roomRenovationForm.start_date || null,
+          renovation_end_date: roomRenovationForm.end_date || null,
+        })
+        .eq('id', selectedRoom.id);
+
+      if (error) throw error;
+      toast({ title: "Room marked as under renovation" });
+      setRoomRenovationDialogOpen(false);
+      fetchData();
+    } catch (error: any) {
+      toast({ title: "Error", description: error.message, variant: "destructive" });
+    }
+  };
+
+  const handleMarkAvailable = async (roomId: string) => {
+    try {
+      const { error } = await supabase
+        .from('rooms')
+        .update({
+          renovation_status: 'available',
+          renovation_description: null,
+          renovation_start_date: null,
+          renovation_end_date: null,
+        })
+        .eq('id', roomId);
+
+      if (error) throw error;
+      toast({ title: "Room marked as available" });
+      fetchData();
+    } catch (error: any) {
+      toast({ title: "Error", description: error.message, variant: "destructive" });
+    }
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-background to-secondary/20 p-4 flex items-center justify-center">
