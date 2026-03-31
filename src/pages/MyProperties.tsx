@@ -13,16 +13,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
+
 
 interface RoomConfig {
   room_number: string;
@@ -103,6 +94,8 @@ export default function MyProperties() {
   const [roomsData, setRoomsData] = useState<RoomWithOccupancy[]>([]);
   const [loading, setLoading] = useState(true);
   const [deleteId, setDeleteId] = useState<string | null>(null);
+  const [deleteConfirmText, setDeleteConfirmText] = useState("");
+  const [deleteError, setDeleteError] = useState("");
   const [expandedProperty, setExpandedProperty] = useState<string | null>(null);
   
   // Renovation dialog state
@@ -209,7 +202,16 @@ export default function MyProperties() {
   };
 
   const handleDelete = async () => {
-    if (!deleteId) return;
+    if (!deleteId || deleteConfirmText !== "DELETE") return;
+
+    // Check for active tenants
+    const propertyRooms = roomsData.filter(r => r.property_id === deleteId);
+    const hasActiveTenants = propertyRooms.some(r => r.current_occupants > 0);
+
+    if (hasActiveTenants) {
+      setDeleteError("Cannot delete property with active tenants.");
+      return;
+    }
 
     try {
       const { error } = await supabase
@@ -232,6 +234,8 @@ export default function MyProperties() {
       });
     } finally {
       setDeleteId(null);
+      setDeleteConfirmText("");
+      setDeleteError("");
     }
   };
 
@@ -700,12 +704,12 @@ export default function MyProperties() {
                         Edit
                       </Button>
                       <Button 
-                        className="flex-1" 
-                        variant="destructive"
-                        onClick={() => setDeleteId(property.id)}
+                        variant="ghost" 
+                        size="icon"
+                        className="text-destructive hover:text-destructive hover:bg-destructive/10"
+                        onClick={() => { setDeleteId(property.id); setDeleteConfirmText(""); setDeleteError(""); }}
                       >
-                        <Trash2 className="h-4 w-4 mr-2" />
-                        Delete
+                        <Trash2 className="h-4 w-4" />
                       </Button>
                     </div>
                   </CardContent>
@@ -717,20 +721,39 @@ export default function MyProperties() {
       </div>
 
       {/* Delete Property Dialog */}
-      <AlertDialog open={!!deleteId} onOpenChange={() => setDeleteId(null)}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Are you sure?</AlertDialogTitle>
-            <AlertDialogDescription>
-              This action cannot be undone. This will permanently delete the property.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={handleDelete}>Delete</AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+      <Dialog open={!!deleteId} onOpenChange={(open) => { if (!open) { setDeleteId(null); setDeleteConfirmText(""); setDeleteError(""); } }}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle className="text-destructive flex items-center gap-2">
+              <AlertCircle className="h-5 w-5" />
+              Delete Property
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-3">
+            <p className="text-sm text-muted-foreground">
+              Are you sure you want to delete this property? This action cannot be undone. Type <span className="font-bold text-foreground">DELETE</span> to confirm.
+            </p>
+            <Input
+              value={deleteConfirmText}
+              onChange={(e) => { setDeleteConfirmText(e.target.value); setDeleteError(""); }}
+              placeholder="Type DELETE to confirm"
+            />
+            {deleteError && (
+              <p className="text-sm text-destructive font-medium">{deleteError}</p>
+            )}
+          </div>
+          <DialogFooter className="gap-2">
+            <Button variant="outline" onClick={() => { setDeleteId(null); setDeleteConfirmText(""); setDeleteError(""); }}>Cancel</Button>
+            <Button
+              variant="destructive"
+              disabled={deleteConfirmText !== "DELETE"}
+              onClick={handleDelete}
+            >
+              Delete Property
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       {/* Renovation Dialog */}
       <Dialog open={renovationDialogOpen} onOpenChange={setRenovationDialogOpen}>

@@ -5,23 +5,11 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { ArrowLeft, Camera, Trash2 } from "lucide-react";
+import { ArrowLeft, Camera } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { toast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
-import { ChangePassword } from "@/components/ChangePassword";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger,
-} from "@/components/ui/alert-dialog";
 
 export default function StudentProfile() {
   const navigate = useNavigate();
@@ -84,29 +72,6 @@ export default function StudentProfile() {
     }
   };
 
-  const handleDeleteProfile = async () => {
-    if (!user) return;
-
-    try {
-      const { error } = await supabase.auth.admin.deleteUser(user.id);
-      
-      if (error) throw error;
-
-      toast({
-        title: "Profile deleted",
-        description: "Your account has been permanently deleted.",
-        variant: "destructive",
-      });
-      
-      navigate("/");
-    } catch (error) {
-      toast({
-        title: "Error",
-        description: "Failed to delete profile. Please try again.",
-        variant: "destructive",
-      });
-    }
-  };
 
   const handleImageUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -275,32 +240,9 @@ export default function StudentProfile() {
               <Button onClick={handleSave} className="flex-1" disabled={loading}>
                 {loading ? "Saving..." : "Save Changes"}
               </Button>
-              <AlertDialog>
-                <AlertDialogTrigger asChild>
-                  <Button variant="destructive" size="icon">
-                    <Trash2 className="h-4 w-4" />
-                  </Button>
-                </AlertDialogTrigger>
-                <AlertDialogContent>
-                  <AlertDialogHeader>
-                    <AlertDialogTitle>Delete Profile</AlertDialogTitle>
-                    <AlertDialogDescription>
-                      Are you sure you want to delete your profile? This action cannot be undone.
-                    </AlertDialogDescription>
-                  </AlertDialogHeader>
-                  <AlertDialogFooter>
-                    <AlertDialogCancel>Cancel</AlertDialogCancel>
-                    <AlertDialogAction onClick={handleDeleteProfile} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
-                      Delete Profile
-                    </AlertDialogAction>
-                  </AlertDialogFooter>
-                </AlertDialogContent>
-              </AlertDialog>
             </div>
           </CardContent>
         </Card>
-
-        <ChangePassword />
       </div>
     </div>
   );

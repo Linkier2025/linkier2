@@ -32,6 +32,7 @@ import ViewingRequests from "./pages/ViewingRequests";
 import Announcements from "./pages/Announcements";
 import ForgotPassword from "./pages/ForgotPassword";
 import ResetPassword from "./pages/ResetPassword";
+import Settings from "./pages/Settings";
 
 const queryClient = new QueryClient();
 
@@ -134,6 +135,11 @@ const App = () => (
               <Route path="/announcements" element={
                 <ProtectedRoute>
                   <Announcements />
+                </ProtectedRoute>
+              } />
+              <Route path="/settings" element={
+                <ProtectedRoute>
+                  <Settings />
                 </ProtectedRoute>
               } />
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}

@@ -6,7 +6,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
-import { Users, Bell, Home, ChevronRight, LogOut, DollarSign, AlertCircle, Calendar, Building, TrendingUp, Clock, User, GraduationCap, Phone, Megaphone } from "lucide-react";
+import { Users, Bell, Home, ChevronRight, LogOut, DollarSign, AlertCircle, Calendar, Building, TrendingUp, Clock, User, GraduationCap, Phone, Megaphone, Settings } from "lucide-react";
 import { Logo } from "@/components/Logo";
 
 interface DashboardStats {
@@ -194,6 +194,7 @@ const LandlordDashboard = () => {
     { title: "Rent Tracking", icon: DollarSign, route: "/rent-tracking" },
     { title: "Complaints", icon: AlertCircle, route: "/complaints" },
     { title: "Announcements", icon: Megaphone, route: "/announcements" },
+    { title: "Settings", icon: Settings, route: "/settings" },
   ];
 
   const statsCards = [
