@@ -7,6 +7,8 @@ import { useNavigate } from "react-router-dom";
 import { ArrowLeft, Eye, EyeOff } from "lucide-react";
 import { useState, useEffect } from "react";
 import { useAuth } from "@/hooks/useAuth";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
 import { z } from "zod";
 import { Logo } from "@/components/Logo";
 import landingBg from "@/assets/landing-background.jpg";
