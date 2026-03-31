@@ -77,7 +77,12 @@ const StudentSignup = () => {
     e.preventDefault();
     if (!formData.email || !formData.password || !formData.phone) return;
     
-    if (!validateEmail(formData.email)) return;
+    // Validate password strength
+    const pwValidation = validatePasswordStrength(formData.password);
+    if (!pwValidation.valid) {
+      toast({ title: "Weak Password", description: pwValidation.error, variant: "destructive" });
+      return;
+    }
 
     // Check duplicate phone
     const { data: existingPhone } = await supabase
