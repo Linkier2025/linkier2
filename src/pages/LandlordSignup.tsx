@@ -17,8 +17,10 @@ const emailSchema = z.string().trim().email({ message: "Please enter a valid ema
 const LandlordSignup = () => {
   const navigate = useNavigate();
   const { signUp, user, profile } = useAuth();
+  const { toast } = useToast();
   const [showPassword, setShowPassword] = useState(false);
   const [emailError, setEmailError] = useState("");
+  const [phoneError, setPhoneError] = useState("");
   const [formData, setFormData] = useState({
     firstName: "",
     surname: "",
