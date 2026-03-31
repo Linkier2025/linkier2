@@ -274,15 +274,36 @@ export default function PropertyDetails() {
               </Button>
               
               {displayImages.length > 1 && (
-                <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 flex gap-2">
-                  {displayImages.map((_, index) => (
-                    <button
-                      key={index}
-                      className={`w-2 h-2 rounded-full ${index === currentImageIndex ? 'bg-background' : 'bg-background/50'}`}
-                      onClick={() => setCurrentImageIndex(index)}
-                    />
-                  ))}
-                </div>
+                <>
+                  <div className="absolute top-2 left-2 bg-background/80 text-foreground text-xs px-2 py-1 rounded-md font-medium">
+                    {currentImageIndex + 1} / {displayImages.length}
+                  </div>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="absolute left-2 top-1/2 -translate-y-1/2 bg-background/80 hover:bg-background h-8 w-8"
+                    onClick={() => setCurrentImageIndex(i => i === 0 ? displayImages.length - 1 : i - 1)}
+                  >
+                    <ArrowLeft className="h-4 w-4" />
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="absolute right-2 top-1/2 -translate-y-1/2 bg-background/80 hover:bg-background h-8 w-8"
+                    onClick={() => setCurrentImageIndex(i => i === displayImages.length - 1 ? 0 : i + 1)}
+                  >
+                    <ArrowLeft className="h-4 w-4 rotate-180" />
+                  </Button>
+                  <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 flex gap-2">
+                    {displayImages.map((_, index) => (
+                      <button
+                        key={index}
+                        className={`w-2 h-2 rounded-full transition-colors ${index === currentImageIndex ? 'bg-background' : 'bg-background/50'}`}
+                        onClick={() => setCurrentImageIndex(index)}
+                      />
+                    ))}
+                  </div>
+                </>
               )}
             </div>
           </CardContent>

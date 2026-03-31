@@ -590,50 +590,81 @@ export default function AddProperty() {
 
           <Card>
             <CardHeader>
-              <CardTitle>Property Images</CardTitle>
+              <div className="flex justify-between items-center">
+                <CardTitle>Property Images</CardTitle>
+                <span className="text-sm text-muted-foreground">{images.length}/{MAX_IMAGES}</span>
+              </div>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div>
-                <input
-                  type="file"
-                  id="property-images"
-                  accept="image/*"
-                  multiple
-                  className="hidden"
-                  onChange={handleImageUpload}
-                  disabled={uploading}
-                />
-                <label htmlFor="property-images">
-                  <Button type="button" variant="outline" className="cursor-pointer" disabled={uploading} asChild>
-                    <span>
-                      <Upload className="h-4 w-4 mr-2" />
-                      {uploading ? "Uploading..." : "Upload Images"}
-                    </span>
-                  </Button>
-                </label>
-              </div>
-
-              {images.length > 0 && (
-                <div className="grid grid-cols-2 gap-4">
-                  {images.map((image, index) => (
-                    <div key={index} className="relative">
-                      <img
-                        src={image}
-                        alt={`Property ${index + 1}`}
-                        className="w-full h-32 object-cover rounded-lg"
-                      />
-                      <Button
-                        type="button"
-                        variant="destructive"
-                        size="icon"
-                        className="absolute top-2 right-2 h-6 w-6"
-                        onClick={() => removeImage(index)}
-                      >
-                        <X className="h-3 w-3" />
-                      </Button>
-                    </div>
-                  ))}
+              {images.length === 0 ? (
+                <div className="border-2 border-dashed border-muted-foreground/25 rounded-lg p-8 text-center">
+                  <Upload className="h-10 w-10 mx-auto text-muted-foreground/50 mb-3" />
+                  <p className="text-muted-foreground text-sm mb-3">No images uploaded yet</p>
+                  <input
+                    type="file"
+                    id="property-images"
+                    accept="image/*"
+                    multiple
+                    className="hidden"
+                    onChange={handleImageUpload}
+                    disabled={uploading}
+                  />
+                  <label htmlFor="property-images">
+                    <Button type="button" variant="outline" className="cursor-pointer" disabled={uploading} asChild>
+                      <span>
+                        <Upload className="h-4 w-4 mr-2" />
+                        {uploading ? "Uploading..." : "Upload Images"}
+                      </span>
+                    </Button>
+                  </label>
                 </div>
+              ) : (
+                <>
+                  <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                    {images.map((image, index) => (
+                      <div key={index} className="relative group">
+                        <img
+                          src={image}
+                          alt={`Property ${index + 1}`}
+                          className="w-full h-32 object-cover rounded-lg"
+                        />
+                        {index === 0 && (
+                          <Badge className="absolute bottom-2 left-2 text-xs">Main</Badge>
+                        )}
+                        <Button
+                          type="button"
+                          variant="destructive"
+                          size="icon"
+                          className="absolute top-2 right-2 h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity"
+                          onClick={() => removeImage(index)}
+                        >
+                          <X className="h-3 w-3" />
+                        </Button>
+                      </div>
+                    ))}
+                  </div>
+                  {images.length < MAX_IMAGES && (
+                    <div>
+                      <input
+                        type="file"
+                        id="property-images"
+                        accept="image/*"
+                        multiple
+                        className="hidden"
+                        onChange={handleImageUpload}
+                        disabled={uploading}
+                      />
+                      <label htmlFor="property-images">
+                        <Button type="button" variant="outline" size="sm" className="cursor-pointer" disabled={uploading} asChild>
+                          <span>
+                            <Plus className="h-4 w-4 mr-2" />
+                            {uploading ? "Uploading..." : "Add More Images"}
+                          </span>
+                        </Button>
+                      </label>
+                    </div>
+                  )}
+                </>
               )}
             </CardContent>
           </Card>
