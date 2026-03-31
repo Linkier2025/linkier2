@@ -96,8 +96,9 @@ const LandlordSignup = () => {
 
   const getPasswordStrength = (password: string) => {
     if (password.length === 0) return { strength: "", color: "" };
-    if (password.length < 6) return { strength: "Weak", color: "text-destructive" };
-    if (password.length < 10) return { strength: "Medium", color: "text-warning" };
+    const result = validatePasswordStrength(password);
+    if (!result.valid) return { strength: "Weak", color: "text-destructive" };
+    if (result.strength === 'medium') return { strength: "Medium", color: "text-warning" };
     return { strength: "Strong", color: "text-success" };
   };
 
