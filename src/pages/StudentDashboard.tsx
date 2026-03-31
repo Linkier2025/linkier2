@@ -23,7 +23,8 @@ import {
   MapPin,
   Eye,
   ClipboardList,
-  Megaphone
+  Megaphone,
+  Settings
 } from "lucide-react";
 
 interface DashboardStats {
