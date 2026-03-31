@@ -454,8 +454,8 @@ export default function MyProperties() {
                         <div className="text-xs text-muted-foreground">Occupied</div>
                       </div>
                       <div className="text-center p-3 bg-orange-500/10 rounded-lg">
-                        <div className="text-2xl font-bold text-orange-600">{unoccupiedCount}</div>
-                        <div className="text-xs text-muted-foreground">Unoccupied</div>
+                        <div className="text-2xl font-bold text-orange-600">{availableCount}</div>
+                        <div className="text-xs text-muted-foreground">Available</div>
                       </div>
                     </div>
 
