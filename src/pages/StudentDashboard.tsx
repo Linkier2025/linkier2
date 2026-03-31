@@ -246,6 +246,7 @@ const StudentDashboard = () => {
     { title: "Rent Tracking", icon: DollarSign, route: "/rent-tracking" },
     { title: "Complaints", icon: AlertCircle, route: "/complaints" },
     { title: "Announcements", icon: Megaphone, route: "/announcements" },
+    { title: "Settings", icon: Settings, route: "/settings" },
   ];
 
   const statsCards = [
