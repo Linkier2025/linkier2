@@ -64,6 +64,13 @@ const LandlordSignup = () => {
     
     if (!validateEmail(formData.email)) return;
 
+    // Validate password strength
+    const pwValidation = validatePasswordStrength(formData.password);
+    if (!pwValidation.valid) {
+      toast({ title: "Weak Password", description: pwValidation.error, variant: "destructive" });
+      return;
+    }
+
     // Check duplicate phone
     const { data: existingPhone } = await supabase
       .from('profiles')
