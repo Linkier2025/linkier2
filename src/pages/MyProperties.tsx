@@ -424,12 +424,18 @@ export default function MyProperties() {
                       alt={property.title}
                       className="w-full h-48 object-cover"
                     />
-                    <Badge 
-                      className="absolute top-2 right-2"
-                      variant={property.status === 'available' ? 'default' : 'secondary'}
-                    >
-                      {property.status}
-                    </Badge>
+                    {isFullyOccupied ? (
+                      <Badge className="absolute top-2 right-2 bg-destructive text-destructive-foreground">
+                        Fully Occupied
+                      </Badge>
+                    ) : (
+                      <Badge 
+                        className="absolute top-2 right-2"
+                        variant={property.status === 'available' ? 'default' : 'secondary'}
+                      >
+                        {property.status}
+                      </Badge>
+                    )}
                   </div>
                   <CardHeader className="pb-2">
                     <div className="flex justify-between items-start">
