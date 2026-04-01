@@ -47,6 +47,7 @@ export default function Complaints() {
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [tenantAssignment, setTenantAssignment] = useState<TenantAssignment | null>(null);
+  const [roomFurniture, setRoomFurniture] = useState<string[]>([]);
   const [complaintForm, setComplaintForm] = useState({
     title: "",
     description: "",
