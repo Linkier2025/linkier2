@@ -28,7 +28,7 @@ export function ProtectedRoute({ children, userType }: ProtectedRouteProps) {
 
   if (userType && profile?.user_type !== userType) {
     // Redirect to appropriate dashboard based on user type
-    const redirectPath = profile?.user_type === 'student' ? '/student-dashboard' : '/landlord-dashboard';
+    const redirectPath = profile?.user_type === 'student' ? '/explore' : '/landlord-dashboard';
     return <Navigate to={redirectPath} replace />;
   }
 
