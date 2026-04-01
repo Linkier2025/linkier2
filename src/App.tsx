@@ -20,6 +20,9 @@ import LandlordProfile from "./pages/LandlordProfile";
 import Properties from "./pages/Properties";
 import PropertyDetails from "./pages/PropertyDetails";
 import AddProperty from "./pages/AddProperty";
+import Explore from "./pages/Explore";
+import Requests from "./pages/Requests";
+import MyStay from "./pages/MyStay";
 
 import Tenants from "./pages/Tenants";
 import Complaints from "./pages/Complaints";
