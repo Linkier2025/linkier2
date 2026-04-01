@@ -1,4 +1,4 @@
-const CACHE_VERSION = 'linkier-v1';
+const CACHE_VERSION = 'linkier-v2';
 const STATIC_CACHE = `${CACHE_VERSION}-static`;
 const STATIC_ASSETS = [
   '/icon-192.png',
