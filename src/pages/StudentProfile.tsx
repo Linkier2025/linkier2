@@ -252,7 +252,17 @@ export default function StudentProfile() {
             </div>
           </CardContent>
         </Card>
+
+        {/* Actions */}
+        <div className="space-y-2">
+          <Button variant="outline" className="w-full justify-start" onClick={() => navigate("/settings")}>
+            <SettingsIcon className="h-4 w-4 mr-2" /> Settings
+          </Button>
+          <Button variant="outline" className="w-full justify-start text-destructive" onClick={handleSignOut}>
+            <LogOut className="h-4 w-4 mr-2" /> Sign Out
+          </Button>
+        </div>
       </div>
-    </div>
+    </StudentLayout>
   );
 }
