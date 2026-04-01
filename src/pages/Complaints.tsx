@@ -51,7 +51,8 @@ export default function Complaints() {
   const [complaintForm, setComplaintForm] = useState({
     title: "",
     description: "",
-    priority: "medium"
+    priority: "medium",
+    related_item: ""
   });
 
   const isStudent = profile?.user_type === "student";
