@@ -339,7 +339,28 @@ export default function Complaints() {
                       </SelectContent>
                     </Select>
                   </div>
-                </div>
+                  {roomFurniture.length > 0 && (
+                    <div className="space-y-2">
+                      <Label className="flex items-center gap-1.5">
+                        <Package className="h-3.5 w-3.5" />
+                        Related Item (optional)
+                      </Label>
+                      <Select
+                        value={complaintForm.related_item}
+                        onValueChange={(v) => setComplaintForm({ ...complaintForm, related_item: v, title: v ? `${v} issue` : complaintForm.title })}
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select item if applicable..." />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="none">None</SelectItem>
+                          {roomFurniture.map(item => (
+                            <SelectItem key={item} value={item}>{item}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  )
                 <div className="flex justify-end gap-2">
                   <Button variant="outline" onClick={() => setIsDialogOpen(false)}>Cancel</Button>
                   <Button onClick={handleSubmitComplaint} disabled={submitting}>
