@@ -609,6 +609,26 @@ export default function MyProperties() {
                           )}
                         </div>
 
+                        {/* Furniture & Appliances per room */}
+                        <div className="space-y-3">
+                          <h4 className="font-semibold flex items-center gap-2">
+                            <Package className="h-4 w-4" />
+                            Furniture & Appliances
+                          </h4>
+                          {roomStatuses.length === 0 ? (
+                            <p className="text-sm text-muted-foreground">Add rooms first to manage furniture</p>
+                          ) : (
+                            <div className="space-y-4">
+                              {roomStatuses.map(room => (
+                                <div key={`furn-${room.id}`} className="p-3 bg-muted/30 rounded-lg border">
+                                  <p className="text-sm font-medium mb-2">Room {room.room_number}</p>
+                                  <RoomFurnitureManager roomId={room.id} />
+                                </div>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+
                         {/* Renovations Section */}
                         <div className="space-y-2">
                           <div className="flex items-center justify-between">
