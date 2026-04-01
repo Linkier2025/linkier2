@@ -129,8 +129,8 @@ const StudentLogin = () => {
                   </div>
                 </div>
 
-                <Button type="submit" variant="student" size="lg" className="w-full">
-                  Sign In
+                <Button type="submit" variant="student" size="lg" className="w-full" disabled={isLoading}>
+                  {isLoading ? "Signing in..." : "Sign In"}
                 </Button>
               </form>
 
