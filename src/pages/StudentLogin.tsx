@@ -18,6 +18,7 @@ const StudentLogin = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
 
   // Redirect if already logged in
   useEffect(() => {
@@ -30,8 +31,9 @@ const StudentLogin = () => {
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!email || !password) return;
+    if (!email || !password || isLoading) return;
     
+    setIsLoading(true);
     const { error } = await signIn(email, password);
     if (!error) {
       // Check user type after login
@@ -51,6 +53,8 @@ const StudentLogin = () => {
         return;
       }
       navigate('/explore');
+    } else {
+      setIsLoading(false);
     }
   };
 
@@ -125,8 +129,8 @@ const StudentLogin = () => {
                   </div>
                 </div>
 
-                <Button type="submit" variant="student" size="lg" className="w-full">
-                  Sign In
+                <Button type="submit" variant="student" size="lg" className="w-full" disabled={isLoading}>
+                  {isLoading ? "Signing in..." : "Sign In"}
                 </Button>
               </form>
 
