@@ -235,7 +235,7 @@ export default function Complaints() {
       }, ...prev]);
 
       toast({ title: "Complaint submitted successfully", description: "Your landlord has been notified." });
-      setComplaintForm({ title: "", description: "", priority: "medium" });
+      setComplaintForm({ title: "", description: "", priority: "medium", related_item: "" });
       setIsDialogOpen(false);
     } catch (error) {
       console.error('Error submitting complaint:', error);
