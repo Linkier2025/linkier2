@@ -455,17 +455,10 @@ export default function MyProperties() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background to-secondary/20 p-4">
+    <div className="px-4 pt-6 pb-4">
       <div className="max-w-6xl mx-auto space-y-6">
         <div className="flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            <Link to="/landlord-dashboard">
-              <Button variant="ghost" size="icon">
-                <ArrowLeft className="h-5 w-5" />
-              </Button>
-            </Link>
-            <h1 className="text-2xl font-bold">My Properties</h1>
-          </div>
+          <h1 className="text-2xl font-bold">My Properties</h1>
           <Link to="/add-property">
             <Button>
               <Plus className="h-4 w-4 mr-2" />

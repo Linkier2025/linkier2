@@ -33,7 +33,7 @@ export default function Settings() {
   const [deleteLoading, setDeleteLoading] = useState(false);
   const [deleteError, setDeleteError] = useState("");
 
-  const dashboardRoute = profile?.user_type === "landlord" ? "/landlord-dashboard" : "/student-dashboard";
+  const dashboardRoute = profile?.user_type === "landlord" ? "/my-properties" : "/explore";
 
   const handleChangePassword = async () => {
     if (!currentPassword || !newPassword) {

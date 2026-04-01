@@ -19,7 +19,7 @@ const Landing = () => {
     if (profile?.user_type === 'student') {
       navigate('/explore');
     } else if (profile?.user_type === 'landlord') {
-      navigate('/landlord-dashboard');
+      navigate('/my-properties');
     }
   };
 

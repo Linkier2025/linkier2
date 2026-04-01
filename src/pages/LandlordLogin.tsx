@@ -22,7 +22,7 @@ const LandlordLogin = () => {
   // Redirect if already logged in
   useEffect(() => {
     if (user && profile?.user_type === 'landlord') {
-      navigate('/landlord-dashboard');
+      navigate('/my-properties');
     } else if (user && profile?.user_type === 'student') {
       navigate('/explore');
     }
@@ -50,7 +50,7 @@ const LandlordLogin = () => {
         });
         return;
       }
-      navigate('/landlord-dashboard');
+      navigate('/my-properties');
     }
   };
 

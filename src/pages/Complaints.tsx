@@ -271,18 +271,13 @@ export default function Complaints() {
   }
 
   return (
-    <div className="min-h-screen bg-background p-4">
+    <div className="px-4 pt-6 pb-4">
       <div className="max-w-2xl mx-auto space-y-6">
         {/* Header */}
         <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <Button variant="ghost" size="icon" onClick={() => navigate(isStudent ? "/student-dashboard" : "/landlord-dashboard")}>
-              <ArrowLeft className="h-5 w-5" />
-            </Button>
-            <h1 className="text-xl font-bold text-foreground">
-              {isStudent ? "My Complaints" : "Complaints"}
-            </h1>
-          </div>
+          <h1 className="text-xl font-bold text-foreground">
+            {isStudent ? "My Complaints" : "Complaints"}
+          </h1>
           {isStudent && tenantAssignment && (
             <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
               <DialogTrigger asChild>
