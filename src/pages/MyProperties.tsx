@@ -8,7 +8,8 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
-import { ArrowLeft, Edit, Trash2, Plus, ChevronDown, ChevronUp, Hammer, Calendar, DollarSign, Home, Users, AlertCircle } from "lucide-react";
+import { ArrowLeft, Edit, Trash2, Plus, ChevronDown, ChevronUp, Hammer, Calendar, DollarSign, Home, Users, AlertCircle, Package } from "lucide-react";
+import { RoomFurnitureManager } from "@/components/RoomFurnitureManager";
 import { Link, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
@@ -602,6 +603,26 @@ export default function MyProperties() {
                                   {room.isUnderRenovation && room.renovation_end_date && (
                                     <p className="text-xs text-muted-foreground">Until {new Date(room.renovation_end_date).toLocaleDateString()}</p>
                                   )}
+                                </div>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+
+                        {/* Furniture & Appliances per room */}
+                        <div className="space-y-3">
+                          <h4 className="font-semibold flex items-center gap-2">
+                            <Package className="h-4 w-4" />
+                            Furniture & Appliances
+                          </h4>
+                          {roomStatuses.length === 0 ? (
+                            <p className="text-sm text-muted-foreground">Add rooms first to manage furniture</p>
+                          ) : (
+                            <div className="space-y-4">
+                              {roomStatuses.map(room => (
+                                <div key={`furn-${room.id}`} className="p-3 bg-muted/30 rounded-lg border">
+                                  <p className="text-sm font-medium mb-2">Room {room.room_number}</p>
+                                  <RoomFurnitureManager roomId={room.id} />
                                 </div>
                               ))}
                             </div>

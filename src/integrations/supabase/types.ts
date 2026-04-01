@@ -613,6 +613,38 @@ export type Database = {
           },
         ]
       }
+      room_furniture: {
+        Row: {
+          created_at: string
+          id: string
+          item_name: string
+          quantity: number
+          room_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          item_name: string
+          quantity?: number
+          room_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          item_name?: string
+          quantity?: number
+          room_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "room_furniture_room_id_fkey"
+            columns: ["room_id"]
+            isOneToOne: false
+            referencedRelation: "rooms"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       rooms: {
         Row: {
           capacity: number

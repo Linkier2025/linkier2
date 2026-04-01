@@ -13,6 +13,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { ContactOptionsSheet } from "@/components/ContactOptionsSheet";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
+import { RoomFurnitureManager } from "@/components/RoomFurnitureManager";
 
 interface RoomInfo {
   id: string;
@@ -419,6 +420,9 @@ export default function PropertyDetails() {
                               Available after: {new Date(room.renovation_end_date).toLocaleDateString()}
                             </p>
                           )}
+                          <div className="mt-2">
+                            <RoomFurnitureManager roomId={room.id} readOnly />
+                          </div>
                         </div>
                       </div>
                       <div className="flex items-center gap-2">

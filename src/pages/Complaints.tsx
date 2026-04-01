@@ -7,11 +7,12 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { ArrowLeft, MessageSquare, Clock, CheckCircle, Plus, Loader2 } from "lucide-react";
+import { ArrowLeft, MessageSquare, Clock, CheckCircle, Plus, Loader2, Package } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
+import { FURNITURE_ITEMS } from "@/components/RoomFurnitureManager";
 
 interface Complaint {
   id: string;
@@ -46,10 +47,12 @@ export default function Complaints() {
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [tenantAssignment, setTenantAssignment] = useState<TenantAssignment | null>(null);
+  const [roomFurniture, setRoomFurniture] = useState<string[]>([]);
   const [complaintForm, setComplaintForm] = useState({
     title: "",
     description: "",
-    priority: "medium"
+    priority: "medium",
+    related_item: ""
   });
 
   const isStudent = profile?.user_type === "student";
@@ -89,6 +92,15 @@ export default function Complaints() {
           property_title: property?.title || '',
           landlord_id: property?.landlord_id || ''
         });
+
+        // Fetch furniture items for this room
+        const { data: furnitureData } = await (supabase
+          .from("room_furniture" as any)
+          .select("item_name")
+          .eq("room_id", data.room_id) as any);
+        if (furnitureData) {
+          setRoomFurniture(furnitureData.map((f: any) => f.item_name));
+        }
       }
     };
 
@@ -223,7 +235,7 @@ export default function Complaints() {
       }, ...prev]);
 
       toast({ title: "Complaint submitted successfully", description: "Your landlord has been notified." });
-      setComplaintForm({ title: "", description: "", priority: "medium" });
+      setComplaintForm({ title: "", description: "", priority: "medium", related_item: "" });
       setIsDialogOpen(false);
     } catch (error) {
       console.error('Error submitting complaint:', error);
@@ -327,6 +339,28 @@ export default function Complaints() {
                       </SelectContent>
                     </Select>
                   </div>
+                  {roomFurniture.length > 0 && (
+                    <div className="space-y-2">
+                      <Label className="flex items-center gap-1.5">
+                        <Package className="h-3.5 w-3.5" />
+                        Related Item (optional)
+                      </Label>
+                      <Select
+                        value={complaintForm.related_item}
+                        onValueChange={(v) => setComplaintForm({ ...complaintForm, related_item: v, title: v ? `${v} issue` : complaintForm.title })}
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select item if applicable..." />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="none">None</SelectItem>
+                          {roomFurniture.map(item => (
+                            <SelectItem key={item} value={item}>{item}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  )}
                 </div>
                 <div className="flex justify-end gap-2">
                   <Button variant="outline" onClick={() => setIsDialogOpen(false)}>Cancel</Button>
