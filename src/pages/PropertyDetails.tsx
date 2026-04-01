@@ -13,6 +13,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { ContactOptionsSheet } from "@/components/ContactOptionsSheet";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
+import { RoomFurnitureManager } from "@/components/RoomFurnitureManager";
 
 interface RoomInfo {
   id: string;
