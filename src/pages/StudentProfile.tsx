@@ -10,6 +10,8 @@ import { Link, useNavigate } from "react-router-dom";
 import { toast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
+import { StudentLayout } from "@/components/StudentLayout";
+import { LogOut, Settings as SettingsIcon, Trash2 } from "lucide-react";
 
 export default function StudentProfile() {
   const navigate = useNavigate();
