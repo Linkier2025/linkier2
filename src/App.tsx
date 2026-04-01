@@ -5,6 +5,8 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/hooks/useAuth";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
+import { StudentLayout } from "@/components/StudentLayout";
+import { LandlordLayout } from "@/components/LandlordLayout";
 
 import Landing from "./pages/Landing";
 import SignupChoice from "./pages/SignupChoice";
@@ -13,16 +15,14 @@ import LandlordLogin from "./pages/LandlordLogin";
 import StudentSignup from "./pages/StudentSignup";
 import LandlordSignup from "./pages/LandlordSignup";
 import NotFound from "./pages/NotFound";
-import StudentDashboard from "./pages/StudentDashboard";
-import LandlordDashboard from "./pages/LandlordDashboard";
 import StudentProfile from "./pages/StudentProfile";
 import LandlordProfile from "./pages/LandlordProfile";
-import Properties from "./pages/Properties";
 import PropertyDetails from "./pages/PropertyDetails";
 import AddProperty from "./pages/AddProperty";
 import Explore from "./pages/Explore";
 import Requests from "./pages/Requests";
 import MyStay from "./pages/MyStay";
+import Manage from "./pages/Manage";
 
 import Tenants from "./pages/Tenants";
 import Complaints from "./pages/Complaints";
@@ -55,69 +55,98 @@ const App = () => (
               <Route path="/landlord-signup" element={<LandlordSignup />} />
               <Route path="/forgot-password" element={<ForgotPassword />} />
               <Route path="/reset-password" element={<ResetPassword />} />
+
+              {/* Student routes with bottom nav */}
               <Route path="/explore" element={
                 <ProtectedRoute userType="student">
-                  <Explore />
+                  <StudentLayout><Explore /></StudentLayout>
                 </ProtectedRoute>
               } />
               <Route path="/requests" element={
                 <ProtectedRoute userType="student">
-                  <Requests />
+                  <StudentLayout><Requests /></StudentLayout>
                 </ProtectedRoute>
               } />
               <Route path="/my-stay" element={
                 <ProtectedRoute userType="student">
-                  <MyStay />
+                  <StudentLayout><MyStay /></StudentLayout>
                 </ProtectedRoute>
               } />
               <Route path="/student-dashboard" element={
                 <ProtectedRoute userType="student">
-                  <Explore />
-                </ProtectedRoute>
-              } />
-              <Route path="/landlord-dashboard" element={
-                <ProtectedRoute userType="landlord">
-                  <LandlordDashboard />
+                  <StudentLayout><Explore /></StudentLayout>
                 </ProtectedRoute>
               } />
               <Route path="/student-profile" element={
                 <ProtectedRoute userType="student">
-                  <StudentProfile />
-                </ProtectedRoute>
-              } />
-              <Route path="/landlord-profile" element={
-                <ProtectedRoute userType="landlord">
-                  <LandlordProfile />
+                  <StudentLayout><StudentProfile /></StudentLayout>
                 </ProtectedRoute>
               } />
               <Route path="/properties" element={
                 <ProtectedRoute userType="student">
-                  <Explore />
+                  <StudentLayout><Explore /></StudentLayout>
                 </ProtectedRoute>
               } />
               <Route path="/property/:id" element={
                 <ProtectedRoute userType="student">
-                  <PropertyDetails />
+                  <StudentLayout><PropertyDetails /></StudentLayout>
                 </ProtectedRoute>
               } />
-              <Route path="/add-property" element={
-                <ProtectedRoute userType="landlord">
-                  <AddProperty />
+              <Route path="/payment-history" element={
+                <ProtectedRoute userType="student">
+                  <StudentLayout><PaymentHistory /></StudentLayout>
                 </ProtectedRoute>
               } />
-              <Route path="/edit-property/:id" element={
+              <Route path="/rentals" element={
+                <ProtectedRoute userType="student">
+                  <StudentLayout><Rentals /></StudentLayout>
+                </ProtectedRoute>
+              } />
+
+              {/* Landlord routes with bottom nav */}
+              <Route path="/landlord-dashboard" element={
                 <ProtectedRoute userType="landlord">
-                  <AddProperty />
+                  <LandlordLayout><MyProperties /></LandlordLayout>
                 </ProtectedRoute>
               } />
               <Route path="/my-properties" element={
                 <ProtectedRoute userType="landlord">
-                  <MyProperties />
+                  <LandlordLayout><MyProperties /></LandlordLayout>
+                </ProtectedRoute>
+              } />
+              <Route path="/add-property" element={
+                <ProtectedRoute userType="landlord">
+                  <LandlordLayout><AddProperty /></LandlordLayout>
+                </ProtectedRoute>
+              } />
+              <Route path="/edit-property/:id" element={
+                <ProtectedRoute userType="landlord">
+                  <LandlordLayout><AddProperty /></LandlordLayout>
+                </ProtectedRoute>
+              } />
+              <Route path="/viewing-requests" element={
+                <ProtectedRoute userType="landlord">
+                  <LandlordLayout><ViewingRequests /></LandlordLayout>
                 </ProtectedRoute>
               } />
               <Route path="/tenants" element={
                 <ProtectedRoute userType="landlord">
-                  <Tenants />
+                  <LandlordLayout><Tenants /></LandlordLayout>
+                </ProtectedRoute>
+              } />
+              <Route path="/manage" element={
+                <ProtectedRoute userType="landlord">
+                  <LandlordLayout><Manage /></LandlordLayout>
+                </ProtectedRoute>
+              } />
+              <Route path="/landlord-profile" element={
+                <ProtectedRoute userType="landlord">
+                  <LandlordLayout><LandlordProfile /></LandlordLayout>
+                </ProtectedRoute>
+              } />
+              <Route path="/announcements" element={
+                <ProtectedRoute userType="landlord">
+                  <LandlordLayout><Announcements /></LandlordLayout>
                 </ProtectedRoute>
               } />
               <Route path="/complaints" element={
@@ -126,33 +155,13 @@ const App = () => (
                 </ProtectedRoute>
               } />
               <Route path="/rent-tracking" element={
-                <ProtectedRoute>
-                  <RentTracking />
-                </ProtectedRoute>
-              } />
-              <Route path="/payment-history" element={
-                <ProtectedRoute userType="student">
-                  <PaymentHistory />
+                <ProtectedRoute userType="landlord">
+                  <LandlordLayout><RentTracking /></LandlordLayout>
                 </ProtectedRoute>
               } />
               <Route path="/notifications" element={
                 <ProtectedRoute>
                   <Notifications />
-                </ProtectedRoute>
-              } />
-              <Route path="/rentals" element={
-                <ProtectedRoute userType="student">
-                  <Rentals />
-                </ProtectedRoute>
-              } />
-              <Route path="/viewing-requests" element={
-                <ProtectedRoute>
-                  <ViewingRequests />
-                </ProtectedRoute>
-              } />
-              <Route path="/announcements" element={
-                <ProtectedRoute>
-                  <Announcements />
                 </ProtectedRoute>
               } />
               <Route path="/settings" element={
