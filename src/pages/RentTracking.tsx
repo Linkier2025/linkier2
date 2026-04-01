@@ -509,7 +509,7 @@ export default function RentTracking() {
     <div className="min-h-screen bg-background">
       <div className="container mx-auto p-4 max-w-4xl">
         <div className="flex items-center gap-3 mb-6">
-          <Button variant="ghost" size="icon" onClick={() => navigate("/landlord-dashboard")}>
+          <Button variant="ghost" size="icon" onClick={() => navigate("/my-properties")}>
             <ArrowLeft className="h-5 w-5" />
           </Button>
           <div className="flex-1">

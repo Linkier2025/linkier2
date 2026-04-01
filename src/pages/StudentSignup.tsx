@@ -69,7 +69,7 @@ const StudentSignup = () => {
     if (user && profile?.user_type === 'student') {
       navigate('/explore');
     } else if (user && profile?.user_type === 'landlord') {
-      navigate('/landlord-dashboard');
+      navigate('/my-properties');
     }
   }, [user, profile, navigate]);
 
