@@ -18,6 +18,7 @@ const StudentLogin = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
 
   // Redirect if already logged in
   useEffect(() => {
