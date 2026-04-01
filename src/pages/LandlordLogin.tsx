@@ -53,6 +53,8 @@ const LandlordLogin = () => {
         return;
       }
       navigate('/my-properties');
+    } else {
+      setIsLoading(false);
     }
   };
 
