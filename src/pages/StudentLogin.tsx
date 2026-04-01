@@ -53,6 +53,8 @@ const StudentLogin = () => {
         return;
       }
       navigate('/explore');
+    } else {
+      setIsLoading(false);
     }
   };
 
