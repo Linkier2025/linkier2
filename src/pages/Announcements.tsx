@@ -160,19 +160,8 @@ const Announcements = () => {
   const selectedPropertyRooms = properties.find((p) => p.id === selectedProperty)?.rooms || [];
 
   return (
-    <div className="min-h-screen bg-background">
-      <header className="bg-background border-b">
-        <div className="max-w-4xl mx-auto px-4 py-4 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <Button variant="ghost" size="icon" onClick={() => navigate(-1)}>
-              <ArrowLeft className="h-5 w-5" />
-            </Button>
-            <Logo size="md" />
-          </div>
-        </div>
-      </header>
-
-      <main className="max-w-4xl mx-auto px-4 py-6 space-y-6">
+    <div className="px-4 pt-6 pb-4">
+      <main className="max-w-4xl mx-auto space-y-6">
         <div className="flex items-center justify-between">
           <h1 className="text-2xl font-bold text-foreground">Announcements</h1>
           {isLandlord && (

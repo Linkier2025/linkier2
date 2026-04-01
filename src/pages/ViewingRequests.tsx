@@ -486,18 +486,11 @@ export default function ViewingRequests() {
   const otherRentalRequests = rentalRequests.filter(r => !['pending', 'approved'].includes(r.status));
 
   return (
-    <div className="min-h-screen bg-background p-4">
+    <div className="px-4 pt-6 pb-4">
       <div className="max-w-4xl mx-auto space-y-6">
-        <div className="flex items-center gap-4">
-          <Link to={isLandlord ? "/landlord-dashboard" : "/student-dashboard"}>
-            <Button variant="ghost" size="icon">
-              <ArrowLeft className="h-5 w-5" />
-            </Button>
-          </Link>
-          <h1 className="text-2xl font-bold">
-            {isLandlord ? "Property Requests" : "My Requests"}
-          </h1>
-        </div>
+        <h1 className="text-2xl font-bold">
+          {isLandlord ? "Property Requests" : "My Requests"}
+        </h1>
 
         <Tabs defaultValue="rental" className="w-full">
           <TabsList className="grid w-full grid-cols-2">
