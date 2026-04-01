@@ -261,14 +261,9 @@ export default function Tenants() {
   }
 
   return (
-    <div className="min-h-screen bg-background p-4">
+    <div className="px-4 pt-6 pb-4">
       <div className="max-w-6xl mx-auto space-y-6">
-        <div className="flex items-center gap-4">
-          <Link to="/landlord-dashboard">
-            <Button variant="ghost" size="icon">
-              <ArrowLeft className="h-5 w-5" />
-            </Button>
-          </Link>
+        <div className="flex items-center gap-3">
           <h1 className="text-2xl font-bold">My Tenants</h1>
           <Badge variant="secondary">{totalTenants} active</Badge>
         </div>
