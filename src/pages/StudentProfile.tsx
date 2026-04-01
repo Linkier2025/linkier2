@@ -115,17 +115,17 @@ export default function StudentProfile() {
     }
   };
 
+  const { signOut } = useAuth();
+
+  const handleSignOut = async () => {
+    await signOut();
+    navigate("/");
+  };
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background to-secondary/20 p-4">
-      <div className="max-w-2xl mx-auto space-y-6">
-        <div className="flex items-center gap-4">
-          <Link to="/student-dashboard">
-            <Button variant="ghost" size="icon">
-              <ArrowLeft className="h-5 w-5" />
-            </Button>
-          </Link>
-          <h1 className="text-2xl font-bold">Edit Profile</h1>
-        </div>
+    <StudentLayout>
+      <div className="p-4 max-w-2xl mx-auto space-y-6">
+        <h1 className="text-xl font-bold">Profile</h1>
 
         <Card>
           <CardHeader>
