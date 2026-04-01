@@ -31,8 +31,9 @@ const LandlordLogin = () => {
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!email || !password) return;
+    if (!email || !password || isLoading) return;
     
+    setIsLoading(true);
     const { error } = await signIn(email, password);
     if (!error) {
       // Check user type after login
