@@ -12,6 +12,7 @@ import { useNavigate } from "react-router-dom";
 import { toast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
+import { FURNITURE_ITEMS } from "@/components/RoomFurnitureManager";
 
 interface Complaint {
   id: string;
