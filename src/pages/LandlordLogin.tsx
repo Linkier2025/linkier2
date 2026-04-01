@@ -50,7 +50,7 @@ const LandlordLogin = () => {
         });
         return;
       }
-      navigate('/landlord-dashboard');
+      navigate('/my-properties');
     }
   };
 
