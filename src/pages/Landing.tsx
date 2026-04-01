@@ -17,7 +17,7 @@ const Landing = () => {
 
   const handleGoToDashboard = () => {
     if (profile?.user_type === 'student') {
-      navigate('/student-dashboard');
+      navigate('/explore');
     } else if (profile?.user_type === 'landlord') {
       navigate('/landlord-dashboard');
     }

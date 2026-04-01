@@ -10,6 +10,8 @@ import { Link, useNavigate } from "react-router-dom";
 import { toast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
+import { StudentLayout } from "@/components/StudentLayout";
+import { LogOut, Settings as SettingsIcon, Trash2 } from "lucide-react";
 
 export default function StudentProfile() {
   const navigate = useNavigate();
@@ -113,17 +115,17 @@ export default function StudentProfile() {
     }
   };
 
+  const { signOut } = useAuth();
+
+  const handleSignOut = async () => {
+    await signOut();
+    navigate("/");
+  };
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background to-secondary/20 p-4">
-      <div className="max-w-2xl mx-auto space-y-6">
-        <div className="flex items-center gap-4">
-          <Link to="/student-dashboard">
-            <Button variant="ghost" size="icon">
-              <ArrowLeft className="h-5 w-5" />
-            </Button>
-          </Link>
-          <h1 className="text-2xl font-bold">Edit Profile</h1>
-        </div>
+    <StudentLayout>
+      <div className="p-4 max-w-2xl mx-auto space-y-6">
+        <h1 className="text-xl font-bold">Profile</h1>
 
         <Card>
           <CardHeader>
@@ -250,7 +252,17 @@ export default function StudentProfile() {
             </div>
           </CardContent>
         </Card>
+
+        {/* Actions */}
+        <div className="space-y-2">
+          <Button variant="outline" className="w-full justify-start" onClick={() => navigate("/settings")}>
+            <SettingsIcon className="h-4 w-4 mr-2" /> Settings
+          </Button>
+          <Button variant="outline" className="w-full justify-start text-destructive" onClick={handleSignOut}>
+            <LogOut className="h-4 w-4 mr-2" /> Sign Out
+          </Button>
+        </div>
       </div>
-    </div>
+    </StudentLayout>
   );
 }

@@ -20,6 +20,9 @@ import LandlordProfile from "./pages/LandlordProfile";
 import Properties from "./pages/Properties";
 import PropertyDetails from "./pages/PropertyDetails";
 import AddProperty from "./pages/AddProperty";
+import Explore from "./pages/Explore";
+import Requests from "./pages/Requests";
+import MyStay from "./pages/MyStay";
 
 import Tenants from "./pages/Tenants";
 import Complaints from "./pages/Complaints";
@@ -52,9 +55,24 @@ const App = () => (
               <Route path="/landlord-signup" element={<LandlordSignup />} />
               <Route path="/forgot-password" element={<ForgotPassword />} />
               <Route path="/reset-password" element={<ResetPassword />} />
+              <Route path="/explore" element={
+                <ProtectedRoute userType="student">
+                  <Explore />
+                </ProtectedRoute>
+              } />
+              <Route path="/requests" element={
+                <ProtectedRoute userType="student">
+                  <Requests />
+                </ProtectedRoute>
+              } />
+              <Route path="/my-stay" element={
+                <ProtectedRoute userType="student">
+                  <MyStay />
+                </ProtectedRoute>
+              } />
               <Route path="/student-dashboard" element={
                 <ProtectedRoute userType="student">
-                  <StudentDashboard />
+                  <Explore />
                 </ProtectedRoute>
               } />
               <Route path="/landlord-dashboard" element={
@@ -74,7 +92,7 @@ const App = () => (
               } />
               <Route path="/properties" element={
                 <ProtectedRoute userType="student">
-                  <Properties />
+                  <Explore />
                 </ProtectedRoute>
               } />
               <Route path="/property/:id" element={

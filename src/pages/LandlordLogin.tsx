@@ -24,7 +24,7 @@ const LandlordLogin = () => {
     if (user && profile?.user_type === 'landlord') {
       navigate('/landlord-dashboard');
     } else if (user && profile?.user_type === 'student') {
-      navigate('/student-dashboard');
+      navigate('/explore');
     }
   }, [user, profile, navigate]);
 
