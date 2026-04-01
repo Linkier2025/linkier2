@@ -22,7 +22,7 @@ const StudentLogin = () => {
   // Redirect if already logged in
   useEffect(() => {
     if (user && profile?.user_type === 'student') {
-      navigate('/student-dashboard');
+      navigate('/explore');
     } else if (user && profile?.user_type === 'landlord') {
       navigate('/landlord-dashboard');
     }
