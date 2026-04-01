@@ -92,6 +92,15 @@ export default function Complaints() {
           property_title: property?.title || '',
           landlord_id: property?.landlord_id || ''
         });
+
+        // Fetch furniture items for this room
+        const { data: furnitureData } = await (supabase
+          .from("room_furniture" as any)
+          .select("item_name")
+          .eq("room_id", data.room_id) as any);
+        if (furnitureData) {
+          setRoomFurniture(furnitureData.map((f: any) => f.item_name));
+        }
       }
     };
 
