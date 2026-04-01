@@ -251,7 +251,7 @@ export default function Tenants() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-background p-4">
+      <div className="px-4 pt-6 pb-4">
         <div className="max-w-6xl mx-auto space-y-6">
           <Skeleton className="h-12 w-full" />
           <Skeleton className="h-64 w-full" />
