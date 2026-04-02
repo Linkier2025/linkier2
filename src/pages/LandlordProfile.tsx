@@ -112,17 +112,8 @@ export default function LandlordProfile() {
     navigate("/");
   };
 
-  const handleDeleteAccount = async () => {
-    try {
-      const { error } = await supabase.functions.invoke("delete-account");
-      if (error) throw error;
-      await signOut();
-      navigate("/");
-      toast({ title: "Account deleted", description: "Your account has been permanently deleted." });
-    } catch {
-      toast({ title: "Error", description: "Failed to delete account.", variant: "destructive" });
-    }
-  };
+
+
 
   return (
     <div className="px-4 pt-6 pb-4">
