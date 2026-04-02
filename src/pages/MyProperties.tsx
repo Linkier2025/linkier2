@@ -64,6 +64,7 @@ interface RoomStatus {
   id: string;
   room_number: string;
   capacity: number;
+  type: string;
   current_occupants: number;
   isFull: boolean;
   isUnderRenovation: boolean;
