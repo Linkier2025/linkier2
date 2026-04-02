@@ -2,22 +2,59 @@ import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { ArrowLeft, Camera } from "lucide-react";
-import { Link, useNavigate } from "react-router-dom";
+import { Camera, Settings as SettingsIcon, LogOut, ChevronRight, Pencil, X } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 import { toast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { StudentLayout } from "@/components/StudentLayout";
-import { LogOut, Settings as SettingsIcon, Trash2 } from "lucide-react";
+
+const UNIVERSITIES = [
+  "University of Zimbabwe",
+  "National University of Science and Technology",
+  "Midlands State University",
+  "Harare Institute of Technology",
+  "Chinhoyi University of Technology",
+  "Great Zimbabwe University",
+  "Bindura University of Science Education",
+  "Lupane State University",
+];
+
+const YEAR_LABELS: Record<string, string> = {
+  "1": "1st Year",
+  "2": "2nd Year",
+  "3": "3rd Year",
+  "4": "4th Year",
+  postgrad: "Postgraduate",
+};
+
+const GENDER_LABELS: Record<string, string> = {
+  male: "Male",
+  female: "Female",
+  other: "Other",
+};
+
+interface ProfileForm {
+  firstName: string;
+  surname: string;
+  email: string;
+  phone: string;
+  gender: string;
+  university: string;
+  yearOfStudy: string;
+  profilePicture: string;
+}
 
 export default function StudentProfile() {
   const navigate = useNavigate();
-  const { user, profile: authProfile, updateProfile } = useAuth();
+  const { user, profile: authProfile, updateProfile, signOut } = useAuth();
   const [loading, setLoading] = useState(false);
-  const [profile, setProfile] = useState({
+  const [editing, setEditing] = useState(false);
+  const [errors, setErrors] = useState<Record<string, string>>({});
+  const [profile, setProfile] = useState<ProfileForm>({
     firstName: "",
     surname: "",
     email: "",
@@ -25,12 +62,13 @@ export default function StudentProfile() {
     gender: "",
     university: "",
     yearOfStudy: "",
-    profilePicture: ""
+    profilePicture: "",
   });
+  const [originalProfile, setOriginalProfile] = useState<ProfileForm>(profile);
 
   useEffect(() => {
     if (authProfile) {
-      setProfile({
+      const p: ProfileForm = {
         firstName: authProfile.first_name || "",
         surname: authProfile.surname || "",
         email: authProfile.email || "",
@@ -38,84 +76,76 @@ export default function StudentProfile() {
         gender: authProfile.gender || "",
         university: authProfile.university || "",
         yearOfStudy: authProfile.year_of_study || "",
-        profilePicture: authProfile.avatar_url || ""
-      });
+        profilePicture: authProfile.avatar_url || "",
+      };
+      setProfile(p);
+      setOriginalProfile(p);
     }
   }, [authProfile]);
 
-  const handleSave = async () => {
-    if (!user) return;
+  const validate = (): boolean => {
+    const e: Record<string, string> = {};
+    if (!profile.firstName.trim()) e.firstName = "First name is required";
+    if (!profile.surname.trim()) e.surname = "Surname is required";
+    if (!profile.phone.trim()) e.phone = "Phone number is required";
+    else if (!/^\+?[\d\s-]{7,15}$/.test(profile.phone.trim())) e.phone = "Invalid phone number";
+    if (!profile.gender) e.gender = "Gender is required";
+    setErrors(e);
+    return Object.keys(e).length === 0;
+  };
 
+  const handleSave = async () => {
+    if (!user || !validate()) return;
     setLoading(true);
     try {
       await updateProfile({
-        first_name: profile.firstName,
-        surname: profile.surname,
+        first_name: profile.firstName.trim(),
+        surname: profile.surname.trim(),
         email: profile.email,
-        phone: profile.phone,
+        phone: profile.phone.trim(),
         gender: profile.gender,
         university: profile.university,
         year_of_study: profile.yearOfStudy,
-        avatar_url: profile.profilePicture
+        avatar_url: profile.profilePicture,
       });
-
-      toast({
-        title: "Profile updated",
-        description: "Your profile has been successfully updated.",
-      });
-    } catch (error) {
-      toast({
-        title: "Error",
-        description: "Failed to update profile. Please try again.",
-        variant: "destructive",
-      });
+      setOriginalProfile(profile);
+      setEditing(false);
+      setErrors({});
+      toast({ title: "Profile updated", description: "Your profile has been successfully updated." });
+    } catch {
+      toast({ title: "Error", description: "Failed to update profile.", variant: "destructive" });
     } finally {
       setLoading(false);
     }
   };
 
+  const handleCancel = () => {
+    setProfile(originalProfile);
+    setEditing(false);
+    setErrors({});
+  };
 
   const handleImageUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (!file || !user) return;
-
     const { validateAvatarFile } = await import("@/lib/validation");
     const validation = validateAvatarFile(file);
     if (!validation.valid) {
       toast({ title: "Invalid file", description: validation.error, variant: "destructive" });
       return;
     }
-
     try {
-      const fileExt = file.name.split('.').pop();
+      const fileExt = file.name.split(".").pop();
       const fileName = `${user.id}/${Date.now()}.${fileExt}`;
-
-      const { error: uploadError } = await supabase.storage
-        .from('avatars')
-        .upload(fileName, file, { upsert: true });
-
+      const { error: uploadError } = await supabase.storage.from("avatars").upload(fileName, file, { upsert: true });
       if (uploadError) throw uploadError;
-
-      const { data: { publicUrl } } = supabase.storage
-        .from('avatars')
-        .getPublicUrl(fileName);
-
-      setProfile({ ...profile, profilePicture: publicUrl });
-
-      toast({
-        title: "Picture uploaded",
-        description: "Your profile picture has been updated.",
-      });
-    } catch (error) {
-      toast({
-        title: "Error",
-        description: "Failed to upload image. Please try again.",
-        variant: "destructive",
-      });
+      const { data: { publicUrl } } = supabase.storage.from("avatars").getPublicUrl(fileName);
+      setProfile((prev) => ({ ...prev, profilePicture: publicUrl }));
+      toast({ title: "Picture uploaded" });
+    } catch {
+      toast({ title: "Error", description: "Failed to upload image.", variant: "destructive" });
     }
   };
-
-  const { signOut } = useAuth();
 
   const handleSignOut = async () => {
     await signOut();
@@ -125,142 +155,165 @@ export default function StudentProfile() {
   return (
     <StudentLayout>
       <div className="p-4 max-w-2xl mx-auto space-y-6">
-        <h1 className="text-xl font-bold">Profile</h1>
+        <h1 className="text-2xl font-bold text-foreground">Profile</h1>
 
+        {/* Profile Header Card */}
         <Card>
-          <CardHeader>
-            <CardTitle>Profile Information</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-6">
-            {/* Profile Picture */}
-            <div className="flex flex-col items-center space-y-4">
-              <Avatar className="h-24 w-24">
-                <AvatarImage src={profile.profilePicture} />
-                <AvatarFallback className="text-xl">
-                  {profile.firstName[0]}{profile.surname[0]}
-                </AvatarFallback>
-              </Avatar>
-              <div>
-                <input
-                  type="file"
-                  id="profile-picture"
-                  accept="image/*"
-                  className="hidden"
-                  onChange={handleImageUpload}
-                />
-                <label htmlFor="profile-picture">
-                  <Button variant="outline" size="sm" className="cursor-pointer">
-                    <Camera className="h-4 w-4 mr-2" />
-                    Change Picture
-                  </Button>
-                </label>
+          <CardContent className="p-6">
+            <div className="flex items-center gap-4">
+              <div className="relative">
+                <Avatar className="h-20 w-20">
+                  <AvatarImage src={profile.profilePicture} />
+                  <AvatarFallback className="bg-primary text-primary-foreground text-xl">
+                    {profile.firstName[0]}{profile.surname[0]}
+                  </AvatarFallback>
+                </Avatar>
+                {editing && (
+                  <label htmlFor="profile-picture" className="absolute -bottom-1 -right-1 h-7 w-7 rounded-full bg-primary text-primary-foreground flex items-center justify-center cursor-pointer shadow-md">
+                    <Camera className="h-3.5 w-3.5" />
+                    <input type="file" id="profile-picture" accept="image/*" className="hidden" onChange={handleImageUpload} />
+                  </label>
+                )}
               </div>
-            </div>
-
-            {/* Form Fields */}
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="firstName">First Name</Label>
-                <Input
-                  id="firstName"
-                  value={profile.firstName}
-                  onChange={(e) => setProfile({ ...profile, firstName: e.target.value })}
-                />
+              <div className="flex-1">
+                <h2 className="text-xl font-semibold text-foreground">
+                  {profile.firstName} {profile.surname}
+                </h2>
+                <p className="text-sm text-muted-foreground">Student</p>
+                <p className="text-sm text-muted-foreground">{profile.email}</p>
               </div>
-              <div className="space-y-2">
-                <Label htmlFor="surname">Surname</Label>
-                <Input
-                  id="surname"
-                  value={profile.surname}
-                  onChange={(e) => setProfile({ ...profile, surname: e.target.value })}
-                />
-              </div>
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="email">Email Address</Label>
-              <Input
-                id="email"
-                type="email"
-                value={profile.email}
-                onChange={(e) => setProfile({ ...profile, email: e.target.value })}
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="phone">Phone Number</Label>
-              <Input
-                id="phone"
-                value={profile.phone}
-                onChange={(e) => setProfile({ ...profile, phone: e.target.value })}
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="gender">Gender</Label>
-              <Select value={profile.gender} onValueChange={(value) => setProfile({ ...profile, gender: value })}>
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="male">Male</SelectItem>
-                  <SelectItem value="female">Female</SelectItem>
-                  <SelectItem value="other">Other</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="university">University</Label>
-              <Select value={profile.university} onValueChange={(value) => setProfile({ ...profile, university: value })}>
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="University of Zimbabwe">University of Zimbabwe</SelectItem>
-                  <SelectItem value="National University of Science and Technology">National University of Science and Technology</SelectItem>
-                  <SelectItem value="Midlands State University">Midlands State University</SelectItem>
-                  <SelectItem value="Harare Institute of Technology">Harare Institute of Technology</SelectItem>
-                  <SelectItem value="Chinhoyi University of Technology">Chinhoyi University of Technology</SelectItem>
-                  <SelectItem value="Great Zimbabwe University">Great Zimbabwe University</SelectItem>
-                  <SelectItem value="Bindura University of Science Education">Bindura University of Science Education</SelectItem>
-                  <SelectItem value="Lupane State University">Lupane State University</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="yearOfStudy">Year of Study</Label>
-              <Select value={profile.yearOfStudy} onValueChange={(value) => setProfile({ ...profile, yearOfStudy: value })}>
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="1">1st Year</SelectItem>
-                  <SelectItem value="2">2nd Year</SelectItem>
-                  <SelectItem value="3">3rd Year</SelectItem>
-                  <SelectItem value="4">4th Year</SelectItem>
-                  <SelectItem value="postgrad">Postgraduate</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="flex gap-4 pt-4">
-              <Button onClick={handleSave} className="flex-1" disabled={loading}>
-                {loading ? "Saving..." : "Save Changes"}
-              </Button>
             </div>
           </CardContent>
         </Card>
 
-        {/* Actions */}
+        {/* Profile Details */}
+        {editing ? (
+          <Card>
+            <CardContent className="p-6 space-y-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="firstName">First Name</Label>
+                  <Input id="firstName" value={profile.firstName} onChange={(e) => setProfile({ ...profile, firstName: e.target.value })} />
+                  {errors.firstName && <p className="text-xs text-destructive">{errors.firstName}</p>}
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="surname">Surname</Label>
+                  <Input id="surname" value={profile.surname} onChange={(e) => setProfile({ ...profile, surname: e.target.value })} />
+                  {errors.surname && <p className="text-xs text-destructive">{errors.surname}</p>}
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="phone">Phone Number</Label>
+                <Input id="phone" value={profile.phone} onChange={(e) => setProfile({ ...profile, phone: e.target.value })} />
+                {errors.phone && <p className="text-xs text-destructive">{errors.phone}</p>}
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="gender">Gender</Label>
+                <Select value={profile.gender} onValueChange={(v) => setProfile({ ...profile, gender: v })}>
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="male">Male</SelectItem>
+                    <SelectItem value="female">Female</SelectItem>
+                    <SelectItem value="other">Other</SelectItem>
+                  </SelectContent>
+                </Select>
+                {errors.gender && <p className="text-xs text-destructive">{errors.gender}</p>}
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="university">University</Label>
+                <Select value={profile.university} onValueChange={(v) => setProfile({ ...profile, university: v })}>
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    {UNIVERSITIES.map((u) => (
+                      <SelectItem key={u} value={u}>{u}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="yearOfStudy">Year of Study</Label>
+                <Select value={profile.yearOfStudy} onValueChange={(v) => setProfile({ ...profile, yearOfStudy: v })}>
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="1">1st Year</SelectItem>
+                    <SelectItem value="2">2nd Year</SelectItem>
+                    <SelectItem value="3">3rd Year</SelectItem>
+                    <SelectItem value="4">4th Year</SelectItem>
+                    <SelectItem value="postgrad">Postgraduate</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="flex gap-3 pt-2">
+                <Button onClick={handleSave} className="flex-1" disabled={loading}>
+                  {loading ? "Saving..." : "Save Changes"}
+                </Button>
+                <Button variant="outline" onClick={handleCancel}>
+                  <X className="h-4 w-4 mr-1" /> Cancel
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        ) : (
+          <Card>
+            <CardContent className="p-6 space-y-4">
+              <div className="flex items-center justify-between mb-2">
+                <h3 className="font-semibold text-foreground">Personal Information</h3>
+                <Button variant="ghost" size="sm" onClick={() => setEditing(true)}>
+                  <Pencil className="h-4 w-4 mr-1" /> Edit
+                </Button>
+              </div>
+
+              <div className="grid grid-cols-2 gap-y-4 gap-x-6">
+                <div>
+                  <p className="text-xs text-muted-foreground">First Name</p>
+                  <p className="text-sm font-medium text-foreground">{profile.firstName || "—"}</p>
+                </div>
+                <div>
+                  <p className="text-xs text-muted-foreground">Surname</p>
+                  <p className="text-sm font-medium text-foreground">{profile.surname || "—"}</p>
+                </div>
+                <div>
+                  <p className="text-xs text-muted-foreground">Phone</p>
+                  <p className="text-sm font-medium text-foreground">{profile.phone || "—"}</p>
+                </div>
+                <div>
+                  <p className="text-xs text-muted-foreground">Gender</p>
+                  <p className="text-sm font-medium text-foreground">{GENDER_LABELS[profile.gender] || "—"}</p>
+                </div>
+                <div>
+                  <p className="text-xs text-muted-foreground">University</p>
+                  <p className="text-sm font-medium text-foreground">{profile.university || "—"}</p>
+                </div>
+                <div>
+                  <p className="text-xs text-muted-foreground">Year of Study</p>
+                  <p className="text-sm font-medium text-foreground">{YEAR_LABELS[profile.yearOfStudy] || "—"}</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Menu Items */}
         <div className="space-y-2">
-          <Button variant="outline" className="w-full justify-start" onClick={() => navigate("/settings")}>
-            <SettingsIcon className="h-4 w-4 mr-2" /> Settings
-          </Button>
-          <Button variant="outline" className="w-full justify-start text-destructive" onClick={handleSignOut}>
-            <LogOut className="h-4 w-4 mr-2" /> Sign Out
-          </Button>
+          <Card className="cursor-pointer hover:shadow-md transition-shadow" onClick={() => navigate("/settings")}>
+            <CardContent className="p-4 flex items-center gap-3">
+              <SettingsIcon className="h-5 w-5 text-muted-foreground" />
+              <span className="font-medium text-foreground flex-1">Settings</span>
+              <ChevronRight className="h-5 w-5 text-muted-foreground" />
+            </CardContent>
+          </Card>
+          <Card className="cursor-pointer hover:shadow-md transition-shadow" onClick={handleSignOut}>
+            <CardContent className="p-4 flex items-center gap-3">
+              <LogOut className="h-5 w-5 text-muted-foreground" />
+              <span className="font-medium text-foreground flex-1">Sign Out</span>
+              <ChevronRight className="h-5 w-5 text-muted-foreground" />
+            </CardContent>
+          </Card>
         </div>
       </div>
     </StudentLayout>
