@@ -83,7 +83,7 @@ export function PropertyCard({
           <div className="flex items-center gap-1 text-xs text-muted-foreground">
             <Users className="h-3 w-3" />
             <span>
-              {rooms} {rooms === 1 ? "room" : "rooms"} · {gender_preference || "Mixed"}
+              {rooms} {rooms === 1 ? "bedroom" : "bedrooms"} · {gender_preference || "Mixed"}
             </span>
             {occupancy && (
               <Badge

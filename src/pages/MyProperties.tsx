@@ -52,6 +52,7 @@ interface RoomWithOccupancy {
   room_number: string;
   capacity: number;
   type: string;
+  gender_tag: string | null;
   property_id: string;
   renovation_status: string;
   renovation_description: string | null;
@@ -72,6 +73,7 @@ interface RoomStatus {
   renovation_description: string | null;
   renovation_start_date: string | null;
   renovation_end_date: string | null;
+  gender_tag: string | null;
 }
 
 const statusColors: Record<string, string> = {
@@ -162,7 +164,7 @@ export default function MyProperties() {
       if (propertyIds.length > 0) {
         const { data: rooms } = await supabase
           .from('rooms')
-          .select('id, room_number, capacity, property_id, renovation_status, renovation_description, renovation_start_date, renovation_end_date')
+          .select('id, room_number, capacity, type, gender_tag, property_id, renovation_status, renovation_description, renovation_start_date, renovation_end_date')
           .in('property_id', propertyIds);
 
         const roomIds = (rooms || []).map(r => r.id);
@@ -184,6 +186,8 @@ export default function MyProperties() {
           id: r.id,
           room_number: r.room_number,
           capacity: r.capacity,
+          type: r.type || 'bedroom',
+          gender_tag: r.gender_tag || null,
           property_id: r.property_id,
           renovation_status: r.renovation_status,
           renovation_description: r.renovation_description,
@@ -247,13 +251,16 @@ export default function MyProperties() {
 
     return propRooms.map(room => {
       const isUnderRenovation = room.renovation_status === 'under_renovation';
+      const isBedroom = room.type === 'bedroom';
       
       return {
         id: room.id,
         room_number: room.room_number,
         capacity: room.capacity,
+        type: room.type,
+        gender_tag: room.gender_tag,
         current_occupants: room.current_occupants,
-        isFull: !isUnderRenovation && room.current_occupants >= room.capacity,
+        isFull: isBedroom && !isUnderRenovation && room.current_occupants >= room.capacity,
         isUnderRenovation,
         renovationStatus: isUnderRenovation ? 'under_renovation' : undefined,
         renovation_description: room.renovation_description,
@@ -483,10 +490,12 @@ export default function MyProperties() {
           <div className="space-y-6">
             {properties.map((property) => {
               const roomStatuses = getRoomStatuses(property);
+              const bedroomStatuses = roomStatuses.filter(r => r.type === 'bedroom');
+              const sharedStatuses = roomStatuses.filter(r => r.type !== 'bedroom');
               const propertyRenovations = getPropertyRenovations(property.id);
-              const occupiedCount = roomStatuses.filter(r => r.current_occupants > 0).length;
-              const availableCount = roomStatuses.filter(r => !r.isFull && !r.isUnderRenovation).length;
-              const isFullyOccupied = roomStatuses.length > 0 && availableCount === 0;
+              const occupiedCount = bedroomStatuses.filter(r => r.current_occupants > 0).length;
+              const availableCount = bedroomStatuses.filter(r => !r.isFull && !r.isUnderRenovation).length;
+              const isFullyOccupied = bedroomStatuses.length > 0 && availableCount === 0;
               const underRenovationCount = roomStatuses.filter(r => r.isUnderRenovation).length;
               const isExpanded = expandedProperty === property.id;
 
@@ -526,8 +535,8 @@ export default function MyProperties() {
                     {/* Room Summary */}
                     <div className="grid grid-cols-3 gap-4">
                       <div className="text-center p-3 bg-muted rounded-lg">
-                        <div className="text-2xl font-bold text-foreground">{roomStatuses.length}</div>
-                        <div className="text-xs text-muted-foreground">Total Rooms</div>
+                        <div className="text-2xl font-bold text-foreground">{bedroomStatuses.length}</div>
+                        <div className="text-xs text-muted-foreground">Bedrooms</div>
                       </div>
                       <div className="text-center p-3 bg-green-500/10 rounded-lg">
                         <div className="text-2xl font-bold text-green-600">{occupiedCount}</div>
@@ -555,17 +564,17 @@ export default function MyProperties() {
                         </Button>
                       </CollapsibleTrigger>
                       <CollapsibleContent className="space-y-4 mt-4">
-                        {/* Room Details */}
+                        {/* Bedroom Details */}
                         <div className="space-y-2">
                           <h4 className="font-semibold flex items-center gap-2">
                             <Home className="h-4 w-4" />
-                            Room Details
+                            Bedrooms
                           </h4>
-                          {roomStatuses.length === 0 ? (
-                            <p className="text-sm text-muted-foreground">No room configurations set</p>
+                          {bedroomStatuses.length === 0 ? (
+                            <p className="text-sm text-muted-foreground">No bedrooms configured</p>
                           ) : (
                             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2">
-                              {roomStatuses.map((room) => (
+                              {bedroomStatuses.map((room) => (
                                 <div 
                                   key={room.room_number}
                                   className={`p-3 rounded-lg border cursor-pointer hover:ring-2 hover:ring-primary/50 transition-all ${
@@ -580,7 +589,7 @@ export default function MyProperties() {
                                   onClick={() => openRoomRenovationDialog(room)}
                                   title="Click to manage room status"
                                 >
-                                  <div className="font-medium text-foreground">Room {room.room_number}</div>
+                                  <div className="font-medium text-foreground">{room.room_number}</div>
                                   <div className="text-xs text-muted-foreground">
                                     {room.current_occupants}/{room.capacity} occupied
                                   </div>
@@ -611,6 +620,44 @@ export default function MyProperties() {
                           )}
                         </div>
 
+                        {/* Shared Spaces */}
+                        {sharedStatuses.length > 0 && (
+                          <div className="space-y-2">
+                            <h4 className="font-semibold flex items-center gap-2">
+                              <Package className="h-4 w-4" />
+                              Shared Spaces
+                            </h4>
+                            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2">
+                              {sharedStatuses.map((space) => (
+                                <div 
+                                  key={space.room_number}
+                                  className={`p-3 rounded-lg border ${
+                                    space.isUnderRenovation 
+                                      ? 'bg-orange-50 border-orange-300' 
+                                      : 'bg-muted border-border'
+                                  }`}
+                                >
+                                  <div className="font-medium text-foreground">{space.room_number}</div>
+                                  <div className="mt-1">
+                                    {space.isUnderRenovation ? (
+                                      <Badge variant="outline" className="text-xs border-orange-400 text-orange-600 bg-orange-100">
+                                        Under Renovation
+                                      </Badge>
+                                    ) : (
+                                      <Badge variant="secondary" className="text-xs">
+                                        Shared
+                                      </Badge>
+                                    )}
+                                  </div>
+                                  {space.gender_tag && (
+                                    <Badge variant="outline" className="text-xs mt-1">{space.gender_tag}</Badge>
+                                  )}
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+
                         {/* Furniture & Appliances per room */}
                         <div className="space-y-3">
                           <h4 className="font-semibold flex items-center gap-2">
@@ -623,8 +670,8 @@ export default function MyProperties() {
                             <div className="space-y-4">
                               {roomStatuses.map(room => (
                                 <div key={`furn-${room.id}`} className="p-3 bg-muted/30 rounded-lg border">
-                                  <p className="text-sm font-medium mb-2">Room {room.room_number}</p>
-                                  <RoomFurnitureManager roomId={room.id} />
+                                  <p className="text-sm font-medium mb-2">{room.room_number}</p>
+                                  <RoomFurnitureManager roomId={room.id} spaceType={room.type} />
                                 </div>
                               ))}
                             </div>
@@ -654,7 +701,7 @@ export default function MyProperties() {
                                     <div className="space-y-1">
                                       <div className="font-medium">{renovation.title}</div>
                                       {renovation.room_number && (
-                                        <div className="text-xs text-muted-foreground">Room {renovation.room_number}</div>
+                                        <div className="text-xs text-muted-foreground">{renovation.room_number}</div>
                                       )}
                                       {renovation.description && (
                                         <div className="text-sm text-muted-foreground">{renovation.description}</div>
