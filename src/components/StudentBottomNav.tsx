@@ -1,5 +1,5 @@
 import { useLocation, useNavigate } from "react-router-dom";
-import { Search, FileText, Home, User } from "lucide-react";
+import { Search, FileText, Home, User, Heart } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface NavItem {
