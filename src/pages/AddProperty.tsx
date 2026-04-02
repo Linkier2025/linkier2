@@ -234,7 +234,7 @@ export default function AddProperty() {
   const addRoomConfiguration = () => {
     setRoomConfigurations(prev => [
       ...prev,
-      { room_number: (prev.length + 1).toString(), capacity: 1 }
+      { room_number: `Room ${prev.length + 1}`, type: "bedroom" as const, capacity: 1, gender_tag: null }
     ]);
   };
 
