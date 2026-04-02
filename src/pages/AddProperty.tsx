@@ -12,11 +12,9 @@ import { Link, useNavigate, useParams } from "react-router-dom";
 import { toast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
+import { SpaceConfigurator, SpaceConfiguration } from "@/components/SpaceConfigurator";
 
-type RoomConfiguration = {
-  room_number: string;
-  capacity: number;
-};
+type RoomConfiguration = SpaceConfiguration;
 
 function ViewField({ label, value }: { label: string; value: string }) {
   return (
