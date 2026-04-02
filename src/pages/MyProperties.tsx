@@ -560,17 +560,17 @@ export default function MyProperties() {
                         </Button>
                       </CollapsibleTrigger>
                       <CollapsibleContent className="space-y-4 mt-4">
-                        {/* Room Details */}
+                        {/* Bedroom Details */}
                         <div className="space-y-2">
                           <h4 className="font-semibold flex items-center gap-2">
                             <Home className="h-4 w-4" />
-                            Room Details
+                            Bedrooms
                           </h4>
-                          {roomStatuses.length === 0 ? (
-                            <p className="text-sm text-muted-foreground">No room configurations set</p>
+                          {bedroomStatuses.length === 0 ? (
+                            <p className="text-sm text-muted-foreground">No bedrooms configured</p>
                           ) : (
                             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2">
-                              {roomStatuses.map((room) => (
+                              {bedroomStatuses.map((room) => (
                                 <div 
                                   key={room.room_number}
                                   className={`p-3 rounded-lg border cursor-pointer hover:ring-2 hover:ring-primary/50 transition-all ${
@@ -585,7 +585,7 @@ export default function MyProperties() {
                                   onClick={() => openRoomRenovationDialog(room)}
                                   title="Click to manage room status"
                                 >
-                                  <div className="font-medium text-foreground">Room {room.room_number}</div>
+                                  <div className="font-medium text-foreground">{room.room_number}</div>
                                   <div className="text-xs text-muted-foreground">
                                     {room.current_occupants}/{room.capacity} occupied
                                   </div>
@@ -615,6 +615,44 @@ export default function MyProperties() {
                             </div>
                           )}
                         </div>
+
+                        {/* Shared Spaces */}
+                        {sharedStatuses.length > 0 && (
+                          <div className="space-y-2">
+                            <h4 className="font-semibold flex items-center gap-2">
+                              <Package className="h-4 w-4" />
+                              Shared Spaces
+                            </h4>
+                            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2">
+                              {sharedStatuses.map((space) => (
+                                <div 
+                                  key={space.room_number}
+                                  className={`p-3 rounded-lg border ${
+                                    space.isUnderRenovation 
+                                      ? 'bg-orange-50 border-orange-300' 
+                                      : 'bg-muted border-border'
+                                  }`}
+                                >
+                                  <div className="font-medium text-foreground">{space.room_number}</div>
+                                  <div className="mt-1">
+                                    {space.isUnderRenovation ? (
+                                      <Badge variant="outline" className="text-xs border-orange-400 text-orange-600 bg-orange-100">
+                                        Under Renovation
+                                      </Badge>
+                                    ) : (
+                                      <Badge variant="secondary" className="text-xs">
+                                        Shared
+                                      </Badge>
+                                    )}
+                                  </div>
+                                  {space.gender_tag && (
+                                    <Badge variant="outline" className="text-xs mt-1">{space.gender_tag}</Badge>
+                                  )}
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        )}
 
                         {/* Furniture & Appliances per room */}
                         <div className="space-y-3">
