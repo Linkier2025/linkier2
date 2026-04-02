@@ -1,32 +1,52 @@
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 
+interface NotificationCounts {
+  total: number;
+  requests: number; // rental_request, rental_response, viewing_request, viewing_response
+  manage: number;   // complaint, announcement, renovation
+  myStay: number;   // announcement, complaint, payment
+}
+
 export function useUnreadNotifications() {
-  const [count, setCount] = useState(0);
+  const [counts, setCounts] = useState<NotificationCounts>({ total: 0, requests: 0, manage: 0, myStay: 0 });
 
   const fetchCount = async () => {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return;
 
-    const { count: unread } = await supabase
+    const { data, error } = await supabase
       .from("notifications")
-      .select("*", { count: "exact", head: true })
+      .select("type")
       .eq("user_id", user.id)
       .eq("read", false);
 
-    setCount(unread || 0);
+    if (error || !data) {
+      setCounts({ total: 0, requests: 0, manage: 0, myStay: 0 });
+      return;
+    }
+
+    const requestTypes = ["rental_request", "rental_response", "viewing_request", "viewing_response"];
+    const manageTypes = ["complaint", "announcement", "renovation"];
+    const myStayTypes = ["announcement", "complaint", "payment"];
+
+    setCounts({
+      total: data.length,
+      requests: data.filter(n => requestTypes.includes(n.type)).length,
+      manage: data.filter(n => manageTypes.includes(n.type)).length,
+      myStay: data.filter(n => myStayTypes.includes(n.type)).length,
+    });
   };
 
   useEffect(() => {
     fetchCount();
-
     const interval = setInterval(fetchCount, 30000);
 
     const channel = supabase
       .channel("notification-count")
       .on(
         "postgres_changes",
-        { event: "INSERT", schema: "public", table: "notifications" },
+        { event: "*", schema: "public", table: "notifications" },
         () => fetchCount()
       )
       .subscribe();
@@ -37,5 +57,5 @@ export function useUnreadNotifications() {
     };
   }, []);
 
-  return { count, refetch: fetchCount };
+  return { count: counts.total, counts, refetch: fetchCount };
 }

@@ -1,5 +1,5 @@
 import { useLocation, useNavigate } from "react-router-dom";
-import { Building, FileText, Users, Settings2, Bell } from "lucide-react";
+import { Building, FileText, Users, Settings2, User } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useUnreadNotifications } from "@/hooks/useUnreadNotifications";
 
@@ -13,14 +13,14 @@ interface NavItem {
 export function LandlordBottomNav() {
   const location = useLocation();
   const navigate = useNavigate();
-  const { count: unreadCount } = useUnreadNotifications();
+  const { counts } = useUnreadNotifications();
 
   const navItems: NavItem[] = [
     { label: "Properties", icon: Building, path: "/my-properties" },
-    { label: "Requests", icon: FileText, path: "/viewing-requests" },
+    { label: "Requests", icon: FileText, path: "/viewing-requests", badge: counts.requests },
     { label: "Tenants", icon: Users, path: "/tenants" },
-    { label: "Manage", icon: Settings2, path: "/manage" },
-    { label: "Alerts", icon: Bell, path: "/notifications", badge: unreadCount },
+    { label: "Manage", icon: Settings2, path: "/manage", badge: counts.manage },
+    { label: "Profile", icon: User, path: "/landlord-profile" },
   ];
 
   return (

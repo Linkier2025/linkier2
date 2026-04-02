@@ -3,7 +3,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
-import { ArrowLeft, Lock, LogOut, Trash2, AlertTriangle, Mail } from "lucide-react";
+import { ArrowLeft, Lock, LogOut, Trash2, AlertTriangle, Mail, Sun, Moon } from "lucide-react";
+import { Switch } from "@/components/ui/switch";
 import { Link, useNavigate } from "react-router-dom";
 import { toast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
@@ -20,6 +21,16 @@ import {
 export default function Settings() {
   const navigate = useNavigate();
   const { user, profile, signOut } = useAuth();
+
+  // Theme state
+  const [isDark, setIsDark] = useState(() => document.documentElement.classList.contains("dark"));
+
+  const toggleTheme = () => {
+    const next = !isDark;
+    setIsDark(next);
+    document.documentElement.classList.toggle("dark", next);
+    localStorage.setItem("theme", next ? "dark" : "light");
+  };
 
   // Password reset state
   const [resetLoading, setResetLoading] = useState(false);
@@ -106,6 +117,30 @@ export default function Settings() {
           </Link>
           <h1 className="text-2xl font-bold">Settings</h1>
         </div>
+
+        {/* Appearance */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              {isDark ? <Moon className="h-5 w-5" /> : <Sun className="h-5 w-5" />}
+              Appearance
+            </CardTitle>
+            <CardDescription>
+              Customize how Linkier looks for you
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-foreground">Dark Mode</p>
+                <p className="text-sm text-muted-foreground">
+                  {isDark ? "Dark theme is active" : "Light theme is active"}
+                </p>
+              </div>
+              <Switch checked={isDark} onCheckedChange={toggleTheme} />
+            </div>
+          </CardContent>
+        </Card>
 
         {/* Change Password */}
         <Card>
