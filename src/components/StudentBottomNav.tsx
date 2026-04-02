@@ -1,11 +1,13 @@
 import { useLocation, useNavigate } from "react-router-dom";
-import { Search, FileText, Home, User, Heart } from "lucide-react";
+import { Search, FileText, Home, User, Heart, Bell } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useUnreadNotifications } from "@/hooks/useUnreadNotifications";
 
 interface NavItem {
   label: string;
   icon: React.ElementType;
   path: string;
+  badge?: number;
 }
 
 interface StudentBottomNavProps {
@@ -15,12 +17,14 @@ interface StudentBottomNavProps {
 export function StudentBottomNav({ isTenant = false }: StudentBottomNavProps) {
   const location = useLocation();
   const navigate = useNavigate();
+  const { count: unreadCount } = useUnreadNotifications();
 
   const navItems: NavItem[] = [
     { label: "Explore", icon: Search, path: "/explore" },
     { label: "Saved", icon: Heart, path: "/wishlist" },
     { label: "Requests", icon: FileText, path: "/requests" },
     ...(isTenant ? [{ label: "My Stay", icon: Home, path: "/my-stay" }] : []),
+    { label: "Alerts", icon: Bell, path: "/notifications", badge: unreadCount },
     { label: "Profile", icon: User, path: "/student-profile" },
   ];
 
@@ -35,11 +39,18 @@ export function StudentBottomNav({ isTenant = false }: StudentBottomNavProps) {
               key={item.path}
               onClick={() => navigate(item.path)}
               className={cn(
-                "flex flex-col items-center justify-center gap-1 flex-1 h-full transition-colors",
+                "relative flex flex-col items-center justify-center gap-1 flex-1 h-full transition-colors",
                 isActive ? "text-primary" : "text-muted-foreground"
               )}
             >
-              <item.icon className={cn("h-5 w-5", isActive && "stroke-[2.5]")} />
+              <div className="relative">
+                <item.icon className={cn("h-5 w-5", isActive && "stroke-[2.5]")} />
+                {item.badge && item.badge > 0 && (
+                  <span className="absolute -top-1.5 -right-2.5 inline-flex items-center justify-center h-4 min-w-4 px-1 rounded-full bg-destructive text-destructive-foreground text-[9px] font-bold">
+                    {item.badge > 99 ? "99+" : item.badge}
+                  </span>
+                )}
+              </div>
               <span className="text-[10px] font-medium">{item.label}</span>
             </button>
           );
