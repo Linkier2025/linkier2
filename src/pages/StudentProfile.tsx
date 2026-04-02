@@ -296,9 +296,8 @@ export default function StudentProfile() {
             </CardContent>
           </Card>
         )}
-                  <Input id="firstName" value={profile.firstName} onChange={(e) => setProfile({ ...profile, firstName: e.target.value })} />
-                  {errors.firstName && <p className="text-xs text-destructive">{errors.firstName}</p>}
-                </div>
+
+
                 <div className="space-y-2">
                   <Label htmlFor="surname">Surname</Label>
                   <Input id="surname" value={profile.surname} onChange={(e) => setProfile({ ...profile, surname: e.target.value })} />
