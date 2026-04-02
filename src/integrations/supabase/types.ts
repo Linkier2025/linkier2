@@ -647,8 +647,9 @@ export type Database = {
       }
       rooms: {
         Row: {
-          capacity: number
+          capacity: number | null
           created_at: string
+          gender_tag: string | null
           id: string
           property_id: string
           renovation_description: string | null
@@ -656,11 +657,13 @@ export type Database = {
           renovation_start_date: string | null
           renovation_status: string
           room_number: string
+          type: string
           updated_at: string
         }
         Insert: {
-          capacity?: number
+          capacity?: number | null
           created_at?: string
+          gender_tag?: string | null
           id?: string
           property_id: string
           renovation_description?: string | null
@@ -668,11 +671,13 @@ export type Database = {
           renovation_start_date?: string | null
           renovation_status?: string
           room_number: string
+          type?: string
           updated_at?: string
         }
         Update: {
-          capacity?: number
+          capacity?: number | null
           created_at?: string
+          gender_tag?: string | null
           id?: string
           property_id?: string
           renovation_description?: string | null
@@ -680,6 +685,7 @@ export type Database = {
           renovation_start_date?: string | null
           renovation_status?: string
           room_number?: string
+          type?: string
           updated_at?: string
         }
         Relationships: [
