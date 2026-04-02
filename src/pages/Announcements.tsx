@@ -187,18 +187,23 @@ const Announcements = () => {
                       </SelectContent>
                     </Select>
                   </div>
-                  <div>
-                    <Label>Target</Label>
-                    <Select value={selectedRoom} onValueChange={setSelectedRoom}>
-                      <SelectTrigger><SelectValue /></SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="all">Entire Property</SelectItem>
-                        {selectedPropertyRooms.map((r) => (
-                          <SelectItem key={r.id} value={r.id}>Room {r.room_number}</SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
+                  {selectedProperty && (
+                    <div>
+                      <Label>Target</Label>
+                      <Select value={selectedRoom} onValueChange={setSelectedRoom}>
+                        <SelectTrigger><SelectValue /></SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="all">Entire Property</SelectItem>
+                          {selectedPropertyRooms.map((r) => (
+                            <SelectItem key={r.id} value={r.id}>Room {r.room_number}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <p className="text-xs text-muted-foreground mt-1">
+                        {selectedRoom === "all" ? "All tenants in this property will see this." : "Only tenants in the selected room will see this."}
+                      </p>
+                    </div>
+                  )}
                   <div>
                     <Label>Title</Label>
                     <Input value={title} onChange={(e) => setTitle(e.target.value)} placeholder="e.g. Water maintenance" />
