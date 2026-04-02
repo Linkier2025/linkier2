@@ -330,7 +330,7 @@ export default function AddProperty() {
         house_number: formData.houseNumber,
         boarding_house_name: formData.boardingHouseName,
         total_rooms: formData.totalRooms ? parseInt(formData.totalRooms) : null,
-        room_configurations: roomConfigurations,
+        room_configurations: roomConfigurations as any,
         status: 'available'
       };
 
