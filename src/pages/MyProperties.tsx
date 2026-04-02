@@ -164,7 +164,7 @@ export default function MyProperties() {
       if (propertyIds.length > 0) {
         const { data: rooms } = await supabase
           .from('rooms')
-          .select('id, room_number, capacity, type, property_id, renovation_status, renovation_description, renovation_start_date, renovation_end_date')
+          .select('id, room_number, capacity, type, gender_tag, property_id, renovation_status, renovation_description, renovation_start_date, renovation_end_date')
           .in('property_id', propertyIds);
 
         const roomIds = (rooms || []).map(r => r.id);
