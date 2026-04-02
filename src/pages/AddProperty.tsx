@@ -18,6 +18,15 @@ type RoomConfiguration = {
   capacity: number;
 };
 
+function ViewField({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="space-y-1">
+      <p className="text-sm font-medium text-muted-foreground">{label}</p>
+      <p className="text-sm text-foreground">{value || "—"}</p>
+    </div>
+  );
+}
+
 export default function AddProperty() {
   const navigate = useNavigate();
   const { id } = useParams();
