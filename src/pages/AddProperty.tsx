@@ -65,7 +65,7 @@ export default function AddProperty() {
       if (error) throw error;
 
       if (data) {
-        setFormData({
+        const fd = {
           title: data.title || "",
           rent: data.rent_amount?.toString() || "",
           location: data.location || "",
@@ -77,10 +77,14 @@ export default function AddProperty() {
           houseNumber: data.house_number || "",
           boardingHouseName: data.boarding_house_name || "",
           totalRooms: data.total_rooms?.toString() || ""
-        });
+        };
+        setFormData(fd);
+        setSavedFormData(fd);
         setImages(data.images || []);
+        setSavedImages(data.images || []);
         if (data.room_configurations && Array.isArray(data.room_configurations) && data.room_configurations.length > 0) {
           setRoomConfigurations(data.room_configurations as RoomConfiguration[]);
+          setSavedRoomConfigs(data.room_configurations as RoomConfiguration[]);
         }
       }
     } catch (error) {
