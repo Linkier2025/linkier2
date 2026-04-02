@@ -254,7 +254,9 @@ export default function PropertyDetails() {
     ? property.images 
     : ["/placeholder.svg"];
 
-  const availableRooms = rooms.filter(r => r.current_occupants < r.capacity && r.renovation_status !== 'under_renovation');
+  const bedrooms = rooms.filter(r => r.type === 'bedroom');
+  const sharedSpaces = rooms.filter(r => r.type !== 'bedroom');
+  const availableRooms = bedrooms.filter(r => r.capacity && r.current_occupants < r.capacity && r.renovation_status !== 'under_renovation');
 
   return (
     <div className="min-h-screen bg-background p-4">
