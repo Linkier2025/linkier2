@@ -34,6 +34,7 @@ import Rentals from "./pages/Rentals";
 import MyProperties from "./pages/MyProperties";
 import ViewingRequests from "./pages/ViewingRequests";
 import Announcements from "./pages/Announcements";
+import Renovations from "./pages/Renovations";
 import ForgotPassword from "./pages/ForgotPassword";
 import ResetPassword from "./pages/ResetPassword";
 import Settings from "./pages/Settings";
