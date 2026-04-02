@@ -75,13 +75,22 @@ const Notifications = () => {
   const handleNotificationClick = async (notification: Notification) => {
     await markAsRead(notification.id);
 
-    // Navigate based on notification type
-    if (notification.related_type === "rental_request") {
-      navigate("/landlord-requests");
-    } else if (notification.related_type === "viewing_request") {
-      navigate("/viewing-requests");
-    } else if (notification.related_type === "message") {
-      navigate("/messages");
+    switch (notification.related_type) {
+      case "rental_request":
+        navigate("/viewing-requests");
+        break;
+      case "viewing_request":
+        navigate("/viewing-requests");
+        break;
+      case "complaint":
+        navigate("/complaints");
+        break;
+      case "announcement":
+        navigate("/announcements");
+        break;
+      case "message":
+        navigate("/messages");
+        break;
     }
   };
 
@@ -90,13 +99,17 @@ const Notifications = () => {
       case "rental_request":
       case "rental_response":
         return <Home className="h-5 w-5 text-primary" />;
+      case "complaint":
+        return <AlertTriangle className="h-5 w-5 text-destructive" />;
+      case "announcement":
+        return <Megaphone className="h-5 w-5 text-primary" />;
       case "message":
-        return <MessageSquare className="h-5 w-5 text-blue-600" />;
+        return <MessageSquare className="h-5 w-5 text-primary" />;
       case "viewing_request":
       case "viewing_response":
-        return <Calendar className="h-5 w-5 text-orange-600" />;
+        return <Calendar className="h-5 w-5 text-primary" />;
       case "payment":
-        return <DollarSign className="h-5 w-5 text-green-600" />;
+        return <DollarSign className="h-5 w-5 text-primary" />;
       default:
         return <Clock className="h-5 w-5 text-muted-foreground" />;
     }
