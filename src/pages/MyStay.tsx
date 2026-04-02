@@ -131,8 +131,7 @@ export default function MyStay() {
   }
 
   return (
-    <StudentLayout>
-      <div className="px-4 pt-4 space-y-4">
+    <div className="px-4 pt-4 space-y-4">
         <h1 className="text-xl font-bold text-foreground">My Stay</h1>
 
         {/* Room Info */}
