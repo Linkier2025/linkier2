@@ -41,7 +41,7 @@ export function LandlordBottomNav() {
             >
               <div className="relative">
                 <item.icon className={cn("h-5 w-5", isActive && "stroke-[2.5]")} />
-                {item.badge && item.badge > 0 && (
+                {(item.badge ?? 0) > 0 && (
                   <span className="absolute -top-1.5 -right-2.5 inline-flex items-center justify-center h-4 min-w-4 px-1 rounded-full bg-destructive text-destructive-foreground text-[9px] font-bold">
                     {item.badge > 99 ? "99+" : item.badge}
                   </span>
