@@ -453,14 +453,9 @@ export default function AddProperty() {
           </Card>
 
           <Card>
-            <CardHeader><CardTitle>Room Configurations</CardTitle></CardHeader>
-            <CardContent className="space-y-3">
-              {roomConfigurations.map((config, i) => (
-                <div key={i} className="flex items-center gap-4 p-3 rounded-md bg-muted/50">
-                  <span className="text-sm font-medium">Room {config.room_number}</span>
-                  <span className="text-sm text-muted-foreground">— {config.capacity} student(s)</span>
-                </div>
-              ))}
+            <CardHeader><CardTitle>Spaces</CardTitle></CardHeader>
+            <CardContent>
+              <SpaceConfigurator spaces={roomConfigurations} onSpacesChange={setRoomConfigurations} editMode={false} />
             </CardContent>
           </Card>
 
