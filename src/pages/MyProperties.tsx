@@ -531,8 +531,8 @@ export default function MyProperties() {
                     {/* Room Summary */}
                     <div className="grid grid-cols-3 gap-4">
                       <div className="text-center p-3 bg-muted rounded-lg">
-                        <div className="text-2xl font-bold text-foreground">{roomStatuses.length}</div>
-                        <div className="text-xs text-muted-foreground">Total Rooms</div>
+                        <div className="text-2xl font-bold text-foreground">{bedroomStatuses.length}</div>
+                        <div className="text-xs text-muted-foreground">Bedrooms</div>
                       </div>
                       <div className="text-center p-3 bg-green-500/10 rounded-lg">
                         <div className="text-2xl font-bold text-green-600">{occupiedCount}</div>
