@@ -616,66 +616,13 @@ export default function AddProperty() {
 
           <Card>
             <CardHeader>
-              <CardTitle>Room Configurations</CardTitle>
+              <CardTitle>Spaces</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <p className="text-sm text-muted-foreground">
-                Specify how many students can occupy each room. You can add multiple configurations if rooms have different capacities.
+                Add bedrooms with capacity and shared spaces like kitchens, bathrooms, etc.
               </p>
-              
-              {roomConfigurations.map((config, index) => (
-                <div key={index} className="flex gap-4 items-end">
-                  <div className="flex-1 space-y-2">
-                    <Label htmlFor={`room-${index}`}>Room Number/Name</Label>
-                    <Input
-                      id={`room-${index}`}
-                      value={config.room_number}
-                      onChange={(e) => updateRoomConfiguration(index, 'room_number', e.target.value)}
-                      placeholder="e.g. Room 1 or A1"
-                      required
-                    />
-                  </div>
-                  <div className="flex-1 space-y-2">
-                    <Label htmlFor={`capacity-${index}`}>Students Per Room</Label>
-                    <Select 
-                      value={config.capacity.toString()} 
-                      onValueChange={(value) => updateRoomConfiguration(index, 'capacity', parseInt(value))}
-                    >
-                      <SelectTrigger id={`capacity-${index}`}>
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="1">1 Student</SelectItem>
-                        <SelectItem value="2">2 Students</SelectItem>
-                        <SelectItem value="3">3 Students</SelectItem>
-                        <SelectItem value="4">4 Students</SelectItem>
-                        <SelectItem value="5">5 Students</SelectItem>
-                        <SelectItem value="6">6 Students</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  {roomConfigurations.length > 1 && (
-                    <Button
-                      type="button"
-                      variant="destructive"
-                      size="icon"
-                      onClick={() => removeRoomConfiguration(index)}
-                    >
-                      <X className="h-4 w-4" />
-                    </Button>
-                  )}
-                </div>
-              ))}
-              
-              <Button
-                type="button"
-                variant="outline"
-                onClick={addRoomConfiguration}
-                className="w-full"
-              >
-                <Plus className="h-4 w-4 mr-2" />
-                Add Another Room Configuration
-              </Button>
+              <SpaceConfigurator spaces={roomConfigurations} onSpacesChange={setRoomConfigurations} editMode={true} />
             </CardContent>
           </Card>
 
