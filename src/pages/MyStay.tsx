@@ -175,7 +175,7 @@ export default function MyStay() {
 
         {/* Quick Actions */}
         <div className="grid grid-cols-2 gap-3">
-          <Card className="cursor-pointer hover:shadow-md transition-shadow" onClick={() => navigate("/complaints")}>
+          <Card className="cursor-pointer hover:shadow-md transition-shadow" onClick={() => navigate("/student-complaints")}>
             <CardContent className="p-4 flex items-center gap-3">
               <AlertCircle className="h-5 w-5 text-orange-500" />
               <div>
@@ -184,7 +184,7 @@ export default function MyStay() {
               </div>
             </CardContent>
           </Card>
-          <Card className="cursor-pointer hover:shadow-md transition-shadow" onClick={() => navigate("/announcements")}>
+          <Card className="cursor-pointer hover:shadow-md transition-shadow" onClick={() => navigate("/student-announcements")}>
             <CardContent className="p-4 flex items-center gap-3">
               <Megaphone className="h-5 w-5 text-primary" />
               <div>

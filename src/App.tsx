@@ -102,6 +102,16 @@ const App = () => (
                   <StudentLayout><Rentals /></StudentLayout>
                 </ProtectedRoute>
               } />
+              <Route path="/student-complaints" element={
+                <ProtectedRoute userType="student">
+                  <StudentLayout><Complaints /></StudentLayout>
+                </ProtectedRoute>
+              } />
+              <Route path="/student-announcements" element={
+                <ProtectedRoute userType="student">
+                  <StudentLayout><Announcements /></StudentLayout>
+                </ProtectedRoute>
+              } />
 
               {/* Landlord routes with bottom nav */}
               <Route path="/landlord-dashboard" element={
