@@ -187,6 +187,7 @@ export default function MyProperties() {
           room_number: r.room_number,
           capacity: r.capacity,
           type: r.type || 'bedroom',
+          gender_tag: r.gender_tag || null,
           property_id: r.property_id,
           renovation_status: r.renovation_status,
           renovation_description: r.renovation_description,
