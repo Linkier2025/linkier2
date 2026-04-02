@@ -510,10 +510,8 @@ export default function PropertyDetails() {
             </CardContent>
           </Card>
         )}
-              </div>
-            </CardContent>
-          </Card>
-        )}
+
+
 
         {/* Landlord Info */}
         <Card>
