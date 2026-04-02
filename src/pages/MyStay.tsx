@@ -9,7 +9,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
 import { Skeleton } from "@/components/ui/skeleton";
-import { StudentLayout } from "@/components/StudentLayout";
+
 
 interface RoomAssignment {
   id: string;
@@ -109,34 +109,29 @@ export default function MyStay() {
 
   if (loading) {
     return (
-      <StudentLayout>
-        <div className="p-4 space-y-4">
-          <Skeleton className="h-8 w-32" />
-          <Skeleton className="h-48 w-full" />
-          <Skeleton className="h-32 w-full" />
-        </div>
-      </StudentLayout>
+      <div className="p-4 space-y-4">
+        <Skeleton className="h-8 w-32" />
+        <Skeleton className="h-48 w-full" />
+        <Skeleton className="h-32 w-full" />
+      </div>
     );
   }
 
   if (!roomAssignment) {
     return (
-      <StudentLayout>
-        <div className="flex flex-col items-center justify-center py-24 px-4 text-center">
-          <Home className="h-16 w-16 text-muted-foreground/40 mb-4" />
-          <h2 className="text-lg font-semibold">No Active Stay</h2>
-          <p className="text-sm text-muted-foreground mt-1 mb-6">
-            You don't have an active room assignment yet.
-          </p>
-          <Button onClick={() => navigate("/explore")}>Browse Properties</Button>
-        </div>
-      </StudentLayout>
+      <div className="flex flex-col items-center justify-center py-24 px-4 text-center">
+        <Home className="h-16 w-16 text-muted-foreground/40 mb-4" />
+        <h2 className="text-lg font-semibold">No Active Stay</h2>
+        <p className="text-sm text-muted-foreground mt-1 mb-6">
+          You don't have an active room assignment yet.
+        </p>
+        <Button onClick={() => navigate("/explore")}>Browse Properties</Button>
+      </div>
     );
   }
 
   return (
-    <StudentLayout>
-      <div className="px-4 pt-4 space-y-4">
+    <div className="px-4 pt-4 space-y-4">
         <h1 className="text-xl font-bold text-foreground">My Stay</h1>
 
         {/* Room Info */}
@@ -175,7 +170,7 @@ export default function MyStay() {
 
         {/* Quick Actions */}
         <div className="grid grid-cols-2 gap-3">
-          <Card className="cursor-pointer hover:shadow-md transition-shadow" onClick={() => navigate("/complaints")}>
+          <Card className="cursor-pointer hover:shadow-md transition-shadow" onClick={() => navigate("/student-complaints")}>
             <CardContent className="p-4 flex items-center gap-3">
               <AlertCircle className="h-5 w-5 text-orange-500" />
               <div>
@@ -184,7 +179,7 @@ export default function MyStay() {
               </div>
             </CardContent>
           </Card>
-          <Card className="cursor-pointer hover:shadow-md transition-shadow" onClick={() => navigate("/announcements")}>
+          <Card className="cursor-pointer hover:shadow-md transition-shadow" onClick={() => navigate("/student-announcements")}>
             <CardContent className="p-4 flex items-center gap-3">
               <Megaphone className="h-5 w-5 text-primary" />
               <div>
@@ -226,7 +221,6 @@ export default function MyStay() {
         <Button variant="outline" className="w-full" onClick={() => navigate("/rent-tracking")}>
           <DollarSign className="h-4 w-4 mr-2" /> View Rent Tracking
         </Button>
-      </div>
-    </StudentLayout>
+    </div>
   );
 }
