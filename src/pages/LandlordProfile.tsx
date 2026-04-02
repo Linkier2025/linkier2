@@ -23,7 +23,6 @@ export default function LandlordProfile() {
   const { user, profile: authProfile, updateProfile, signOut } = useAuth();
   const [loading, setLoading] = useState(false);
   const [editing, setEditing] = useState(false);
-  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [profile, setProfile] = useState<ProfileForm>({
     firstName: "",
