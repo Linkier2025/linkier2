@@ -1,10 +1,9 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
-import { ArrowLeft, Lock, LogOut, Trash2, AlertTriangle } from "lucide-react";
+import { ArrowLeft, Lock, LogOut, Trash2, AlertTriangle, Mail } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { toast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
@@ -22,10 +21,9 @@ export default function Settings() {
   const navigate = useNavigate();
   const { user, profile, signOut } = useAuth();
 
-  // Change password state
-  const [currentPassword, setCurrentPassword] = useState("");
-  const [newPassword, setNewPassword] = useState("");
-  const [passwordLoading, setPasswordLoading] = useState(false);
+  // Password reset state
+  const [resetLoading, setResetLoading] = useState(false);
+  const [resetSent, setResetSent] = useState(false);
 
   // Delete account state
   const [deleteStep, setDeleteStep] = useState<0 | 1 | 2>(0);
@@ -35,38 +33,23 @@ export default function Settings() {
 
   const dashboardRoute = profile?.user_type === "landlord" ? "/my-properties" : "/explore";
 
-  const handleChangePassword = async () => {
-    if (!currentPassword || !newPassword) {
-      toast({ title: "Error", description: "Please fill in both fields.", variant: "destructive" });
+  const handlePasswordReset = async () => {
+    if (!user?.email) {
+      toast({ title: "Error", description: "No email found for your account.", variant: "destructive" });
       return;
     }
-    if (newPassword.length < 6) {
-      toast({ title: "Error", description: "New password must be at least 6 characters.", variant: "destructive" });
-      return;
-    }
-
-    setPasswordLoading(true);
+    setResetLoading(true);
     try {
-      // Verify current password by re-signing in
-      const { error: signInError } = await supabase.auth.signInWithPassword({
-        email: user?.email || "",
-        password: currentPassword,
+      const { error } = await supabase.auth.resetPasswordForEmail(user.email, {
+        redirectTo: `${window.location.origin}/reset-password`,
       });
-      if (signInError) {
-        toast({ title: "Error", description: "Current password is incorrect.", variant: "destructive" });
-        return;
-      }
-
-      const { error } = await supabase.auth.updateUser({ password: newPassword });
       if (error) throw error;
-
-      toast({ title: "Success", description: "Password updated successfully." });
-      setCurrentPassword("");
-      setNewPassword("");
+      setResetSent(true);
+      toast({ title: "Email sent", description: "Password reset link sent to your email." });
     } catch (error: any) {
-      toast({ title: "Error", description: error.message || "Failed to update password.", variant: "destructive" });
+      toast({ title: "Error", description: error.message || "Failed to send reset email.", variant: "destructive" });
     } finally {
-      setPasswordLoading(false);
+      setResetLoading(false);
     }
   };
 
@@ -124,38 +107,35 @@ export default function Settings() {
           <h1 className="text-2xl font-bold">Settings</h1>
         </div>
 
-        {/* General — Change Password */}
+        {/* Change Password */}
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Lock className="h-5 w-5" />
               Change Password
             </CardTitle>
-            <CardDescription>Update your account password</CardDescription>
+            <CardDescription>
+              We'll send a password reset link to your email address
+            </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="currentPassword">Current Password</Label>
-              <Input
-                id="currentPassword"
-                type="password"
-                value={currentPassword}
-                onChange={(e) => setCurrentPassword(e.target.value)}
-                placeholder="Enter current password"
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="newPassword">New Password</Label>
-              <Input
-                id="newPassword"
-                type="password"
-                value={newPassword}
-                onChange={(e) => setNewPassword(e.target.value)}
-                placeholder="Enter new password"
-              />
-            </div>
-            <Button onClick={handleChangePassword} disabled={passwordLoading}>
-              {passwordLoading ? "Updating..." : "Update Password"}
+            {resetSent ? (
+              <div className="flex items-start gap-3 p-3 rounded-md bg-muted">
+                <Mail className="h-5 w-5 text-primary mt-0.5 shrink-0" />
+                <div>
+                  <p className="text-sm font-medium text-foreground">Reset link sent!</p>
+                  <p className="text-sm text-muted-foreground">
+                    Check your email at <span className="font-medium">{user?.email}</span> and follow the link to set a new password.
+                  </p>
+                </div>
+              </div>
+            ) : (
+              <p className="text-sm text-muted-foreground">
+                A password reset link will be sent to <span className="font-medium text-foreground">{user?.email}</span>
+              </p>
+            )}
+            <Button onClick={handlePasswordReset} disabled={resetLoading || resetSent}>
+              {resetLoading ? "Sending..." : resetSent ? "Email Sent" : "Send Reset Link"}
             </Button>
           </CardContent>
         </Card>
