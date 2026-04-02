@@ -61,17 +61,18 @@ export default function LandlordProfile() {
     if (!user || !validate()) return;
     setLoading(true);
     try {
-      await updateProfile({
+      const { error } = await updateProfile({
         first_name: profile.firstName.trim(),
         surname: profile.surname.trim(),
         email: profile.email,
         phone: profile.phone.trim(),
         avatar_url: profile.profilePicture,
       });
-      setOriginalProfile(profile);
-      setEditing(false);
-      setErrors({});
-      toast({ title: "Profile updated", description: "Your profile has been successfully updated." });
+      if (!error) {
+        setOriginalProfile(profile);
+        setEditing(false);
+        setErrors({});
+      }
     } catch {
       toast({ title: "Error", description: "Failed to update profile.", variant: "destructive" });
     } finally {
