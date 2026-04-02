@@ -176,6 +176,11 @@ const App = () => (
                   <Complaints />
                 </ProtectedRoute>
               } />
+              <Route path="/renovations" element={
+                <ProtectedRoute userType="landlord">
+                  <LandlordLayout><Renovations /></LandlordLayout>
+                </ProtectedRoute>
+              } />
               <Route path="/rent-tracking" element={
                 <ProtectedRoute userType="landlord">
                   <LandlordLayout><RentTracking /></LandlordLayout>

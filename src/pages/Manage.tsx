@@ -46,6 +46,13 @@ export default function Manage() {
       badge: complaintsCount > 0 ? complaintsCount : null,
     },
     {
+      label: "Renovations",
+      description: "Track and manage room renovations",
+      icon: HardHat,
+      path: "/renovations",
+      badge: null,
+    },
+    {
       label: "Notifications",
       description: "View your notifications",
       icon: Bell,
