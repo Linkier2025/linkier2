@@ -43,7 +43,7 @@ export default function Explore() {
     gender: "",
     rooms: "",
   });
-  const [favorites, setFavorites] = useState<string[]>([]);
+  const { wishlistIds: favorites, toggleWishlist: toggleFavorite } = useWishlist();
   const { toast } = useToast();
 
   useEffect(() => {
