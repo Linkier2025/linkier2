@@ -337,8 +337,13 @@ export default function AddProperty() {
 
         toast({
           title: "Property updated!",
-          description: "Your property has been successfully updated.",
+          description: "Property updated successfully.",
         });
+
+        setSavedFormData(formData);
+        setSavedRoomConfigs(roomConfigurations);
+        setSavedImages(images);
+        setEditMode(false);
       } else {
         // Insert new property
         const { data: newProperty, error } = await supabase
