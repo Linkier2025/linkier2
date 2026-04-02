@@ -7,6 +7,7 @@ import { Clock, MapPin, DoorOpen, Gift, CheckCircle, X, Eye, FileText } from "lu
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
+import { useUnreadNotifications } from "@/hooks/useUnreadNotifications";
 import { Skeleton } from "@/components/ui/skeleton";
 import { StudentLayout } from "@/components/StudentLayout";
 import {

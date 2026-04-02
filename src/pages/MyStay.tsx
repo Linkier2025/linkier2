@@ -40,9 +40,14 @@ export default function MyStay() {
   const [complaintsCount, setComplaintsCount] = useState(0);
   const [announcementsCount, setAnnouncementsCount] = useState(0);
 
+  const { markCategoryAsRead } = useUnreadNotifications();
+
   useEffect(() => {
     document.title = "My Stay | Linkier";
-    if (user) fetchStayData();
+    if (user) {
+      fetchStayData();
+      markCategoryAsRead("myStay");
+    }
   }, [user]);
 
   const fetchStayData = async () => {
