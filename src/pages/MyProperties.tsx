@@ -486,10 +486,12 @@ export default function MyProperties() {
           <div className="space-y-6">
             {properties.map((property) => {
               const roomStatuses = getRoomStatuses(property);
+              const bedroomStatuses = roomStatuses.filter(r => r.type === 'bedroom');
+              const sharedStatuses = roomStatuses.filter(r => r.type !== 'bedroom');
               const propertyRenovations = getPropertyRenovations(property.id);
-              const occupiedCount = roomStatuses.filter(r => r.current_occupants > 0).length;
-              const availableCount = roomStatuses.filter(r => !r.isFull && !r.isUnderRenovation).length;
-              const isFullyOccupied = roomStatuses.length > 0 && availableCount === 0;
+              const occupiedCount = bedroomStatuses.filter(r => r.current_occupants > 0).length;
+              const availableCount = bedroomStatuses.filter(r => !r.isFull && !r.isUnderRenovation).length;
+              const isFullyOccupied = bedroomStatuses.length > 0 && availableCount === 0;
               const underRenovationCount = roomStatuses.filter(r => r.isUnderRenovation).length;
               const isExpanded = expandedProperty === property.id;
 
