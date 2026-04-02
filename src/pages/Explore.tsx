@@ -86,22 +86,23 @@ export default function Explore() {
         const occMap: Record<string, PropertyOccupancy> = {};
         propertyIds.forEach((pid) => {
           const propRooms = (roomsData || []).filter((r) => r.property_id === pid);
-          const availableRooms = propRooms.filter((r) => {
+          const propBedrooms = propRooms.filter((r: any) => (r.type || 'bedroom') === 'bedroom');
+          const availableBedrooms = propBedrooms.filter((r) => {
             if (r.renovation_status === "under_renovation") return false;
             const occupants = assignmentCounts[r.id] || 0;
-            return occupants < r.capacity;
+            return r.capacity ? occupants < r.capacity : false;
           });
-          const totalCapacity = propRooms.reduce((sum, r) => sum + r.capacity, 0);
-          const totalOccupants = propRooms.reduce(
+          const totalCapacity = propBedrooms.reduce((sum, r) => sum + (r.capacity || 0), 0);
+          const totalOccupants = propBedrooms.reduce(
             (sum, r) => sum + (assignmentCounts[r.id] || 0),
             0
           );
           occMap[pid] = {
             totalCapacity,
             totalOccupants,
-            availableRooms: availableRooms.length,
-            totalRooms: propRooms.length,
-            isFullyOccupied: availableRooms.length === 0 && propRooms.length > 0,
+            availableRooms: availableBedrooms.length,
+            totalRooms: propBedrooms.length,
+            isFullyOccupied: availableBedrooms.length === 0 && propBedrooms.length > 0,
           };
         });
         setOccupancyMap(occMap);
