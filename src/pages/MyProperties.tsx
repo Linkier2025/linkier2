@@ -786,7 +786,7 @@ export default function MyProperties() {
                   <SelectValue placeholder="Select a room (optional)" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">General (No specific room)</SelectItem>
+                  <SelectItem value="general">General (No specific room)</SelectItem>
                   {getSelectedPropertyRooms().map((room) => (
                     <SelectItem key={room.room_number} value={room.room_number}>
                       Room {room.room_number}
