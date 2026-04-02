@@ -599,7 +599,7 @@ export default function PropertyDetails() {
                             <RadioGroupItem value={room.id} id={`room-${room.id}`} />
                             <Label htmlFor={`room-${room.id}`} className="flex-1 cursor-pointer">
                               <div className="flex justify-between items-center">
-                                <span className="font-medium">Room {room.room_number}</span>
+                                <span className="font-medium">{room.room_number}</span>
                                 <Badge variant="secondary">
                                   {room.current_occupants}/{room.capacity} occupied
                                 </Badge>
