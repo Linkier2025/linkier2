@@ -7,6 +7,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { LocationSection } from "@/components/LocationSection";
 import { StudentLayout } from "@/components/StudentLayout";
+import { useWishlist } from "@/hooks/useWishlist";
 
 interface Property {
   id: string;
@@ -42,7 +43,7 @@ export default function Explore() {
     gender: "",
     rooms: "",
   });
-  const [favorites, setFavorites] = useState<string[]>([]);
+  const { wishlistIds: favorites, toggleWishlist: toggleFavorite } = useWishlist();
   const { toast } = useToast();
 
   useEffect(() => {
@@ -116,13 +117,6 @@ export default function Explore() {
     }
   };
 
-  const toggleFavorite = (propertyId: string) => {
-    setFavorites((prev) =>
-      prev.includes(propertyId)
-        ? prev.filter((id) => id !== propertyId)
-        : [...prev, propertyId]
-    );
-  };
 
   const filteredProperties = useMemo(() => {
     return properties.filter((property) => {

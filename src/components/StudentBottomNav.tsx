@@ -1,5 +1,5 @@
 import { useLocation, useNavigate } from "react-router-dom";
-import { Search, FileText, Home, User } from "lucide-react";
+import { Search, FileText, Home, User, Heart } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface NavItem {
@@ -18,6 +18,7 @@ export function StudentBottomNav({ isTenant = false }: StudentBottomNavProps) {
 
   const navItems: NavItem[] = [
     { label: "Explore", icon: Search, path: "/explore" },
+    { label: "Saved", icon: Heart, path: "/wishlist" },
     { label: "Requests", icon: FileText, path: "/requests" },
     ...(isTenant ? [{ label: "My Stay", icon: Home, path: "/my-stay" }] : []),
     { label: "Profile", icon: User, path: "/student-profile" },

@@ -22,6 +22,7 @@ import AddProperty from "./pages/AddProperty";
 import Explore from "./pages/Explore";
 import Requests from "./pages/Requests";
 import MyStay from "./pages/MyStay";
+import Wishlist from "./pages/Wishlist";
 import Manage from "./pages/Manage";
 
 import Tenants from "./pages/Tenants";
@@ -65,6 +66,11 @@ const App = () => (
               <Route path="/requests" element={
                 <ProtectedRoute userType="student">
                   <StudentLayout><Requests /></StudentLayout>
+                </ProtectedRoute>
+              } />
+              <Route path="/wishlist" element={
+                <ProtectedRoute userType="student">
+                  <StudentLayout><Wishlist /></StudentLayout>
                 </ProtectedRoute>
               } />
               <Route path="/my-stay" element={
