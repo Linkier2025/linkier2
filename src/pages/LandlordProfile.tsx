@@ -4,21 +4,11 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Camera, Settings, LogOut, Trash2, ChevronRight, Pencil, X } from "lucide-react";
+import { Camera, Settings, LogOut, ChevronRight, Pencil, X } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
 
 interface ProfileForm {
   firstName: string;
@@ -33,7 +23,6 @@ export default function LandlordProfile() {
   const { user, profile: authProfile, updateProfile, signOut } = useAuth();
   const [loading, setLoading] = useState(false);
   const [editing, setEditing] = useState(false);
-  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [profile, setProfile] = useState<ProfileForm>({
     firstName: "",
@@ -123,17 +112,8 @@ export default function LandlordProfile() {
     navigate("/");
   };
 
-  const handleDeleteAccount = async () => {
-    try {
-      const { error } = await supabase.functions.invoke("delete-account");
-      if (error) throw error;
-      await signOut();
-      navigate("/");
-      toast({ title: "Account deleted", description: "Your account has been permanently deleted." });
-    } catch {
-      toast({ title: "Error", description: "Failed to delete account.", variant: "destructive" });
-    }
-  };
+
+
 
   return (
     <div className="px-4 pt-6 pb-4">
@@ -248,31 +228,7 @@ export default function LandlordProfile() {
               <ChevronRight className="h-5 w-5 text-muted-foreground" />
             </CardContent>
           </Card>
-          <Card className="cursor-pointer hover:shadow-md transition-shadow border-destructive/30" onClick={() => setShowDeleteDialog(true)}>
-            <CardContent className="p-4 flex items-center gap-3">
-              <Trash2 className="h-5 w-5 text-destructive" />
-              <span className="font-medium text-destructive flex-1">Delete Account</span>
-            </CardContent>
-          </Card>
         </div>
-
-        {/* Delete Confirmation */}
-        <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
-          <AlertDialogContent>
-            <AlertDialogHeader>
-              <AlertDialogTitle>Delete Account</AlertDialogTitle>
-              <AlertDialogDescription>
-                This action is permanent. All your properties, tenants, and data will be removed.
-              </AlertDialogDescription>
-            </AlertDialogHeader>
-            <AlertDialogFooter>
-              <AlertDialogCancel>Cancel</AlertDialogCancel>
-              <AlertDialogAction onClick={handleDeleteAccount} className="bg-destructive hover:bg-destructive/90">
-                Delete Account
-              </AlertDialogAction>
-            </AlertDialogFooter>
-          </AlertDialogContent>
-        </AlertDialog>
       </div>
     </div>
   );
