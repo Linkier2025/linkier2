@@ -18,10 +18,21 @@ type RoomConfiguration = {
   capacity: number;
 };
 
+function ViewField({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="space-y-1">
+      <p className="text-sm font-medium text-muted-foreground">{label}</p>
+      <p className="text-sm text-foreground">{value || "—"}</p>
+    </div>
+  );
+}
+
 export default function AddProperty() {
   const navigate = useNavigate();
   const { id } = useParams();
   const { user } = useAuth();
+  const isEditing = !!id;
+  const [editMode, setEditMode] = useState(!isEditing);
   const [images, setImages] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
   const [roomConfigurations, setRoomConfigurations] = useState<RoomConfiguration[]>([
@@ -40,6 +51,9 @@ export default function AddProperty() {
     boardingHouseName: "",
     totalRooms: ""
   });
+  const [savedFormData, setSavedFormData] = useState(formData);
+  const [savedRoomConfigs, setSavedRoomConfigs] = useState(roomConfigurations);
+  const [savedImages, setSavedImages] = useState(images);
 
   useEffect(() => {
     if (id) {
@@ -60,7 +74,7 @@ export default function AddProperty() {
       if (error) throw error;
 
       if (data) {
-        setFormData({
+        const fd = {
           title: data.title || "",
           rent: data.rent_amount?.toString() || "",
           location: data.location || "",
@@ -72,10 +86,14 @@ export default function AddProperty() {
           houseNumber: data.house_number || "",
           boardingHouseName: data.boarding_house_name || "",
           totalRooms: data.total_rooms?.toString() || ""
-        });
+        };
+        setFormData(fd);
+        setSavedFormData(fd);
         setImages(data.images || []);
+        setSavedImages(data.images || []);
         if (data.room_configurations && Array.isArray(data.room_configurations) && data.room_configurations.length > 0) {
           setRoomConfigurations(data.room_configurations as RoomConfiguration[]);
+          setSavedRoomConfigs(data.room_configurations as RoomConfiguration[]);
         }
       }
     } catch (error) {
@@ -319,8 +337,13 @@ export default function AddProperty() {
 
         toast({
           title: "Property updated!",
-          description: "Your property has been successfully updated.",
+          description: "Property updated successfully.",
         });
+
+        setSavedFormData(formData);
+        setSavedRoomConfigs(roomConfigurations);
+        setSavedImages(images);
+        setEditMode(false);
       } else {
         // Insert new property
         const { data: newProperty, error } = await supabase
@@ -355,16 +378,143 @@ export default function AddProperty() {
     }
   };
 
+  const handleCancel = () => {
+    setFormData(savedFormData);
+    setRoomConfigurations(savedRoomConfigs);
+    setImages(savedImages);
+    setEditMode(false);
+  };
+
+  const handleStartEdit = () => {
+    setSavedFormData(formData);
+    setSavedRoomConfigs(roomConfigurations);
+    setSavedImages(images);
+    setEditMode(true);
+  };
+
+  const universityLabels: Record<string, string> = {
+    uz: "University of Zimbabwe",
+    nust: "National University of Science and Technology",
+    msu: "Midlands State University",
+    hit: "Harare Institute of Technology",
+    cut: "Chinhoyi University of Technology",
+    gzu: "Great Zimbabwe University",
+    buse: "Bindura University of Science Education",
+    lsu: "Lupane State University",
+  };
+
+  const genderLabels: Record<string, string> = {
+    boys: "Boys Only",
+    girls: "Girls Only",
+    mixed: "Mixed",
+  };
+
+  // View mode for existing properties
+  if (isEditing && !editMode) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-background to-secondary/20 p-4">
+        <div className="max-w-2xl mx-auto space-y-6">
+          <div className="flex items-center gap-4">
+            <Link to="/my-properties">
+              <Button variant="ghost" size="icon">
+                <ArrowLeft className="h-5 w-5" />
+              </Button>
+            </Link>
+            <h1 className="text-2xl font-bold flex-1">Property Details</h1>
+            <Button onClick={handleStartEdit}>Edit Property</Button>
+          </div>
+
+          <Card>
+            <CardHeader><CardTitle>Property Details</CardTitle></CardHeader>
+            <CardContent className="space-y-4">
+              <ViewField label="Property Title" value={formData.title} />
+              <div className="grid grid-cols-2 gap-4">
+                <ViewField label="Monthly Rent (USD)" value={formData.rent ? `$${formData.rent}` : "—"} />
+                <ViewField label="Rooms Available" value={formData.rooms ? `${formData.rooms} Room(s)` : "—"} />
+              </div>
+              <ViewField label="Location" value={formData.location} />
+              <div className="grid grid-cols-2 gap-4">
+                <ViewField label="House Number" value={formData.houseNumber} />
+                <ViewField label="Boarding House Name" value={formData.boardingHouseName} />
+              </div>
+              <ViewField label="Total Rooms" value={formData.totalRooms} />
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader><CardTitle>Room Configurations</CardTitle></CardHeader>
+            <CardContent className="space-y-3">
+              {roomConfigurations.map((config, i) => (
+                <div key={i} className="flex items-center gap-4 p-3 rounded-md bg-muted/50">
+                  <span className="text-sm font-medium">Room {config.room_number}</span>
+                  <span className="text-sm text-muted-foreground">— {config.capacity} student(s)</span>
+                </div>
+              ))}
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader><CardTitle>Additional Information</CardTitle></CardHeader>
+            <CardContent className="space-y-4">
+              <div className="grid grid-cols-2 gap-4">
+                <ViewField label="Nearest University" value={universityLabels[formData.university] || formData.university} />
+                <ViewField label="Gender Preference" value={genderLabels[formData.gender] || formData.gender} />
+              </div>
+              <ViewField label="Description" value={formData.description} />
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader><CardTitle>Amenities</CardTitle></CardHeader>
+            <CardContent>
+              {formData.amenities.length > 0 ? (
+                <div className="flex flex-wrap gap-2">
+                  {formData.amenities.map((a) => (
+                    <Badge key={a} variant="secondary">{a}</Badge>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-sm text-muted-foreground">No amenities listed</p>
+              )}
+            </CardContent>
+          </Card>
+
+          {images.length > 0 && (
+            <Card>
+              <CardHeader><CardTitle>Property Images</CardTitle></CardHeader>
+              <CardContent>
+                <div className="flex gap-3 overflow-x-auto pb-2">
+                  {images.map((image, index) => (
+                    <div key={index} className="relative flex-shrink-0 w-40">
+                      <img src={image} alt={`Property ${index + 1}`} className="w-40 h-32 object-cover rounded-lg" />
+                      {index === 0 && <Badge className="absolute bottom-2 left-2 text-xs">Main</Badge>}
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          )}
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-background to-secondary/20 p-4">
       <div className="max-w-2xl mx-auto space-y-6">
         <div className="flex items-center gap-4">
-          <Link to="/my-properties">
-            <Button variant="ghost" size="icon">
+          {isEditing ? (
+            <Button variant="ghost" size="icon" onClick={handleCancel}>
               <ArrowLeft className="h-5 w-5" />
             </Button>
-          </Link>
-          <h1 className="text-2xl font-bold">{id ? 'Edit Property' : 'Add New Property'}</h1>
+          ) : (
+            <Link to="/my-properties">
+              <Button variant="ghost" size="icon">
+                <ArrowLeft className="h-5 w-5" />
+              </Button>
+            </Link>
+          )}
+          <h1 className="text-2xl font-bold">{isEditing ? 'Edit Property' : 'Add New Property'}</h1>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-6">
@@ -677,9 +827,16 @@ export default function AddProperty() {
             </CardContent>
           </Card>
 
-          <Button type="submit" size="lg" className="w-full" disabled={loading}>
-            {loading ? 'Saving...' : id ? 'Update Property' : 'Add Property'}
-          </Button>
+          <div className="flex gap-3">
+            {isEditing && (
+              <Button type="button" variant="outline" size="lg" className="flex-1" onClick={handleCancel}>
+                Cancel
+              </Button>
+            )}
+            <Button type="submit" size="lg" className="flex-1" disabled={loading}>
+              {loading ? 'Saving...' : isEditing ? 'Save Changes' : 'Add Property'}
+            </Button>
+          </div>
         </form>
       </div>
     </div>
