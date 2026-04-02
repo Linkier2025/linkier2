@@ -175,12 +175,12 @@ export default function StudentProfile() {
                   </label>
                 )}
               </div>
-              <div className="flex-1">
-                <h2 className="text-xl font-semibold text-foreground">
+              <div className="flex-1 min-w-0">
+                <h2 className="text-xl font-semibold text-foreground truncate">
                   {profile.firstName} {profile.surname}
                 </h2>
                 <p className="text-sm text-muted-foreground">Student</p>
-                <p className="text-sm text-muted-foreground">{profile.email}</p>
+                <p className="text-sm text-muted-foreground truncate">{profile.email}</p>
               </div>
             </div>
           </CardContent>
@@ -291,109 +291,6 @@ export default function StudentProfile() {
                 <div>
                   <p className="text-xs text-muted-foreground mb-0.5">Year of Study</p>
                   <p className="text-sm font-medium text-foreground break-words">{YEAR_LABELS[profile.yearOfStudy] || "—"}</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        )}
-
-
-                <div className="space-y-2">
-                  <Label htmlFor="surname">Surname</Label>
-                  <Input id="surname" value={profile.surname} onChange={(e) => setProfile({ ...profile, surname: e.target.value })} />
-                  {errors.surname && <p className="text-xs text-destructive">{errors.surname}</p>}
-                </div>
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="phone">Phone Number</Label>
-                <Input id="phone" value={profile.phone} onChange={(e) => setProfile({ ...profile, phone: e.target.value })} />
-                {errors.phone && <p className="text-xs text-destructive">{errors.phone}</p>}
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="gender">Gender</Label>
-                <Select value={profile.gender} onValueChange={(v) => setProfile({ ...profile, gender: v })}>
-                  <SelectTrigger><SelectValue /></SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="male">Male</SelectItem>
-                    <SelectItem value="female">Female</SelectItem>
-                    <SelectItem value="other">Other</SelectItem>
-                  </SelectContent>
-                </Select>
-                {errors.gender && <p className="text-xs text-destructive">{errors.gender}</p>}
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="university">University</Label>
-                <Select value={profile.university} onValueChange={(v) => setProfile({ ...profile, university: v })}>
-                  <SelectTrigger><SelectValue /></SelectTrigger>
-                  <SelectContent>
-                    {UNIVERSITIES.map((u) => (
-                      <SelectItem key={u} value={u}>{u}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="yearOfStudy">Year of Study</Label>
-                <Select value={profile.yearOfStudy} onValueChange={(v) => setProfile({ ...profile, yearOfStudy: v })}>
-                  <SelectTrigger><SelectValue /></SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="1">1st Year</SelectItem>
-                    <SelectItem value="2">2nd Year</SelectItem>
-                    <SelectItem value="3">3rd Year</SelectItem>
-                    <SelectItem value="4">4th Year</SelectItem>
-                    <SelectItem value="postgrad">Postgraduate</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div className="flex gap-3 pt-2">
-                <Button onClick={handleSave} className="flex-1" disabled={loading}>
-                  {loading ? "Saving..." : "Save Changes"}
-                </Button>
-                <Button variant="outline" onClick={handleCancel}>
-                  <X className="h-4 w-4 mr-1" /> Cancel
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-        ) : (
-          <Card>
-            <CardContent className="p-6 space-y-4">
-              <div className="flex items-center justify-between mb-2">
-                <h3 className="font-semibold text-foreground">Personal Information</h3>
-                <Button variant="ghost" size="sm" onClick={() => setEditing(true)}>
-                  <Pencil className="h-4 w-4 mr-1" /> Edit
-                </Button>
-              </div>
-
-              <div className="grid grid-cols-2 gap-y-4 gap-x-6">
-                <div>
-                  <p className="text-xs text-muted-foreground">First Name</p>
-                  <p className="text-sm font-medium text-foreground">{profile.firstName || "—"}</p>
-                </div>
-                <div>
-                  <p className="text-xs text-muted-foreground">Surname</p>
-                  <p className="text-sm font-medium text-foreground">{profile.surname || "—"}</p>
-                </div>
-                <div>
-                  <p className="text-xs text-muted-foreground">Phone</p>
-                  <p className="text-sm font-medium text-foreground">{profile.phone || "—"}</p>
-                </div>
-                <div>
-                  <p className="text-xs text-muted-foreground">Gender</p>
-                  <p className="text-sm font-medium text-foreground">{GENDER_LABELS[profile.gender] || "—"}</p>
-                </div>
-                <div>
-                  <p className="text-xs text-muted-foreground">University</p>
-                  <p className="text-sm font-medium text-foreground">{profile.university || "—"}</p>
-                </div>
-                <div>
-                  <p className="text-xs text-muted-foreground">Year of Study</p>
-                  <p className="text-sm font-medium text-foreground">{YEAR_LABELS[profile.yearOfStudy] || "—"}</p>
                 </div>
               </div>
             </CardContent>
