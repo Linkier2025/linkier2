@@ -4,6 +4,7 @@ import { Megaphone, MessageSquare, ChevronRight, Bell, HardHat } from "lucide-re
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { useState, useEffect } from "react";
+import { useUnreadNotifications } from "@/hooks/useUnreadNotifications";
 
 export default function Manage() {
   const navigate = useNavigate();
