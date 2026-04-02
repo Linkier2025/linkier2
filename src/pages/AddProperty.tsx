@@ -281,16 +281,22 @@ export default function AddProperty() {
           property_id: propertyId,
           room_number: c.room_number,
           capacity: c.capacity,
+          type: c.type || 'bedroom',
+          gender_tag: c.gender_tag || null,
         }))
       );
     }
 
-    // Update capacity for existing rooms
+    // Update existing rooms
     const toUpdate = configs.filter(c => existingRoomNumbers.has(c.room_number));
     for (const config of toUpdate) {
       const room = (existingRooms || []).find(r => r.room_number === config.room_number);
       if (room) {
-        await supabase.from('rooms').update({ capacity: config.capacity }).eq('id', room.id);
+        await supabase.from('rooms').update({
+          capacity: config.capacity,
+          type: config.type || 'bedroom',
+          gender_tag: config.gender_tag || null,
+        }).eq('id', room.id);
       }
     }
   };
