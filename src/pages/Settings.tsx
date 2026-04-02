@@ -118,6 +118,30 @@ export default function Settings() {
           <h1 className="text-2xl font-bold">Settings</h1>
         </div>
 
+        {/* Appearance */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              {isDark ? <Moon className="h-5 w-5" /> : <Sun className="h-5 w-5" />}
+              Appearance
+            </CardTitle>
+            <CardDescription>
+              Customize how Linkier looks for you
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-foreground">Dark Mode</p>
+                <p className="text-sm text-muted-foreground">
+                  {isDark ? "Dark theme is active" : "Light theme is active"}
+                </p>
+              </div>
+              <Switch checked={isDark} onCheckedChange={toggleTheme} />
+            </div>
+          </CardContent>
+        </Card>
+
         {/* Change Password */}
         <Card>
           <CardHeader>
