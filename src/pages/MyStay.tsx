@@ -119,16 +119,14 @@ export default function MyStay() {
 
   if (!roomAssignment) {
     return (
-      <StudentLayout>
-        <div className="flex flex-col items-center justify-center py-24 px-4 text-center">
-          <Home className="h-16 w-16 text-muted-foreground/40 mb-4" />
-          <h2 className="text-lg font-semibold">No Active Stay</h2>
-          <p className="text-sm text-muted-foreground mt-1 mb-6">
-            You don't have an active room assignment yet.
-          </p>
-          <Button onClick={() => navigate("/explore")}>Browse Properties</Button>
-        </div>
-      </StudentLayout>
+      <div className="flex flex-col items-center justify-center py-24 px-4 text-center">
+        <Home className="h-16 w-16 text-muted-foreground/40 mb-4" />
+        <h2 className="text-lg font-semibold">No Active Stay</h2>
+        <p className="text-sm text-muted-foreground mt-1 mb-6">
+          You don't have an active room assignment yet.
+        </p>
+        <Button onClick={() => navigate("/explore")}>Browse Properties</Button>
+      </div>
     );
   }
 
