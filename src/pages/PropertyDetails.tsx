@@ -3,7 +3,7 @@ import { useParams, Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { ArrowLeft, MapPin, Users, Star, Heart, Calendar, Home, MessageCircle, DoorOpen } from "lucide-react";
+import { ArrowLeft, MapPin, Users, Star, Heart, Calendar, Home, MessageCircle, DoorOpen, Sofa } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -14,16 +14,19 @@ import { ContactOptionsSheet } from "@/components/ContactOptionsSheet";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
 import { RoomFurnitureManager } from "@/components/RoomFurnitureManager";
+import { getSpaceTypeLabel, getSpaceTypeIcon } from "@/lib/spaceConfig";
 
 interface RoomInfo {
   id: string;
   room_number: string;
-  capacity: number;
+  type: string;
+  capacity: number | null;
   current_occupants: number;
   renovation_status: string;
   renovation_description: string | null;
   renovation_start_date: string | null;
   renovation_end_date: string | null;
+  gender_tag: string | null;
 }
 
 interface PropertyData {
@@ -92,7 +95,7 @@ export default function PropertyDetails() {
         // Fetch rooms with occupancy
         const { data: roomsData, error: roomsError } = await supabase
           .from('rooms')
-          .select('id, room_number, capacity, renovation_status, renovation_description, renovation_start_date, renovation_end_date')
+          .select('id, room_number, capacity, type, gender_tag, renovation_status, renovation_description, renovation_start_date, renovation_end_date')
           .eq('property_id', id!)
           .order('room_number');
 
@@ -101,21 +104,28 @@ export default function PropertyDetails() {
         // Get occupancy counts for each room
         const roomsWithOccupancy: RoomInfo[] = [];
         for (const room of roomsData || []) {
-          const { count } = await supabase
-            .from('room_assignments')
-            .select('*', { count: 'exact', head: true })
-            .eq('room_id', room.id)
-            .in('status', ['active', 'reserved']);
+          const roomType = (room as any).type || 'bedroom';
+          let currentOccupants = 0;
+          if (roomType === 'bedroom') {
+            const { count } = await supabase
+              .from('room_assignments')
+              .select('*', { count: 'exact', head: true })
+              .eq('room_id', room.id)
+              .in('status', ['active', 'reserved']);
+            currentOccupants = count || 0;
+          }
 
           roomsWithOccupancy.push({
             id: room.id,
             room_number: room.room_number,
+            type: roomType,
             capacity: room.capacity,
-            current_occupants: count || 0,
+            current_occupants: currentOccupants,
             renovation_status: (room as any).renovation_status || 'available',
             renovation_description: (room as any).renovation_description || null,
             renovation_start_date: (room as any).renovation_start_date || null,
             renovation_end_date: (room as any).renovation_end_date || null,
+            gender_tag: (room as any).gender_tag || null,
           });
         }
 
@@ -244,7 +254,9 @@ export default function PropertyDetails() {
     ? property.images 
     : ["/placeholder.svg"];
 
-  const availableRooms = rooms.filter(r => r.current_occupants < r.capacity && r.renovation_status !== 'under_renovation');
+  const bedrooms = rooms.filter(r => r.type === 'bedroom');
+  const sharedSpaces = rooms.filter(r => r.type !== 'bedroom');
+  const availableRooms = bedrooms.filter(r => r.capacity && r.current_occupants < r.capacity && r.renovation_status !== 'under_renovation');
 
   return (
     <div className="min-h-screen bg-background p-4">
@@ -384,36 +396,41 @@ export default function PropertyDetails() {
           </CardContent>
         </Card>
 
-        {/* Available Rooms */}
-        {rooms.length > 0 && (
+        {/* Bedrooms */}
+        {bedrooms.length > 0 && (
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <DoorOpen className="h-5 w-5" />
-                Available Rooms
+                Bedrooms
               </CardTitle>
             </CardHeader>
             <CardContent>
               <div className="grid gap-3">
-                {rooms.map((room) => {
-                  const isFull = room.current_occupants >= room.capacity;
+                {bedrooms.map((room) => {
+                  const isFull = room.capacity ? room.current_occupants >= room.capacity : false;
                   const isRenovation = room.renovation_status === 'under_renovation';
                   return (
                     <div
                       key={room.id}
                       className={`flex items-center justify-between p-4 rounded-lg border ${
-                        isRenovation ? 'bg-amber-50 border-amber-300 opacity-70' : isFull ? 'bg-muted/50 opacity-60' : 'bg-background'
+                        isRenovation ? 'border-amber-500/50 opacity-70' : isFull ? 'bg-muted/50 opacity-60' : 'bg-background'
                       }`}
                     >
                       <div className="flex items-center gap-3">
-                        <DoorOpen className="h-5 w-5 text-muted-foreground" />
+                        <span className="text-xl">{getSpaceTypeIcon(room.type)}</span>
                         <div>
-                          <p className="font-medium">Room {room.room_number}</p>
-                          <p className="text-sm text-muted-foreground">
-                            Capacity: {room.capacity} student{room.capacity > 1 ? 's' : ''}
-                          </p>
+                          <p className="font-medium">{room.room_number}</p>
+                          {room.capacity && (
+                            <p className="text-sm text-muted-foreground">
+                              Capacity: {room.capacity} student{room.capacity > 1 ? 's' : ''}
+                            </p>
+                          )}
+                          {room.gender_tag && (
+                            <Badge variant="outline" className="text-xs mt-1">{room.gender_tag}</Badge>
+                          )}
                           {isRenovation && room.renovation_description && (
-                            <p className="text-xs text-orange-600 mt-1">{room.renovation_description}</p>
+                            <p className="text-xs text-destructive mt-1">{room.renovation_description}</p>
                           )}
                           {isRenovation && room.renovation_end_date && (
                             <p className="text-xs text-muted-foreground mt-0.5">
@@ -421,14 +438,14 @@ export default function PropertyDetails() {
                             </p>
                           )}
                           <div className="mt-2">
-                            <RoomFurnitureManager roomId={room.id} readOnly />
+                            <RoomFurnitureManager roomId={room.id} readOnly spaceType={room.type} />
                           </div>
                         </div>
                       </div>
                       <div className="flex items-center gap-2">
                         {isRenovation ? (
                           <Badge variant="outline" className="border-amber-500 text-amber-700">🔧 Under Renovation</Badge>
-                        ) : (
+                        ) : room.capacity ? (
                           <>
                             <Badge variant={isFull ? "destructive" : "secondary"}>
                               {room.current_occupants}/{room.capacity} occupied
@@ -437,7 +454,7 @@ export default function PropertyDetails() {
                               <Badge variant="outline" className="text-destructive">Full</Badge>
                             )}
                           </>
-                        )}
+                        ) : null}
                       </div>
                     </div>
                   );
@@ -446,6 +463,55 @@ export default function PropertyDetails() {
             </CardContent>
           </Card>
         )}
+
+        {/* Shared Spaces */}
+        {sharedSpaces.length > 0 && (
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Sofa className="h-5 w-5" />
+                Shared Spaces
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="grid gap-3">
+                {sharedSpaces.map((space) => {
+                  const isRenovation = space.renovation_status === 'under_renovation';
+                  return (
+                    <div
+                      key={space.id}
+                      className={`flex items-center justify-between p-4 rounded-lg border ${
+                        isRenovation ? 'border-amber-500/50 opacity-70' : 'bg-background'
+                      }`}
+                    >
+                      <div className="flex items-center gap-3">
+                        <span className="text-xl">{getSpaceTypeIcon(space.type)}</span>
+                        <div>
+                          <p className="font-medium">{space.room_number}</p>
+                          <Badge variant="secondary" className="text-xs">{getSpaceTypeLabel(space.type)}</Badge>
+                          {space.gender_tag && (
+                            <Badge variant="outline" className="text-xs ml-1">{space.gender_tag}</Badge>
+                          )}
+                          {isRenovation && space.renovation_description && (
+                            <p className="text-xs text-destructive mt-1">{space.renovation_description}</p>
+                          )}
+                          <div className="mt-2">
+                            <RoomFurnitureManager roomId={space.id} readOnly spaceType={space.type} />
+                          </div>
+                        </div>
+                      </div>
+                      {isRenovation && (
+                        <Badge variant="outline" className="border-amber-500 text-amber-700">🔧 Under Renovation</Badge>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
+
 
         {/* Landlord Info */}
         <Card>
@@ -515,7 +581,7 @@ export default function PropertyDetails() {
               <DialogTrigger asChild>
                 <Button size="lg" className="flex-1 min-w-0" disabled={availableRooms.length === 0}>
                   <Home className="mr-2 h-5 w-5 shrink-0" />
-                  <span className="truncate">{availableRooms.length === 0 ? "No Rooms Available" : "Request Room"}</span>
+                  <span className="truncate">{availableRooms.length === 0 ? "No Bedrooms Available" : "Request Bedroom"}</span>
                 </Button>
               </DialogTrigger>
               <DialogContent>
@@ -533,7 +599,7 @@ export default function PropertyDetails() {
                             <RadioGroupItem value={room.id} id={`room-${room.id}`} />
                             <Label htmlFor={`room-${room.id}`} className="flex-1 cursor-pointer">
                               <div className="flex justify-between items-center">
-                                <span className="font-medium">Room {room.room_number}</span>
+                                <span className="font-medium">{room.room_number}</span>
                                 <Badge variant="secondary">
                                   {room.current_occupants}/{room.capacity} occupied
                                 </Badge>

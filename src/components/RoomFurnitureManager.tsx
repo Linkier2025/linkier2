@@ -6,20 +6,12 @@ import { Input } from "@/components/ui/input";
 import { Plus, Trash2, Package, Loader2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
+import { getValidFurnitureForSpace } from "@/lib/spaceConfig";
 
-const FURNITURE_ITEMS = [
-  "Study Chair",
-  "Study Table",
-  "Garden Chairs",
-  "Mattress",
-  "Bed Base",
-  "Cabinet",
-  "Stove",
-  "Refrigerator",
-  "Bench",
-  "Dishwasher",
-  "Washing Machine",
-  "WiFi Router / Starlink",
+const ALL_FURNITURE_ITEMS = [
+  "Study Chair", "Study Table", "Garden Chairs", "Mattress",
+  "Bed Base", "Cabinet", "Stove", "Refrigerator", "Bench",
+  "Dishwasher", "Washing Machine", "WiFi Router / Starlink",
 ];
 
 interface FurnitureItem {
@@ -32,9 +24,10 @@ interface FurnitureItem {
 interface RoomFurnitureManagerProps {
   roomId: string;
   readOnly?: boolean;
+  spaceType?: string;
 }
 
-export function RoomFurnitureManager({ roomId, readOnly = false }: RoomFurnitureManagerProps) {
+export function RoomFurnitureManager({ roomId, readOnly = false, spaceType = "bedroom" }: RoomFurnitureManagerProps) {
   const [items, setItems] = useState<FurnitureItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [adding, setAdding] = useState(false);
@@ -52,20 +45,24 @@ export function RoomFurnitureManager({ roomId, readOnly = false }: RoomFurniture
       .select("*")
       .eq("room_id", roomId)
       .order("item_name");
-
     if (!error) setItems(data || []);
     setLoading(false);
   };
 
   const handleAdd = async () => {
     if (!newItem) return;
+    // Validate item is allowed for this space type
+    const validItems = getValidFurnitureForSpace(spaceType);
+    if (validItems.length > 0 && !validItems.includes(newItem)) {
+      toast({ title: "Not allowed", description: `"${newItem}" is not allowed in this space type.`, variant: "destructive" });
+      return;
+    }
     setAdding(true);
     const { data, error } = await supabase
       .from("room_furniture")
       .insert({ room_id: roomId, item_name: newItem, quantity: newQty })
       .select()
       .single();
-
     if (error) {
       toast({ title: "Error", description: "Failed to add item", variant: "destructive" });
     } else {
@@ -83,7 +80,6 @@ export function RoomFurnitureManager({ roomId, readOnly = false }: RoomFurniture
       .from("room_furniture")
       .update({ quantity })
       .eq("id", id);
-
     if (!error) {
       setItems(prev => prev.map(i => i.id === id ? { ...i, quantity } : i));
     }
@@ -94,7 +90,6 @@ export function RoomFurnitureManager({ roomId, readOnly = false }: RoomFurniture
       .from("room_furniture")
       .delete()
       .eq("id", id);
-
     if (!error) {
       setItems(prev => prev.filter(i => i.id !== id));
       toast({ title: "Item removed" });
@@ -103,24 +98,20 @@ export function RoomFurnitureManager({ roomId, readOnly = false }: RoomFurniture
 
   const getItemIcon = (name: string) => {
     const icons: Record<string, string> = {
-      "Study Chair": "🪑",
-      "Study Table": "🪵",
-      "Garden Chairs": "🪑",
-      "Mattress": "🛏",
-      "Bed Base": "🛏",
-      "Cabinet": "🗄",
-      "Stove": "🍳",
-      "Refrigerator": "🧊",
-      "Bench": "🪑",
-      "Dishwasher": "🍽",
-      "Washing Machine": "🧺",
+      "Study Chair": "🪑", "Study Table": "🪵", "Garden Chairs": "🪑",
+      "Mattress": "🛏", "Bed Base": "🛏", "Cabinet": "🗄",
+      "Stove": "🍳", "Refrigerator": "🧊", "Bench": "🪑",
+      "Dishwasher": "🍽", "Washing Machine": "🧺",
       "WiFi Router / Starlink": "📶",
     };
     return icons[name] || "📦";
   };
 
+  // Filter available items based on space type
+  const validForType = getValidFurnitureForSpace(spaceType);
+  const allowedItems = validForType.length > 0 ? ALL_FURNITURE_ITEMS.filter(n => validForType.includes(n)) : ALL_FURNITURE_ITEMS;
   const existingNames = items.map(i => i.item_name);
-  const availableItems = FURNITURE_ITEMS.filter(name => !existingNames.includes(name));
+  const availableItems = allowedItems.filter(name => !existingNames.includes(name));
 
   if (loading) {
     return (
@@ -164,31 +155,15 @@ export function RoomFurnitureManager({ roomId, readOnly = false }: RoomFurniture
               <span className="text-base">{getItemIcon(item.item_name)}</span>
               <span className="text-sm font-medium flex-1">{item.item_name}</span>
               <div className="flex items-center gap-1">
-                <Button
-                  variant="outline"
-                  size="icon"
-                  className="h-6 w-6"
+                <Button variant="outline" size="icon" className="h-6 w-6"
                   onClick={() => handleUpdateQty(item.id, item.quantity - 1)}
-                  disabled={item.quantity <= 1}
-                >
-                  -
-                </Button>
+                  disabled={item.quantity <= 1}>-</Button>
                 <span className="w-6 text-center text-sm">{item.quantity}</span>
-                <Button
-                  variant="outline"
-                  size="icon"
-                  className="h-6 w-6"
-                  onClick={() => handleUpdateQty(item.id, item.quantity + 1)}
-                >
-                  +
-                </Button>
+                <Button variant="outline" size="icon" className="h-6 w-6"
+                  onClick={() => handleUpdateQty(item.id, item.quantity + 1)}>+</Button>
               </div>
-              <Button
-                variant="ghost"
-                size="icon"
-                className="h-6 w-6 text-destructive hover:text-destructive"
-                onClick={() => handleDelete(item.id)}
-              >
+              <Button variant="ghost" size="icon" className="h-6 w-6 text-destructive hover:text-destructive"
+                onClick={() => handleDelete(item.id)}>
                 <Trash2 className="h-3 w-3" />
               </Button>
             </div>
@@ -210,13 +185,9 @@ export function RoomFurnitureManager({ roomId, readOnly = false }: RoomFurniture
               ))}
             </SelectContent>
           </Select>
-          <Input
-            type="number"
-            min={1}
-            value={newQty}
+          <Input type="number" min={1} value={newQty}
             onChange={e => setNewQty(Math.max(1, parseInt(e.target.value) || 1))}
-            className="w-16 h-9 text-sm"
-          />
+            className="w-16 h-9 text-sm" />
           <Button size="sm" className="h-9" onClick={handleAdd} disabled={!newItem || adding}>
             {adding ? <Loader2 className="h-3 w-3 animate-spin" /> : <Plus className="h-3 w-3" />}
           </Button>
@@ -226,8 +197,12 @@ export function RoomFurnitureManager({ roomId, readOnly = false }: RoomFurniture
       {items.length === 0 && availableItems.length > 0 && (
         <p className="text-xs text-muted-foreground">No items added yet</p>
       )}
+
+      {validForType.length === 0 && (
+        <p className="text-xs text-muted-foreground">No furniture items applicable for this space type</p>
+      )}
     </div>
   );
 }
 
-export { FURNITURE_ITEMS };
+export { ALL_FURNITURE_ITEMS as FURNITURE_ITEMS };

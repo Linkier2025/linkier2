@@ -12,11 +12,9 @@ import { Link, useNavigate, useParams } from "react-router-dom";
 import { toast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
+import { SpaceConfigurator, SpaceConfiguration } from "@/components/SpaceConfigurator";
 
-type RoomConfiguration = {
-  room_number: string;
-  capacity: number;
-};
+type RoomConfiguration = SpaceConfiguration;
 
 function ViewField({ label, value }: { label: string; value: string }) {
   return (
@@ -36,7 +34,7 @@ export default function AddProperty() {
   const [images, setImages] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
   const [roomConfigurations, setRoomConfigurations] = useState<RoomConfiguration[]>([
-    { room_number: "1", capacity: 1 }
+    { room_number: "Room 1", type: "bedroom", capacity: 1, gender_tag: null }
   ]);
   const [formData, setFormData] = useState({
     title: "",
@@ -92,8 +90,15 @@ export default function AddProperty() {
         setImages(data.images || []);
         setSavedImages(data.images || []);
         if (data.room_configurations && Array.isArray(data.room_configurations) && data.room_configurations.length > 0) {
-          setRoomConfigurations(data.room_configurations as RoomConfiguration[]);
-          setSavedRoomConfigs(data.room_configurations as RoomConfiguration[]);
+          // Migrate old configs that don't have type
+          const configs = (data.room_configurations as any[]).map(c => ({
+            room_number: c.room_number || c.name || `Room ${c.room_number}`,
+            type: c.type || 'bedroom',
+            capacity: c.capacity ?? (c.type === 'bedroom' || !c.type ? 1 : null),
+            gender_tag: c.gender_tag || null,
+          })) as RoomConfiguration[];
+          setRoomConfigurations(configs);
+          setSavedRoomConfigs(configs);
         }
       }
     } catch (error) {
@@ -229,7 +234,7 @@ export default function AddProperty() {
   const addRoomConfiguration = () => {
     setRoomConfigurations(prev => [
       ...prev,
-      { room_number: (prev.length + 1).toString(), capacity: 1 }
+      { room_number: `Room ${prev.length + 1}`, type: "bedroom" as const, capacity: 1, gender_tag: null }
     ]);
   };
 
@@ -276,16 +281,22 @@ export default function AddProperty() {
           property_id: propertyId,
           room_number: c.room_number,
           capacity: c.capacity,
+          type: c.type || 'bedroom',
+          gender_tag: c.gender_tag || null,
         }))
       );
     }
 
-    // Update capacity for existing rooms
+    // Update existing rooms
     const toUpdate = configs.filter(c => existingRoomNumbers.has(c.room_number));
     for (const config of toUpdate) {
       const room = (existingRooms || []).find(r => r.room_number === config.room_number);
       if (room) {
-        await supabase.from('rooms').update({ capacity: config.capacity }).eq('id', room.id);
+        await supabase.from('rooms').update({
+          capacity: config.capacity,
+          type: config.type || 'bedroom',
+          gender_tag: config.gender_tag || null,
+        }).eq('id', room.id);
       }
     }
   };
@@ -319,7 +330,7 @@ export default function AddProperty() {
         house_number: formData.houseNumber,
         boarding_house_name: formData.boardingHouseName,
         total_rooms: formData.totalRooms ? parseInt(formData.totalRooms) : null,
-        room_configurations: roomConfigurations,
+        room_configurations: roomConfigurations as any,
         status: 'available'
       };
 
@@ -442,14 +453,9 @@ export default function AddProperty() {
           </Card>
 
           <Card>
-            <CardHeader><CardTitle>Room Configurations</CardTitle></CardHeader>
-            <CardContent className="space-y-3">
-              {roomConfigurations.map((config, i) => (
-                <div key={i} className="flex items-center gap-4 p-3 rounded-md bg-muted/50">
-                  <span className="text-sm font-medium">Room {config.room_number}</span>
-                  <span className="text-sm text-muted-foreground">— {config.capacity} student(s)</span>
-                </div>
-              ))}
+            <CardHeader><CardTitle>Spaces</CardTitle></CardHeader>
+            <CardContent>
+              <SpaceConfigurator spaces={roomConfigurations} onSpacesChange={setRoomConfigurations} editMode={false} />
             </CardContent>
           </Card>
 
@@ -610,66 +616,13 @@ export default function AddProperty() {
 
           <Card>
             <CardHeader>
-              <CardTitle>Room Configurations</CardTitle>
+              <CardTitle>Spaces</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <p className="text-sm text-muted-foreground">
-                Specify how many students can occupy each room. You can add multiple configurations if rooms have different capacities.
+                Add bedrooms with capacity and shared spaces like kitchens, bathrooms, etc.
               </p>
-              
-              {roomConfigurations.map((config, index) => (
-                <div key={index} className="flex gap-4 items-end">
-                  <div className="flex-1 space-y-2">
-                    <Label htmlFor={`room-${index}`}>Room Number/Name</Label>
-                    <Input
-                      id={`room-${index}`}
-                      value={config.room_number}
-                      onChange={(e) => updateRoomConfiguration(index, 'room_number', e.target.value)}
-                      placeholder="e.g. Room 1 or A1"
-                      required
-                    />
-                  </div>
-                  <div className="flex-1 space-y-2">
-                    <Label htmlFor={`capacity-${index}`}>Students Per Room</Label>
-                    <Select 
-                      value={config.capacity.toString()} 
-                      onValueChange={(value) => updateRoomConfiguration(index, 'capacity', parseInt(value))}
-                    >
-                      <SelectTrigger id={`capacity-${index}`}>
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="1">1 Student</SelectItem>
-                        <SelectItem value="2">2 Students</SelectItem>
-                        <SelectItem value="3">3 Students</SelectItem>
-                        <SelectItem value="4">4 Students</SelectItem>
-                        <SelectItem value="5">5 Students</SelectItem>
-                        <SelectItem value="6">6 Students</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  {roomConfigurations.length > 1 && (
-                    <Button
-                      type="button"
-                      variant="destructive"
-                      size="icon"
-                      onClick={() => removeRoomConfiguration(index)}
-                    >
-                      <X className="h-4 w-4" />
-                    </Button>
-                  )}
-                </div>
-              ))}
-              
-              <Button
-                type="button"
-                variant="outline"
-                onClick={addRoomConfiguration}
-                className="w-full"
-              >
-                <Plus className="h-4 w-4 mr-2" />
-                Add Another Room Configuration
-              </Button>
+              <SpaceConfigurator spaces={roomConfigurations} onSpacesChange={setRoomConfigurations} editMode={true} />
             </CardContent>
           </Card>
 
