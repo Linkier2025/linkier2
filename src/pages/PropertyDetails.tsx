@@ -3,7 +3,7 @@ import { useParams, Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { ArrowLeft, MapPin, Users, Star, Heart, Calendar, Home, MessageCircle, DoorOpen } from "lucide-react";
+import { ArrowLeft, MapPin, Users, Star, Heart, Calendar, Home, MessageCircle, DoorOpen, Sofa } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { Skeleton } from "@/components/ui/skeleton";
