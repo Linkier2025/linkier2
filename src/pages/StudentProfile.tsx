@@ -189,10 +189,113 @@ export default function StudentProfile() {
         {/* Profile Details */}
         {editing ? (
           <Card>
-            <CardContent className="p-6 space-y-4">
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="firstName">First Name</Label>
+            <CardContent className="p-5 space-y-5">
+              <div className="space-y-4">
+                <div className="space-y-1.5">
+                  <Label htmlFor="firstName" className="text-xs text-muted-foreground">First Name</Label>
+                  <Input id="firstName" value={profile.firstName} onChange={(e) => setProfile({ ...profile, firstName: e.target.value })} className="w-full" />
+                  {errors.firstName && <p className="text-xs text-destructive mt-1">{errors.firstName}</p>}
+                </div>
+                <div className="space-y-1.5">
+                  <Label htmlFor="surname" className="text-xs text-muted-foreground">Surname</Label>
+                  <Input id="surname" value={profile.surname} onChange={(e) => setProfile({ ...profile, surname: e.target.value })} className="w-full" />
+                  {errors.surname && <p className="text-xs text-destructive mt-1">{errors.surname}</p>}
+                </div>
+                <div className="space-y-1.5">
+                  <Label htmlFor="phone" className="text-xs text-muted-foreground">Phone Number</Label>
+                  <Input id="phone" value={profile.phone} onChange={(e) => setProfile({ ...profile, phone: e.target.value })} className="w-full" />
+                  {errors.phone && <p className="text-xs text-destructive mt-1">{errors.phone}</p>}
+                </div>
+                <div className="space-y-1.5">
+                  <Label htmlFor="gender" className="text-xs text-muted-foreground">Gender</Label>
+                  <Select value={profile.gender} onValueChange={(v) => setProfile({ ...profile, gender: v })}>
+                    <SelectTrigger className="w-full"><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="male">Male</SelectItem>
+                      <SelectItem value="female">Female</SelectItem>
+                      <SelectItem value="other">Other</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  {errors.gender && <p className="text-xs text-destructive mt-1">{errors.gender}</p>}
+                </div>
+                <div className="space-y-1.5">
+                  <Label htmlFor="university" className="text-xs text-muted-foreground">University</Label>
+                  <Select value={profile.university} onValueChange={(v) => setProfile({ ...profile, university: v })}>
+                    <SelectTrigger className="w-full"><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      {UNIVERSITIES.map((u) => (
+                        <SelectItem key={u} value={u}>{u}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-1.5">
+                  <Label htmlFor="yearOfStudy" className="text-xs text-muted-foreground">Year of Study</Label>
+                  <Select value={profile.yearOfStudy} onValueChange={(v) => setProfile({ ...profile, yearOfStudy: v })}>
+                    <SelectTrigger className="w-full"><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="1">1st Year</SelectItem>
+                      <SelectItem value="2">2nd Year</SelectItem>
+                      <SelectItem value="3">3rd Year</SelectItem>
+                      <SelectItem value="4">4th Year</SelectItem>
+                      <SelectItem value="postgrad">Postgraduate</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+              <div className="flex gap-3 pt-2">
+                <Button onClick={handleSave} className="flex-1" disabled={loading}>
+                  {loading ? "Saving..." : "Save Changes"}
+                </Button>
+                <Button variant="outline" onClick={handleCancel} className="flex-1">
+                  <X className="h-4 w-4 mr-1" /> Cancel
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        ) : (
+          <Card>
+            <CardContent className="p-5 space-y-4">
+              <div className="flex items-center justify-between">
+                <h3 className="font-semibold text-foreground">Personal Information</h3>
+                <Button variant="ghost" size="sm" onClick={() => setEditing(true)}>
+                  <Pencil className="h-4 w-4 mr-1" /> Edit
+                </Button>
+              </div>
+
+              <div className="space-y-4">
+                <div>
+                  <p className="text-xs text-muted-foreground mb-0.5">First Name</p>
+                  <p className="text-sm font-medium text-foreground break-words">{profile.firstName || "—"}</p>
+                </div>
+                <div>
+                  <p className="text-xs text-muted-foreground mb-0.5">Surname</p>
+                  <p className="text-sm font-medium text-foreground break-words">{profile.surname || "—"}</p>
+                </div>
+                <div>
+                  <p className="text-xs text-muted-foreground mb-0.5">Email</p>
+                  <p className="text-sm font-medium text-foreground break-words">{profile.email || "—"}</p>
+                </div>
+                <div>
+                  <p className="text-xs text-muted-foreground mb-0.5">Phone</p>
+                  <p className="text-sm font-medium text-foreground break-words">{profile.phone || "—"}</p>
+                </div>
+                <div>
+                  <p className="text-xs text-muted-foreground mb-0.5">Gender</p>
+                  <p className="text-sm font-medium text-foreground break-words">{GENDER_LABELS[profile.gender] || "—"}</p>
+                </div>
+                <div>
+                  <p className="text-xs text-muted-foreground mb-0.5">University</p>
+                  <p className="text-sm font-medium text-foreground break-words">{profile.university || "—"}</p>
+                </div>
+                <div>
+                  <p className="text-xs text-muted-foreground mb-0.5">Year of Study</p>
+                  <p className="text-sm font-medium text-foreground break-words">{YEAR_LABELS[profile.yearOfStudy] || "—"}</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        )}
                   <Input id="firstName" value={profile.firstName} onChange={(e) => setProfile({ ...profile, firstName: e.target.value })} />
                   {errors.firstName && <p className="text-xs text-destructive">{errors.firstName}</p>}
                 </div>
