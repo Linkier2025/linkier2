@@ -90,8 +90,15 @@ export default function AddProperty() {
         setImages(data.images || []);
         setSavedImages(data.images || []);
         if (data.room_configurations && Array.isArray(data.room_configurations) && data.room_configurations.length > 0) {
-          setRoomConfigurations(data.room_configurations as RoomConfiguration[]);
-          setSavedRoomConfigs(data.room_configurations as RoomConfiguration[]);
+          // Migrate old configs that don't have type
+          const configs = (data.room_configurations as any[]).map(c => ({
+            room_number: c.room_number || c.name || `Room ${c.room_number}`,
+            type: c.type || 'bedroom',
+            capacity: c.capacity ?? (c.type === 'bedroom' || !c.type ? 1 : null),
+            gender_tag: c.gender_tag || null,
+          })) as RoomConfiguration[];
+          setRoomConfigurations(configs);
+          setSavedRoomConfigs(configs);
         }
       }
     } catch (error) {
