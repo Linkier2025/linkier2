@@ -7,6 +7,7 @@ import { Clock, MapPin, DoorOpen, Gift, CheckCircle, X, Eye, FileText } from "lu
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
+import { useUnreadNotifications } from "@/hooks/useUnreadNotifications";
 import { Skeleton } from "@/components/ui/skeleton";
 import { StudentLayout } from "@/components/StudentLayout";
 import {
@@ -43,9 +44,14 @@ export default function Requests() {
   const [acceptingOffer, setAcceptingOffer] = useState(false);
   const [confirmDialog, setConfirmDialog] = useState<{ open: boolean; request: RequestItem | null }>({ open: false, request: null });
 
+  const { markCategoryAsRead } = useUnreadNotifications();
+
   useEffect(() => {
     document.title = "My Requests | Linkier";
-    if (user) fetchRequests();
+    if (user) {
+      fetchRequests();
+      markCategoryAsRead("requests");
+    }
   }, [user]);
 
   const fetchRequests = async () => {

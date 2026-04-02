@@ -8,6 +8,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
+import { useUnreadNotifications } from "@/hooks/useUnreadNotifications";
 import { Skeleton } from "@/components/ui/skeleton";
 
 
@@ -39,9 +40,14 @@ export default function MyStay() {
   const [complaintsCount, setComplaintsCount] = useState(0);
   const [announcementsCount, setAnnouncementsCount] = useState(0);
 
+  const { markCategoryAsRead } = useUnreadNotifications();
+
   useEffect(() => {
     document.title = "My Stay | Linkier";
-    if (user) fetchStayData();
+    if (user) {
+      fetchStayData();
+      markCategoryAsRead("myStay");
+    }
   }, [user]);
 
   const fetchStayData = async () => {

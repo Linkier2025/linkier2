@@ -4,14 +4,17 @@ import { Megaphone, MessageSquare, ChevronRight, Bell, HardHat } from "lucide-re
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { useState, useEffect } from "react";
+import { useUnreadNotifications } from "@/hooks/useUnreadNotifications";
 
 export default function Manage() {
   const navigate = useNavigate();
   const { user } = useAuth();
   const [complaintsCount, setComplaintsCount] = useState(0);
+  const { markCategoryAsRead } = useUnreadNotifications();
 
   useEffect(() => {
     if (!user) return;
+    markCategoryAsRead("manage");
     const fetchCounts = async () => {
       const { data: props } = await supabase
         .from("properties")

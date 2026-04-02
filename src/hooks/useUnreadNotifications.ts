@@ -1,17 +1,21 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 
 interface NotificationCounts {
   total: number;
-  requests: number; // rental_request, rental_response, viewing_request, viewing_response
-  manage: number;   // complaint, announcement, renovation
-  myStay: number;   // announcement, complaint, payment
+  requests: number;
+  manage: number;
+  myStay: number;
 }
+
+const requestTypes = ["rental_request", "rental_response", "viewing_request", "viewing_response"];
+const manageTypes = ["complaint", "announcement", "renovation"];
+const myStayTypes = ["announcement", "complaint", "payment"];
 
 export function useUnreadNotifications() {
   const [counts, setCounts] = useState<NotificationCounts>({ total: 0, requests: 0, manage: 0, myStay: 0 });
 
-  const fetchCount = async () => {
+  const fetchCount = useCallback(async () => {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return;
 
@@ -26,17 +30,33 @@ export function useUnreadNotifications() {
       return;
     }
 
-    const requestTypes = ["rental_request", "rental_response", "viewing_request", "viewing_response"];
-    const manageTypes = ["complaint", "announcement", "renovation"];
-    const myStayTypes = ["announcement", "complaint", "payment"];
-
     setCounts({
       total: data.length,
       requests: data.filter(n => requestTypes.includes(n.type)).length,
       manage: data.filter(n => manageTypes.includes(n.type)).length,
       myStay: data.filter(n => myStayTypes.includes(n.type)).length,
     });
-  };
+  }, []);
+
+  const markCategoryAsRead = useCallback(async (category: "requests" | "manage" | "myStay") => {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return;
+
+    const types = category === "requests" ? requestTypes
+      : category === "manage" ? manageTypes
+      : myStayTypes;
+
+    const { error } = await supabase
+      .from("notifications")
+      .update({ read: true })
+      .eq("user_id", user.id)
+      .eq("read", false)
+      .in("type", types);
+
+    if (!error) {
+      fetchCount();
+    }
+  }, [fetchCount]);
 
   useEffect(() => {
     fetchCount();
@@ -55,7 +75,7 @@ export function useUnreadNotifications() {
       clearInterval(interval);
       supabase.removeChannel(channel);
     };
-  }, []);
+  }, [fetchCount]);
 
-  return { count: counts.total, counts, refetch: fetchCount };
+  return { count: counts.total, counts, refetch: fetchCount, markCategoryAsRead };
 }
