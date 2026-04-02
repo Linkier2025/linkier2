@@ -701,7 +701,7 @@ export default function MyProperties() {
                                     <div className="space-y-1">
                                       <div className="font-medium">{renovation.title}</div>
                                       {renovation.room_number && (
-                                        <div className="text-xs text-muted-foreground">Room {renovation.room_number}</div>
+                                        <div className="text-xs text-muted-foreground">{renovation.room_number}</div>
                                       )}
                                       {renovation.description && (
                                         <div className="text-sm text-muted-foreground">{renovation.description}</div>
