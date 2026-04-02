@@ -581,7 +581,7 @@ export default function PropertyDetails() {
               <DialogTrigger asChild>
                 <Button size="lg" className="flex-1 min-w-0" disabled={availableRooms.length === 0}>
                   <Home className="mr-2 h-5 w-5 shrink-0" />
-                  <span className="truncate">{availableRooms.length === 0 ? "No Rooms Available" : "Request Room"}</span>
+                  <span className="truncate">{availableRooms.length === 0 ? "No Bedrooms Available" : "Request Bedroom"}</span>
                 </Button>
               </DialogTrigger>
               <DialogContent>
