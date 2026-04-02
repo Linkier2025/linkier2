@@ -228,31 +228,7 @@ export default function LandlordProfile() {
               <ChevronRight className="h-5 w-5 text-muted-foreground" />
             </CardContent>
           </Card>
-          <Card className="cursor-pointer hover:shadow-md transition-shadow border-destructive/30" onClick={() => setShowDeleteDialog(true)}>
-            <CardContent className="p-4 flex items-center gap-3">
-              <Trash2 className="h-5 w-5 text-destructive" />
-              <span className="font-medium text-destructive flex-1">Delete Account</span>
-            </CardContent>
-          </Card>
         </div>
-
-        {/* Delete Confirmation */}
-        <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
-          <AlertDialogContent>
-            <AlertDialogHeader>
-              <AlertDialogTitle>Delete Account</AlertDialogTitle>
-              <AlertDialogDescription>
-                This action is permanent. All your properties, tenants, and data will be removed.
-              </AlertDialogDescription>
-            </AlertDialogHeader>
-            <AlertDialogFooter>
-              <AlertDialogCancel>Cancel</AlertDialogCancel>
-              <AlertDialogAction onClick={handleDeleteAccount} className="bg-destructive hover:bg-destructive/90">
-                Delete Account
-              </AlertDialogAction>
-            </AlertDialogFooter>
-          </AlertDialogContent>
-        </AlertDialog>
       </div>
     </div>
   );
