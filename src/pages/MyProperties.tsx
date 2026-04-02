@@ -258,6 +258,7 @@ export default function MyProperties() {
         room_number: room.room_number,
         capacity: room.capacity,
         type: room.type,
+        gender_tag: room.gender_tag,
         current_occupants: room.current_occupants,
         isFull: isBedroom && !isUnderRenovation && room.current_occupants >= room.capacity,
         isUnderRenovation,
