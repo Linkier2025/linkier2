@@ -107,38 +107,35 @@ export default function Settings() {
           <h1 className="text-2xl font-bold">Settings</h1>
         </div>
 
-        {/* General — Change Password */}
+        {/* Change Password */}
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Lock className="h-5 w-5" />
               Change Password
             </CardTitle>
-            <CardDescription>Update your account password</CardDescription>
+            <CardDescription>
+              We'll send a password reset link to your email address
+            </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="currentPassword">Current Password</Label>
-              <Input
-                id="currentPassword"
-                type="password"
-                value={currentPassword}
-                onChange={(e) => setCurrentPassword(e.target.value)}
-                placeholder="Enter current password"
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="newPassword">New Password</Label>
-              <Input
-                id="newPassword"
-                type="password"
-                value={newPassword}
-                onChange={(e) => setNewPassword(e.target.value)}
-                placeholder="Enter new password"
-              />
-            </div>
-            <Button onClick={handleChangePassword} disabled={passwordLoading}>
-              {passwordLoading ? "Updating..." : "Update Password"}
+            {resetSent ? (
+              <div className="flex items-start gap-3 p-3 rounded-md bg-muted">
+                <Mail className="h-5 w-5 text-primary mt-0.5 shrink-0" />
+                <div>
+                  <p className="text-sm font-medium text-foreground">Reset link sent!</p>
+                  <p className="text-sm text-muted-foreground">
+                    Check your email at <span className="font-medium">{user?.email}</span> and follow the link to set a new password.
+                  </p>
+                </div>
+              </div>
+            ) : (
+              <p className="text-sm text-muted-foreground">
+                A password reset link will be sent to <span className="font-medium text-foreground">{user?.email}</span>
+              </p>
+            )}
+            <Button onClick={handlePasswordReset} disabled={resetLoading || resetSent}>
+              {resetLoading ? "Sending..." : resetSent ? "Email Sent" : "Send Reset Link"}
             </Button>
           </CardContent>
         </Card>
