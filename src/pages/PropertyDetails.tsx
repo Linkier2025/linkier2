@@ -104,21 +104,28 @@ export default function PropertyDetails() {
         // Get occupancy counts for each room
         const roomsWithOccupancy: RoomInfo[] = [];
         for (const room of roomsData || []) {
-          const { count } = await supabase
-            .from('room_assignments')
-            .select('*', { count: 'exact', head: true })
-            .eq('room_id', room.id)
-            .in('status', ['active', 'reserved']);
+          const roomType = (room as any).type || 'bedroom';
+          let currentOccupants = 0;
+          if (roomType === 'bedroom') {
+            const { count } = await supabase
+              .from('room_assignments')
+              .select('*', { count: 'exact', head: true })
+              .eq('room_id', room.id)
+              .in('status', ['active', 'reserved']);
+            currentOccupants = count || 0;
+          }
 
           roomsWithOccupancy.push({
             id: room.id,
             room_number: room.room_number,
+            type: roomType,
             capacity: room.capacity,
-            current_occupants: count || 0,
+            current_occupants: currentOccupants,
             renovation_status: (room as any).renovation_status || 'available',
             renovation_description: (room as any).renovation_description || null,
             renovation_start_date: (room as any).renovation_start_date || null,
             renovation_end_date: (room as any).renovation_end_date || null,
+            gender_tag: (room as any).gender_tag || null,
           });
         }
 
