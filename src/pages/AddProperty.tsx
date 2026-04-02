@@ -827,9 +827,16 @@ export default function AddProperty() {
             </CardContent>
           </Card>
 
-          <Button type="submit" size="lg" className="w-full" disabled={loading}>
-            {loading ? 'Saving...' : id ? 'Update Property' : 'Add Property'}
-          </Button>
+          <div className="flex gap-3">
+            {isEditing && (
+              <Button type="button" variant="outline" size="lg" className="flex-1" onClick={handleCancel}>
+                Cancel
+              </Button>
+            )}
+            <Button type="submit" size="lg" className="flex-1" disabled={loading}>
+              {loading ? 'Saving...' : isEditing ? 'Save Changes' : 'Add Property'}
+            </Button>
+          </div>
         </form>
       </div>
     </div>
