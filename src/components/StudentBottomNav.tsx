@@ -1,5 +1,5 @@
 import { useLocation, useNavigate } from "react-router-dom";
-import { Search, FileText, Home, User, Heart, Bell } from "lucide-react";
+import { Search, FileText, Home, User, Heart } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useUnreadNotifications } from "@/hooks/useUnreadNotifications";
 
@@ -17,14 +17,13 @@ interface StudentBottomNavProps {
 export function StudentBottomNav({ isTenant = false }: StudentBottomNavProps) {
   const location = useLocation();
   const navigate = useNavigate();
-  const { count: unreadCount } = useUnreadNotifications();
+  const { counts } = useUnreadNotifications();
 
   const navItems: NavItem[] = [
     { label: "Explore", icon: Search, path: "/explore" },
     { label: "Saved", icon: Heart, path: "/wishlist" },
-    { label: "Requests", icon: FileText, path: "/requests" },
-    ...(isTenant ? [{ label: "My Stay", icon: Home, path: "/my-stay" }] : []),
-    { label: "Alerts", icon: Bell, path: "/notifications", badge: unreadCount },
+    { label: "Requests", icon: FileText, path: "/requests", badge: counts.requests },
+    ...(isTenant ? [{ label: "My Stay", icon: Home, path: "/my-stay", badge: counts.myStay }] : []),
     { label: "Profile", icon: User, path: "/student-profile" },
   ];
 
