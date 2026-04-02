@@ -1,6 +1,6 @@
 import { useNavigate } from "react-router-dom";
 import { Card, CardContent } from "@/components/ui/card";
-import { Megaphone, MessageSquare, ChevronRight, Bell } from "lucide-react";
+import { Megaphone, MessageSquare, ChevronRight, Bell, HardHat } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { useState, useEffect } from "react";
@@ -44,6 +44,13 @@ export default function Manage() {
       icon: MessageSquare,
       path: "/complaints",
       badge: complaintsCount > 0 ? complaintsCount : null,
+    },
+    {
+      label: "Renovations",
+      description: "Track and manage room renovations",
+      icon: HardHat,
+      path: "/renovations",
+      badge: null,
     },
     {
       label: "Notifications",
