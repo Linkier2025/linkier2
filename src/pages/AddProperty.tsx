@@ -22,6 +22,8 @@ export default function AddProperty() {
   const navigate = useNavigate();
   const { id } = useParams();
   const { user } = useAuth();
+  const isEditing = !!id;
+  const [editMode, setEditMode] = useState(!isEditing);
   const [images, setImages] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
   const [roomConfigurations, setRoomConfigurations] = useState<RoomConfiguration[]>([
@@ -40,6 +42,9 @@ export default function AddProperty() {
     boardingHouseName: "",
     totalRooms: ""
   });
+  const [savedFormData, setSavedFormData] = useState(formData);
+  const [savedRoomConfigs, setSavedRoomConfigs] = useState(roomConfigurations);
+  const [savedImages, setSavedImages] = useState(images);
 
   useEffect(() => {
     if (id) {
