@@ -18,6 +18,7 @@ export function StudentBottomNav({ isTenant = false }: StudentBottomNavProps) {
 
   const navItems: NavItem[] = [
     { label: "Explore", icon: Search, path: "/explore" },
+    { label: "Saved", icon: Heart, path: "/wishlist" },
     { label: "Requests", icon: FileText, path: "/requests" },
     ...(isTenant ? [{ label: "My Stay", icon: Home, path: "/my-stay" }] : []),
     { label: "Profile", icon: User, path: "/student-profile" },

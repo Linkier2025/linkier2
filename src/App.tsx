@@ -68,6 +68,11 @@ const App = () => (
                   <StudentLayout><Requests /></StudentLayout>
                 </ProtectedRoute>
               } />
+              <Route path="/wishlist" element={
+                <ProtectedRoute userType="student">
+                  <StudentLayout><Wishlist /></StudentLayout>
+                </ProtectedRoute>
+              } />
               <Route path="/my-stay" element={
                 <ProtectedRoute userType="student">
                   <StudentLayout><MyStay /></StudentLayout>

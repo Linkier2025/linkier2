@@ -117,13 +117,6 @@ export default function Explore() {
     }
   };
 
-  const toggleFavorite = (propertyId: string) => {
-    setFavorites((prev) =>
-      prev.includes(propertyId)
-        ? prev.filter((id) => id !== propertyId)
-        : [...prev, propertyId]
-    );
-  };
 
   const filteredProperties = useMemo(() => {
     return properties.filter((property) => {
