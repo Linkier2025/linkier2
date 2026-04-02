@@ -218,7 +218,7 @@ export default function MyStay() {
         </Card>
 
         {/* Rent Tracking Link */}
-        <Button variant="outline" className="w-full" onClick={() => navigate("/rent-tracking")}>
+        <Button variant="outline" className="w-full" onClick={() => navigate("/student-rent-tracking")}>
           <DollarSign className="h-4 w-4 mr-2" /> View Rent Tracking
         </Button>
     </div>
