@@ -43,9 +43,14 @@ export default function Requests() {
   const [acceptingOffer, setAcceptingOffer] = useState(false);
   const [confirmDialog, setConfirmDialog] = useState<{ open: boolean; request: RequestItem | null }>({ open: false, request: null });
 
+  const { markCategoryAsRead } = useUnreadNotifications();
+
   useEffect(() => {
     document.title = "My Requests | Linkier";
-    if (user) fetchRequests();
+    if (user) {
+      fetchRequests();
+      markCategoryAsRead("requests");
+    }
   }, [user]);
 
   const fetchRequests = async () => {
