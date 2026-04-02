@@ -221,7 +221,6 @@ export default function MyStay() {
         <Button variant="outline" className="w-full" onClick={() => navigate("/rent-tracking")}>
           <DollarSign className="h-4 w-4 mr-2" /> View Rent Tracking
         </Button>
-      </div>
-    </StudentLayout>
+    </div>
   );
 }
