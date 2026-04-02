@@ -666,8 +666,8 @@ export default function MyProperties() {
                             <div className="space-y-4">
                               {roomStatuses.map(room => (
                                 <div key={`furn-${room.id}`} className="p-3 bg-muted/30 rounded-lg border">
-                                  <p className="text-sm font-medium mb-2">Room {room.room_number}</p>
-                                  <RoomFurnitureManager roomId={room.id} />
+                                  <p className="text-sm font-medium mb-2">{room.room_number}</p>
+                                  <RoomFurnitureManager roomId={room.id} spaceType={room.type} />
                                 </div>
                               ))}
                             </div>
