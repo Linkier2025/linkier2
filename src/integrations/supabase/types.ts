@@ -734,6 +734,7 @@ export type Database = {
       }
       confirm_payment: { Args: { p_assignment_id: string }; Returns: boolean }
       get_available_room: { Args: { p_property_id: string }; Returns: string }
+      is_landlord: { Args: never; Returns: boolean }
       is_roommate: {
         Args: { p_room_id: string; p_user_id: string }
         Returns: boolean
