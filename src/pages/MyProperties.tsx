@@ -248,13 +248,15 @@ export default function MyProperties() {
 
     return propRooms.map(room => {
       const isUnderRenovation = room.renovation_status === 'under_renovation';
+      const isBedroom = room.type === 'bedroom';
       
       return {
         id: room.id,
         room_number: room.room_number,
         capacity: room.capacity,
+        type: room.type,
         current_occupants: room.current_occupants,
-        isFull: !isUnderRenovation && room.current_occupants >= room.capacity,
+        isFull: isBedroom && !isUnderRenovation && room.current_occupants >= room.capacity,
         isUnderRenovation,
         renovationStatus: isUnderRenovation ? 'under_renovation' : undefined,
         renovation_description: room.renovation_description,
