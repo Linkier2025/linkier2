@@ -72,6 +72,7 @@ interface RoomStatus {
   renovation_description: string | null;
   renovation_start_date: string | null;
   renovation_end_date: string | null;
+  gender_tag: string | null;
 }
 
 const statusColors: Record<string, string> = {
