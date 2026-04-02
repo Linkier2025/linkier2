@@ -88,9 +88,12 @@ export default function ViewingRequests() {
 
   const isLandlord = profile?.user_type === 'landlord';
 
+  const { markCategoryAsRead } = useUnreadNotifications();
+
   useEffect(() => {
     if (user) {
       fetchAllRequests();
+      markCategoryAsRead("requests");
     }
   }, [user, isLandlord]);
 
