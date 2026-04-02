@@ -34,7 +34,7 @@ export default function AddProperty() {
   const [images, setImages] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
   const [roomConfigurations, setRoomConfigurations] = useState<RoomConfiguration[]>([
-    { room_number: "1", capacity: 1 }
+    { room_number: "Room 1", type: "bedroom", capacity: 1, gender_tag: null }
   ]);
   const [formData, setFormData] = useState({
     title: "",
