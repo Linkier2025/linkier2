@@ -19,12 +19,14 @@ import { getSpaceTypeLabel, getSpaceTypeIcon } from "@/lib/spaceConfig";
 interface RoomInfo {
   id: string;
   room_number: string;
-  capacity: number;
+  type: string;
+  capacity: number | null;
   current_occupants: number;
   renovation_status: string;
   renovation_description: string | null;
   renovation_start_date: string | null;
   renovation_end_date: string | null;
+  gender_tag: string | null;
 }
 
 interface PropertyData {
