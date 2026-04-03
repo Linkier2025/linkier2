@@ -29,7 +29,7 @@ export function LandlordBottomNav() {
         {navItems.map((item) => {
           const isActive = location.pathname === item.path ||
             (item.path === "/my-properties" && (location.pathname === "/landlord-dashboard" || location.pathname.startsWith("/edit-property"))) ||
-            (item.path === "/manage" && (location.pathname === "/announcements" || location.pathname === "/complaints" || location.pathname === "/renovations"));
+            (item.path === "/manage" && (location.pathname === "/announcements" || location.pathname === "/complaints" || location.pathname === "/renovations" || location.pathname === "/rent-tracking"));
           return (
             <button
               key={item.path}
