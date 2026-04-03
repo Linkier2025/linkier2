@@ -9,12 +9,11 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { ArrowLeft, Edit, Trash2, Plus, ChevronDown, ChevronUp, Hammer, Calendar, DollarSign, Home, Users, AlertCircle, Package } from "lucide-react";
-import { RoomFurnitureManager } from "@/components/RoomFurnitureManager";
 import { Link, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
-
+import { getSpaceTypeLabel, getSpaceTypeIcon } from "@/lib/spaceConfig";
 
 interface RoomConfig {
   room_number: string;
@@ -69,9 +68,7 @@ interface RoomStatus {
   current_occupants: number;
   isFull: boolean;
   isUnderRenovation: boolean;
-  renovationStatus?: string;
   renovation_description: string | null;
-  renovation_start_date: string | null;
   renovation_end_date: string | null;
   gender_tag: string | null;
 }
@@ -117,35 +114,16 @@ export default function MyProperties() {
     estimated_cost: "",
   });
 
-  // Room renovation dialog state
-  const [roomRenovationDialogOpen, setRoomRenovationDialogOpen] = useState(false);
-  const [selectedRoom, setSelectedRoom] = useState<RoomStatus | null>(null);
-  const [roomRenovationForm, setRoomRenovationForm] = useState({
-    reason: "",
-    start_date: "",
-    end_date: "",
-  });
-
   useEffect(() => {
-    if (user) {
-      fetchData();
-    }
+    if (user) fetchData();
   }, [user]);
 
   const fetchData = async () => {
     if (!user) return;
-
     try {
       const [propertiesRes, renovationsRes] = await Promise.all([
-        supabase
-          .from('properties')
-          .select('*')
-          .eq('landlord_id', user.id)
-          .order('created_at', { ascending: false }),
-        supabase
-          .from('renovations')
-          .select('*')
-          .eq('landlord_id', user.id),
+        supabase.from('properties').select('*').eq('landlord_id', user.id).order('created_at', { ascending: false }),
+        supabase.from('renovations').select('*').eq('landlord_id', user.id),
       ]);
 
       if (propertiesRes.error) throw propertiesRes.error;
@@ -159,7 +137,6 @@ export default function MyProperties() {
       setProperties(typedProperties);
       setRenovations(renovationsRes.data || []);
 
-      // Fetch real rooms + assignments for occupancy
       const propertyIds = typedProperties.map(p => p.id);
       if (propertyIds.length > 0) {
         const { data: rooms } = await supabase
@@ -176,7 +153,6 @@ export default function MyProperties() {
             .select('room_id')
             .in('room_id', roomIds)
             .in('status', ['active', 'reserved']);
-
           (assignments || []).forEach(a => {
             assignmentCounts[a.room_id] = (assignmentCounts[a.room_id] || 0) + 1;
           });
@@ -198,11 +174,7 @@ export default function MyProperties() {
         setRoomsData(roomsWithOcc);
       }
     } catch (error) {
-      toast({
-        title: "Error",
-        description: "Failed to load data",
-        variant: "destructive",
-      });
+      toast({ title: "Error", description: "Failed to load data", variant: "destructive" });
     } finally {
       setLoading(false);
     }
@@ -210,49 +182,26 @@ export default function MyProperties() {
 
   const handleDelete = async () => {
     if (!deleteId || deleteConfirmText !== "DELETE") return;
-
-    // Check for active tenants
     const propertyRooms = roomsData.filter(r => r.property_id === deleteId);
     const hasActiveTenants = propertyRooms.some(r => r.current_occupants > 0);
-
-    if (hasActiveTenants) {
-      setDeleteError("Cannot delete property with active tenants.");
-      return;
-    }
+    if (hasActiveTenants) { setDeleteError("Cannot delete property with active tenants."); return; }
 
     try {
-      const { error } = await supabase
-        .from('properties')
-        .delete()
-        .eq('id', deleteId);
-
+      const { error } = await supabase.from('properties').delete().eq('id', deleteId);
       if (error) throw error;
-
       setProperties(prev => prev.filter(p => p.id !== deleteId));
-      toast({
-        title: "Property deleted",
-        description: "Property has been successfully removed.",
-      });
+      toast({ title: "Property deleted", description: "Property has been successfully removed." });
     } catch (error) {
-      toast({
-        title: "Error",
-        description: "Failed to delete property",
-        variant: "destructive",
-      });
+      toast({ title: "Error", description: "Failed to delete property", variant: "destructive" });
     } finally {
-      setDeleteId(null);
-      setDeleteConfirmText("");
-      setDeleteError("");
+      setDeleteId(null); setDeleteConfirmText(""); setDeleteError("");
     }
   };
 
   const getRoomStatuses = (property: Property): RoomStatus[] => {
-    const propRooms = roomsData.filter(r => r.property_id === property.id);
-
-    return propRooms.map(room => {
+    return roomsData.filter(r => r.property_id === property.id).map(room => {
       const isUnderRenovation = room.renovation_status === 'under_renovation';
       const isBedroom = room.type === 'bedroom';
-      
       return {
         id: room.id,
         room_number: room.room_number,
@@ -262,32 +211,20 @@ export default function MyProperties() {
         current_occupants: room.current_occupants,
         isFull: isBedroom && !isUnderRenovation && room.current_occupants >= room.capacity,
         isUnderRenovation,
-        renovationStatus: isUnderRenovation ? 'under_renovation' : undefined,
         renovation_description: room.renovation_description,
-        renovation_start_date: room.renovation_start_date,
         renovation_end_date: room.renovation_end_date,
       };
     });
   };
 
-  const getPropertyRenovations = (propertyId: string) => {
-    return renovations.filter(r => r.property_id === propertyId);
-  };
+  const getPropertyRenovations = (propertyId: string) => renovations.filter(r => r.property_id === propertyId);
 
   const resetRenovationForm = () => {
-    setRenovationForm({
-      room_number: "",
-      title: "",
-      description: "",
-      status: "planned",
-      start_date: "",
-      end_date: "",
-      estimated_cost: "",
-    });
+    setRenovationForm({ room_number: "", title: "", description: "", status: "planned", start_date: "", end_date: "", estimated_cost: "" });
     setEditingRenovation(null);
   };
 
-  const openRenovationDialog = (propertyId: string, renovation?: Renovation, roomNumber?: string) => {
+  const openRenovationDialog = (propertyId: string, renovation?: Renovation) => {
     setSelectedPropertyId(propertyId);
     if (renovation) {
       setEditingRenovation(renovation);
@@ -302,28 +239,19 @@ export default function MyProperties() {
       });
     } else {
       resetRenovationForm();
-      if (roomNumber) {
-        setRenovationForm(prev => ({ ...prev, room_number: roomNumber }));
-      }
     }
     setRenovationDialogOpen(true);
   };
 
   const getSelectedPropertyRooms = () => {
-    const property = properties.find(p => p.id === selectedPropertyId);
-    return property?.room_configurations || [];
+    return roomsData.filter(r => r.property_id === selectedPropertyId);
   };
 
   const handleRenovationSubmit = async () => {
     if (!renovationForm.title || !selectedPropertyId) {
-      toast({
-        title: "Missing fields",
-        description: "Please fill in the title",
-        variant: "destructive"
-      });
+      toast({ title: "Missing fields", description: "Please fill in the title", variant: "destructive" });
       return;
     }
-
     try {
       const renovationData = {
         property_id: selectedPropertyId,
@@ -338,18 +266,11 @@ export default function MyProperties() {
       };
 
       if (editingRenovation) {
-        const { error } = await supabase
-          .from('renovations')
-          .update(renovationData)
-          .eq('id', editingRenovation.id);
-
+        const { error } = await supabase.from('renovations').update(renovationData).eq('id', editingRenovation.id);
         if (error) throw error;
         toast({ title: "Renovation updated" });
       } else {
-        const { error } = await supabase
-          .from('renovations')
-          .insert(renovationData);
-
+        const { error } = await supabase.from('renovations').insert(renovationData);
         if (error) throw error;
         toast({ title: "Renovation added" });
       }
@@ -358,101 +279,29 @@ export default function MyProperties() {
       resetRenovationForm();
       fetchData();
     } catch (error: any) {
-      toast({
-        title: "Error",
-        description: error.message || "Failed to save renovation",
-        variant: "destructive"
-      });
+      toast({ title: "Error", description: error.message || "Failed to save renovation", variant: "destructive" });
     }
   };
 
   const handleDeleteRenovation = async (id: string) => {
     try {
-      const { error } = await supabase
-        .from('renovations')
-        .delete()
-        .eq('id', id);
-
+      const { error } = await supabase.from('renovations').delete().eq('id', id);
       if (error) throw error;
       toast({ title: "Renovation deleted" });
       fetchData();
     } catch (error: any) {
-      toast({
-        title: "Error",
-        description: error.message || "Failed to delete renovation",
-        variant: "destructive"
-      });
+      toast({ title: "Error", description: error.message || "Failed to delete renovation", variant: "destructive" });
     }
   };
 
   const handleRenovationStatusChange = async (id: string, newStatus: string) => {
     try {
-      const { error } = await supabase
-        .from('renovations')
-        .update({ status: newStatus })
-        .eq('id', id);
-
+      const { error } = await supabase.from('renovations').update({ status: newStatus }).eq('id', id);
       if (error) throw error;
       toast({ title: "Status updated" });
       fetchData();
     } catch (error: any) {
-      toast({
-        title: "Error",
-        description: error.message || "Failed to update status",
-        variant: "destructive"
-      });
-    }
-  };
-
-  const openRoomRenovationDialog = (room: RoomStatus) => {
-    setSelectedRoom(room);
-    setRoomRenovationForm({
-      reason: room.renovation_description || "",
-      start_date: room.renovation_start_date || "",
-      end_date: room.renovation_end_date || "",
-    });
-    setRoomRenovationDialogOpen(true);
-  };
-
-  const handleMarkUnderRenovation = async () => {
-    if (!selectedRoom) return;
-    try {
-      const { error } = await supabase
-        .from('rooms')
-        .update({
-          renovation_status: 'under_renovation',
-          renovation_description: roomRenovationForm.reason || null,
-          renovation_start_date: roomRenovationForm.start_date || null,
-          renovation_end_date: roomRenovationForm.end_date || null,
-        })
-        .eq('id', selectedRoom.id);
-
-      if (error) throw error;
-      toast({ title: "Room marked as under renovation" });
-      setRoomRenovationDialogOpen(false);
-      fetchData();
-    } catch (error: any) {
-      toast({ title: "Error", description: error.message, variant: "destructive" });
-    }
-  };
-
-  const handleMarkAvailable = async (roomId: string) => {
-    try {
-      const { error } = await supabase
-        .from('rooms')
-        .update({
-          renovation_status: 'available',
-          renovation_description: null,
-          renovation_start_date: null,
-          renovation_end_date: null,
-        })
-        .eq('id', roomId);
-
-      if (error) throw error;
-      toast({ title: "Room marked as available" });
-      fetchData();
-    } catch (error: any) {
-      toast({ title: "Error", description: error.message, variant: "destructive" });
+      toast({ title: "Error", description: error.message || "Failed to update status", variant: "destructive" });
     }
   };
 
@@ -508,14 +357,9 @@ export default function MyProperties() {
                       className="w-full h-48 object-cover"
                     />
                     {isFullyOccupied ? (
-                      <Badge className="absolute top-2 right-2 bg-destructive text-destructive-foreground">
-                        Fully Occupied
-                      </Badge>
+                      <Badge className="absolute top-2 right-2 bg-destructive text-destructive-foreground">Fully Occupied</Badge>
                     ) : (
-                      <Badge 
-                        className="absolute top-2 right-2"
-                        variant={property.status === 'available' ? 'default' : 'secondary'}
-                      >
+                      <Badge className="absolute top-2 right-2" variant={property.status === 'available' ? 'default' : 'secondary'}>
                         {property.status}
                       </Badge>
                     )}
@@ -526,9 +370,7 @@ export default function MyProperties() {
                         <CardTitle className="text-lg">{property.title}</CardTitle>
                         <p className="text-sm text-muted-foreground">{property.location}</p>
                       </div>
-                      <div className="text-xl font-bold text-primary">
-                        R{property.rent_amount.toLocaleString()}/mo
-                      </div>
+                      <div className="text-xl font-bold text-primary">R{property.rent_amount.toLocaleString()}/mo</div>
                     </div>
                   </CardHeader>
                   <CardContent className="space-y-4">
@@ -551,7 +393,7 @@ export default function MyProperties() {
                     {underRenovationCount > 0 && (
                       <div className="flex items-center gap-2 p-2 bg-yellow-500/10 rounded-lg">
                         <Hammer className="h-4 w-4 text-yellow-600" />
-                        <span className="text-sm text-yellow-600">{underRenovationCount} room(s) under renovation</span>
+                        <span className="text-sm text-yellow-600">{underRenovationCount} space(s) under renovation</span>
                       </div>
                     )}
 
@@ -560,11 +402,11 @@ export default function MyProperties() {
                       <CollapsibleTrigger asChild>
                         <Button variant="outline" className="w-full">
                           {isExpanded ? <ChevronUp className="h-4 w-4 mr-2" /> : <ChevronDown className="h-4 w-4 mr-2" />}
-                          {isExpanded ? "Hide Details" : "View Room Details & Renovations"}
+                          {isExpanded ? "Hide Details" : "View Spaces & Renovations"}
                         </Button>
                       </CollapsibleTrigger>
                       <CollapsibleContent className="space-y-4 mt-4">
-                        {/* Bedroom Details */}
+                        {/* Bedroom Cards */}
                         <div className="space-y-2">
                           <h4 className="font-semibold flex items-center gap-2">
                             <Home className="h-4 w-4" />
@@ -575,19 +417,19 @@ export default function MyProperties() {
                           ) : (
                             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2">
                               {bedroomStatuses.map((room) => (
-                                <div 
-                                  key={room.room_number}
+                                <div
+                                  key={room.id}
                                   className={`p-3 rounded-lg border cursor-pointer hover:ring-2 hover:ring-primary/50 transition-all ${
-                                    room.isUnderRenovation 
-                                      ? 'bg-orange-50 border-orange-300' 
-                                      : room.isFull 
-                                        ? 'bg-destructive/10 border-destructive/30' 
+                                    room.isUnderRenovation
+                                      ? 'bg-orange-50 border-orange-300 dark:bg-orange-950/30 dark:border-orange-700'
+                                      : room.isFull
+                                        ? 'bg-destructive/10 border-destructive/30'
                                         : room.current_occupants > 0
-                                          ? 'bg-green-50 border-green-300'
+                                          ? 'bg-green-50 border-green-300 dark:bg-green-950/30 dark:border-green-700'
                                           : 'bg-muted border-border'
                                   }`}
-                                  onClick={() => openRoomRenovationDialog(room)}
-                                  title="Click to manage room status"
+                                  onClick={() => navigate(`/space/${room.id}`)}
+                                  title="Click to manage furniture & details"
                                 >
                                   <div className="font-medium text-foreground">{room.room_number}</div>
                                   <div className="text-xs text-muted-foreground">
@@ -595,32 +437,24 @@ export default function MyProperties() {
                                   </div>
                                   <div className="mt-1">
                                     {room.isUnderRenovation ? (
-                                      <Badge variant="outline" className="text-xs border-orange-400 text-orange-600 bg-orange-100">
+                                      <Badge variant="outline" className="text-xs border-orange-400 text-orange-600 bg-orange-100 dark:bg-orange-900/50">
                                         Under Renovation
                                       </Badge>
                                     ) : room.isFull ? (
-                                      <Badge variant="destructive" className="text-xs">
-                                        Full
-                                      </Badge>
+                                      <Badge variant="destructive" className="text-xs">Full</Badge>
                                     ) : (
-                                      <Badge variant="outline" className="text-xs border-green-400 text-green-600 bg-green-100">
+                                      <Badge variant="outline" className="text-xs border-green-400 text-green-600 bg-green-100 dark:bg-green-900/50">
                                         Available
                                       </Badge>
                                     )}
                                   </div>
-                                  {room.isUnderRenovation && room.renovation_description && (
-                                    <p className="text-xs text-muted-foreground mt-1 truncate">{room.renovation_description}</p>
-                                  )}
-                                  {room.isUnderRenovation && room.renovation_end_date && (
-                                    <p className="text-xs text-muted-foreground">Until {new Date(room.renovation_end_date).toLocaleDateString()}</p>
-                                  )}
                                 </div>
                               ))}
                             </div>
                           )}
                         </div>
 
-                        {/* Shared Spaces */}
+                        {/* Shared Space Cards */}
                         {sharedStatuses.length > 0 && (
                           <div className="space-y-2">
                             <h4 className="font-semibold flex items-center gap-2">
@@ -629,54 +463,34 @@ export default function MyProperties() {
                             </h4>
                             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2">
                               {sharedStatuses.map((space) => (
-                                <div 
-                                  key={space.room_number}
-                                  className={`p-3 rounded-lg border ${
-                                    space.isUnderRenovation 
-                                      ? 'bg-orange-50 border-orange-300' 
+                                <div
+                                  key={space.id}
+                                  className={`p-3 rounded-lg border cursor-pointer hover:ring-2 hover:ring-primary/50 transition-all ${
+                                    space.isUnderRenovation
+                                      ? 'bg-orange-50 border-orange-300 dark:bg-orange-950/30 dark:border-orange-700'
                                       : 'bg-muted border-border'
                                   }`}
+                                  onClick={() => navigate(`/space/${space.id}`)}
+                                  title="Click to manage furniture & details"
                                 >
-                                  <div className="font-medium text-foreground">{space.room_number}</div>
-                                  <div className="mt-1">
-                                    {space.isUnderRenovation ? (
-                                      <Badge variant="outline" className="text-xs border-orange-400 text-orange-600 bg-orange-100">
-                                        Under Renovation
-                                      </Badge>
-                                    ) : (
-                                      <Badge variant="secondary" className="text-xs">
-                                        Shared
-                                      </Badge>
-                                    )}
+                                  <div className="flex items-center gap-1.5">
+                                    <span>{getSpaceTypeIcon(space.type)}</span>
+                                    <span className="font-medium text-foreground text-sm">{space.room_number}</span>
                                   </div>
+                                  <Badge variant="secondary" className="text-xs mt-1">{getSpaceTypeLabel(space.type)}</Badge>
                                   {space.gender_tag && (
-                                    <Badge variant="outline" className="text-xs mt-1">{space.gender_tag}</Badge>
+                                    <Badge variant="outline" className="text-xs mt-1 ml-1">{space.gender_tag}</Badge>
+                                  )}
+                                  {space.isUnderRenovation && (
+                                    <Badge variant="outline" className="text-xs mt-1 border-orange-400 text-orange-600 bg-orange-100 dark:bg-orange-900/50">
+                                      Under Renovation
+                                    </Badge>
                                   )}
                                 </div>
                               ))}
                             </div>
                           </div>
                         )}
-
-                        {/* Furniture & Appliances per room */}
-                        <div className="space-y-3">
-                          <h4 className="font-semibold flex items-center gap-2">
-                            <Package className="h-4 w-4" />
-                            Furniture & Appliances
-                          </h4>
-                          {roomStatuses.length === 0 ? (
-                            <p className="text-sm text-muted-foreground">Add rooms first to manage furniture</p>
-                          ) : (
-                            <div className="space-y-4">
-                              {roomStatuses.map(room => (
-                                <div key={`furn-${room.id}`} className="p-3 bg-muted/30 rounded-lg border">
-                                  <p className="text-sm font-medium mb-2">{room.room_number}</p>
-                                  <RoomFurnitureManager roomId={room.id} spaceType={room.type} />
-                                </div>
-                              ))}
-                            </div>
-                          )}
-                        </div>
 
                         {/* Renovations Section */}
                         <div className="space-y-2">
@@ -728,10 +542,7 @@ export default function MyProperties() {
                                     </Badge>
                                   </div>
                                   <div className="flex items-center gap-2 mt-2">
-                                    <Select
-                                      value={renovation.status}
-                                      onValueChange={(v) => handleRenovationStatusChange(renovation.id, v)}
-                                    >
+                                    <Select value={renovation.status} onValueChange={(v) => handleRenovationStatusChange(renovation.id, v)}>
                                       <SelectTrigger className="h-8 w-[120px] text-xs">
                                         <SelectValue />
                                       </SelectTrigger>
@@ -758,16 +569,12 @@ export default function MyProperties() {
                     </Collapsible>
 
                     <div className="flex gap-2 pt-2 border-t">
-                      <Button 
-                        className="flex-1" 
-                        variant="outline"
-                        onClick={() => navigate(`/edit-property/${property.id}`)}
-                      >
+                      <Button className="flex-1" variant="outline" onClick={() => navigate(`/edit-property/${property.id}`)}>
                         <Edit className="h-4 w-4 mr-2" />
                         Edit
                       </Button>
-                      <Button 
-                        variant="ghost" 
+                      <Button
+                        variant="ghost"
                         size="icon"
                         className="text-destructive hover:text-destructive hover:bg-destructive/10"
                         onClick={() => { setDeleteId(property.id); setDeleteConfirmText(""); setDeleteError(""); }}
@@ -801,17 +608,11 @@ export default function MyProperties() {
               onChange={(e) => { setDeleteConfirmText(e.target.value); setDeleteError(""); }}
               placeholder="Type DELETE to confirm"
             />
-            {deleteError && (
-              <p className="text-sm text-destructive font-medium">{deleteError}</p>
-            )}
+            {deleteError && <p className="text-sm text-destructive font-medium">{deleteError}</p>}
           </div>
           <DialogFooter className="gap-2">
             <Button variant="outline" onClick={() => { setDeleteId(null); setDeleteConfirmText(""); setDeleteError(""); }}>Cancel</Button>
-            <Button
-              variant="destructive"
-              disabled={deleteConfirmText !== "DELETE"}
-              onClick={handleDelete}
-            >
+            <Button variant="destructive" disabled={deleteConfirmText !== "DELETE"} onClick={handleDelete}>
               Delete Property
             </Button>
           </DialogFooter>
@@ -826,19 +627,16 @@ export default function MyProperties() {
           </DialogHeader>
           <div className="space-y-4 py-4">
             <div className="space-y-2">
-              <Label>Room Number</Label>
-              <Select 
-                value={renovationForm.room_number} 
-                onValueChange={(v) => setRenovationForm(prev => ({ ...prev, room_number: v }))}
-              >
+              <Label>Space</Label>
+              <Select value={renovationForm.room_number} onValueChange={(v) => setRenovationForm(prev => ({ ...prev, room_number: v }))}>
                 <SelectTrigger>
-                  <SelectValue placeholder="Select a room (optional)" />
+                  <SelectValue placeholder="Select a space (optional)" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="general">General (No specific room)</SelectItem>
+                  <SelectItem value="general">General (No specific space)</SelectItem>
                   {getSelectedPropertyRooms().map((room) => (
-                    <SelectItem key={room.room_number} value={room.room_number}>
-                      Room {room.room_number}
+                    <SelectItem key={room.id} value={room.room_number}>
+                      {room.room_number}
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -866,9 +664,7 @@ export default function MyProperties() {
             <div className="space-y-2">
               <Label>Status</Label>
               <Select value={renovationForm.status} onValueChange={(v) => setRenovationForm(prev => ({ ...prev, status: v }))}>
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
+                <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="planned">Planned</SelectItem>
                   <SelectItem value="in_progress">In Progress</SelectItem>
@@ -881,112 +677,23 @@ export default function MyProperties() {
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label>Start Date</Label>
-                <Input
-                  type="date"
-                  value={renovationForm.start_date}
-                  onChange={(e) => setRenovationForm(prev => ({ ...prev, start_date: e.target.value }))}
-                />
+                <Input type="date" value={renovationForm.start_date} onChange={(e) => setRenovationForm(prev => ({ ...prev, start_date: e.target.value }))} />
               </div>
               <div className="space-y-2">
                 <Label>End Date</Label>
-                <Input
-                  type="date"
-                  value={renovationForm.end_date}
-                  onChange={(e) => setRenovationForm(prev => ({ ...prev, end_date: e.target.value }))}
-                />
+                <Input type="date" value={renovationForm.end_date} onChange={(e) => setRenovationForm(prev => ({ ...prev, end_date: e.target.value }))} />
               </div>
             </div>
 
             <div className="space-y-2">
               <Label>Estimated Cost (R)</Label>
-              <Input
-                type="number"
-                placeholder="0.00"
-                value={renovationForm.estimated_cost}
-                onChange={(e) => setRenovationForm(prev => ({ ...prev, estimated_cost: e.target.value }))}
-              />
+              <Input type="number" placeholder="0.00" value={renovationForm.estimated_cost} onChange={(e) => setRenovationForm(prev => ({ ...prev, estimated_cost: e.target.value }))} />
             </div>
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setRenovationDialogOpen(false)}>Cancel</Button>
             <Button onClick={handleRenovationSubmit}>{editingRenovation ? "Update" : "Add"}</Button>
           </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
-      {/* Room Renovation Dialog */}
-      <Dialog open={roomRenovationDialogOpen} onOpenChange={setRoomRenovationDialogOpen}>
-        <DialogContent className="max-w-md">
-          <DialogHeader>
-            <DialogTitle>
-              Room {selectedRoom?.room_number} — Status
-            </DialogTitle>
-          </DialogHeader>
-          <div className="space-y-4 py-2">
-            <div className="flex items-center justify-between p-3 bg-muted rounded-lg">
-              <span className="text-sm font-medium text-foreground">Current Status</span>
-              {selectedRoom?.isUnderRenovation ? (
-                <Badge variant="outline" className="border-orange-400 text-orange-600 bg-orange-100">Under Renovation</Badge>
-              ) : selectedRoom?.isFull ? (
-                <Badge variant="destructive">Full</Badge>
-              ) : (
-                <Badge variant="outline" className="border-green-400 text-green-600 bg-green-100">Available</Badge>
-              )}
-            </div>
-            <div className="text-sm text-muted-foreground">
-              Occupancy: {selectedRoom?.current_occupants}/{selectedRoom?.capacity}
-            </div>
-
-            {selectedRoom?.isUnderRenovation ? (
-              <div className="space-y-3">
-                {selectedRoom.renovation_description && (
-                  <div className="text-sm"><strong>Reason:</strong> {selectedRoom.renovation_description}</div>
-                )}
-                {selectedRoom.renovation_start_date && (
-                  <div className="text-sm"><strong>Start:</strong> {new Date(selectedRoom.renovation_start_date).toLocaleDateString()}</div>
-                )}
-                {selectedRoom.renovation_end_date && (
-                  <div className="text-sm"><strong>End:</strong> {new Date(selectedRoom.renovation_end_date).toLocaleDateString()}</div>
-                )}
-                <Button className="w-full" onClick={() => { handleMarkAvailable(selectedRoom.id); setRoomRenovationDialogOpen(false); }}>
-                  Mark as Available
-                </Button>
-              </div>
-            ) : (
-              <div className="space-y-3">
-                <div className="space-y-2">
-                  <Label>Reason for Renovation</Label>
-                  <Input
-                    placeholder="e.g. Painting, plumbing repairs"
-                    value={roomRenovationForm.reason}
-                    onChange={(e) => setRoomRenovationForm(prev => ({ ...prev, reason: e.target.value }))}
-                  />
-                </div>
-                <div className="grid grid-cols-2 gap-3">
-                  <div className="space-y-2">
-                    <Label>Start Date</Label>
-                    <Input
-                      type="date"
-                      value={roomRenovationForm.start_date}
-                      onChange={(e) => setRoomRenovationForm(prev => ({ ...prev, start_date: e.target.value }))}
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label>End Date</Label>
-                    <Input
-                      type="date"
-                      value={roomRenovationForm.end_date}
-                      onChange={(e) => setRoomRenovationForm(prev => ({ ...prev, end_date: e.target.value }))}
-                    />
-                  </div>
-                </div>
-                <Button className="w-full" variant="default" onClick={handleMarkUnderRenovation}>
-                  <Hammer className="h-4 w-4 mr-2" />
-                  Mark as Under Renovation
-                </Button>
-              </div>
-            )}
-          </div>
         </DialogContent>
       </Dialog>
     </div>

@@ -3,7 +3,7 @@ import { useParams, Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { ArrowLeft, MapPin, Users, Star, Heart, Calendar, Home, MessageCircle, DoorOpen, Sofa } from "lucide-react";
+import { ArrowLeft, MapPin, Users, Star, Heart, Calendar, Home, MessageCircle, DoorOpen, Check } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -13,7 +13,6 @@ import { useAuth } from "@/hooks/useAuth";
 import { ContactOptionsSheet } from "@/components/ContactOptionsSheet";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
-import { RoomFurnitureManager } from "@/components/RoomFurnitureManager";
 import { getSpaceTypeLabel, getSpaceTypeIcon } from "@/lib/spaceConfig";
 
 interface RoomInfo {
@@ -23,9 +22,6 @@ interface RoomInfo {
   capacity: number | null;
   current_occupants: number;
   renovation_status: string;
-  renovation_description: string | null;
-  renovation_start_date: string | null;
-  renovation_end_date: string | null;
   gender_tag: string | null;
 }
 
@@ -71,7 +67,6 @@ export default function PropertyDetails() {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        // Fetch property
         const { data: propertyData, error: propertyError } = await supabase
           .from('properties')
           .select('*')
@@ -80,7 +75,6 @@ export default function PropertyDetails() {
 
         if (propertyError) throw propertyError;
 
-        // Fetch landlord profile
         const { data: landlordData } = await supabase
           .from('profiles')
           .select('first_name, surname, phone, email')
@@ -92,16 +86,14 @@ export default function PropertyDetails() {
           landlord: landlordData ?? { first_name: '', surname: '', phone: '', email: '' }
         });
 
-        // Fetch rooms with occupancy
         const { data: roomsData, error: roomsError } = await supabase
           .from('rooms')
-          .select('id, room_number, capacity, type, gender_tag, renovation_status, renovation_description, renovation_start_date, renovation_end_date')
+          .select('id, room_number, capacity, type, gender_tag, renovation_status')
           .eq('property_id', id!)
           .order('room_number');
 
         if (roomsError) throw roomsError;
 
-        // Get occupancy counts for each room
         const roomsWithOccupancy: RoomInfo[] = [];
         for (const room of roomsData || []) {
           const roomType = (room as any).type || 'bedroom';
@@ -122,9 +114,6 @@ export default function PropertyDetails() {
             capacity: room.capacity,
             current_occupants: currentOccupants,
             renovation_status: (room as any).renovation_status || 'available',
-            renovation_description: (room as any).renovation_description || null,
-            renovation_start_date: (room as any).renovation_start_date || null,
-            renovation_end_date: (room as any).renovation_end_date || null,
             gender_tag: (room as any).gender_tag || null,
           });
         }
@@ -147,7 +136,6 @@ export default function PropertyDetails() {
 
   const handleRequestViewing = async () => {
     if (!user || !property) return;
-    
     setSubmittingViewing(true);
     try {
       const { error } = await supabase
@@ -159,22 +147,12 @@ export default function PropertyDetails() {
           student_message: viewingMessage,
           status: 'pending'
         });
-
       if (error) throw error;
-
-      toast({
-        title: "Viewing request sent!",
-        description: "The landlord will review your request and schedule a viewing.",
-      });
+      toast({ title: "Viewing request sent!", description: "The landlord will review your request and schedule a viewing." });
       setViewingDialogOpen(false);
       setViewingMessage("");
     } catch (error) {
-      console.error('Error submitting viewing request:', error);
-      toast({
-        title: "Error",
-        description: "Failed to send viewing request. Please try again.",
-        variant: "destructive"
-      });
+      toast({ title: "Error", description: "Failed to send viewing request.", variant: "destructive" });
     } finally {
       setSubmittingViewing(false);
     }
@@ -182,7 +160,6 @@ export default function PropertyDetails() {
 
   const handleRequestRental = async () => {
     if (!user || !property || !selectedRoomId) return;
-    
     setSubmittingRental(true);
     try {
       const { error } = await supabase
@@ -195,23 +172,13 @@ export default function PropertyDetails() {
           room_id: selectedRoomId,
           status: 'pending'
         });
-
       if (error) throw error;
-
-      toast({
-        title: "Room request sent!",
-        description: "The landlord will review your request and get back to you.",
-      });
+      toast({ title: "Room request sent!", description: "The landlord will review your request." });
       setRentalDialogOpen(false);
       setRentalMessage("");
       setSelectedRoomId("");
     } catch (error) {
-      console.error('Error submitting rental request:', error);
-      toast({
-        title: "Error",
-        description: "Failed to send room request. Please try again.",
-        variant: "destructive"
-      });
+      toast({ title: "Error", description: "Failed to send room request.", variant: "destructive" });
     } finally {
       setSubmittingRental(false);
     }
@@ -257,6 +224,16 @@ export default function PropertyDetails() {
   const bedrooms = rooms.filter(r => r.type === 'bedroom');
   const sharedSpaces = rooms.filter(r => r.type !== 'bedroom');
   const availableRooms = bedrooms.filter(r => r.capacity && r.current_occupants < r.capacity && r.renovation_status !== 'under_renovation');
+
+  // Summarize shared spaces by type
+  const sharedSummary: Record<string, number> = {};
+  sharedSpaces.forEach(s => {
+    const label = s.type;
+    sharedSummary[label] = (sharedSummary[label] || 0) + 1;
+  });
+
+  const totalCapacity = bedrooms.reduce((sum, r) => sum + (r.capacity || 0), 0);
+  const totalOccupants = bedrooms.reduce((sum, r) => sum + r.current_occupants, 0);
 
   return (
     <div className="min-h-screen bg-background p-4">
@@ -337,14 +314,10 @@ export default function PropertyDetails() {
                   {property.location}
                 </div>
                 {property.house_number && (
-                  <div className="text-sm text-muted-foreground mt-1">
-                    {property.house_number}
-                  </div>
+                  <div className="text-sm text-muted-foreground mt-1">{property.house_number}</div>
                 )}
                 {property.boarding_house_name && (
-                  <div className="text-sm text-muted-foreground">
-                    {property.boarding_house_name}
-                  </div>
+                  <div className="text-sm text-muted-foreground">{property.boarding_house_name}</div>
                 )}
               </div>
               <div className="text-right">
@@ -362,7 +335,7 @@ export default function PropertyDetails() {
             <div className="grid grid-cols-2 gap-4">
               <div className="flex items-center gap-2">
                 <Users className="h-4 w-4" />
-                <span>{property.rooms} rooms</span>
+                <span>{bedrooms.length} {bedrooms.length === 1 ? "bedroom" : "bedrooms"}</span>
               </div>
               <div>
                 <span className="font-medium">Gender: </span>
@@ -379,9 +352,7 @@ export default function PropertyDetails() {
                 <h3 className="font-semibold mb-2">Amenities</h3>
                 <div className="flex flex-wrap gap-2">
                   {property.amenities.map((amenity) => (
-                    <Badge key={amenity} variant="secondary">
-                      {amenity}
-                    </Badge>
+                    <Badge key={amenity} variant="secondary">{amenity}</Badge>
                   ))}
                 </div>
               </div>
@@ -396,122 +367,55 @@ export default function PropertyDetails() {
           </CardContent>
         </Card>
 
-        {/* Bedrooms */}
+        {/* Bedrooms Summary */}
         {bedrooms.length > 0 && (
           <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
+            <CardHeader className="pb-3">
+              <CardTitle className="flex items-center gap-2 text-lg">
                 <DoorOpen className="h-5 w-5" />
                 Bedrooms
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="grid gap-3">
-                {bedrooms.map((room) => {
-                  const isFull = room.capacity ? room.current_occupants >= room.capacity : false;
-                  const isRenovation = room.renovation_status === 'under_renovation';
-                  return (
-                    <div
-                      key={room.id}
-                      className={`flex items-center justify-between p-4 rounded-lg border ${
-                        isRenovation ? 'border-amber-500/50 opacity-70' : isFull ? 'bg-muted/50 opacity-60' : 'bg-background'
-                      }`}
-                    >
-                      <div className="flex items-center gap-3">
-                        <span className="text-xl">{getSpaceTypeIcon(room.type)}</span>
-                        <div>
-                          <p className="font-medium">{room.room_number}</p>
-                          {room.capacity && (
-                            <p className="text-sm text-muted-foreground">
-                              Capacity: {room.capacity} student{room.capacity > 1 ? 's' : ''}
-                            </p>
-                          )}
-                          {room.gender_tag && (
-                            <Badge variant="outline" className="text-xs mt-1">{room.gender_tag}</Badge>
-                          )}
-                          {isRenovation && room.renovation_description && (
-                            <p className="text-xs text-destructive mt-1">{room.renovation_description}</p>
-                          )}
-                          {isRenovation && room.renovation_end_date && (
-                            <p className="text-xs text-muted-foreground mt-0.5">
-                              Available after: {new Date(room.renovation_end_date).toLocaleDateString()}
-                            </p>
-                          )}
-                          <div className="mt-2">
-                            <RoomFurnitureManager roomId={room.id} readOnly spaceType={room.type} />
-                          </div>
-                        </div>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        {isRenovation ? (
-                          <Badge variant="outline" className="border-amber-500 text-amber-700">🔧 Under Renovation</Badge>
-                        ) : room.capacity ? (
-                          <>
-                            <Badge variant={isFull ? "destructive" : "secondary"}>
-                              {room.current_occupants}/{room.capacity} occupied
-                            </Badge>
-                            {isFull && (
-                              <Badge variant="outline" className="text-destructive">Full</Badge>
-                            )}
-                          </>
-                        ) : null}
-                      </div>
-                    </div>
-                  );
-                })}
+              <div className="flex items-center gap-4 text-sm">
+                <div className="flex items-center gap-2">
+                  <span className="font-semibold text-lg">{bedrooms.length}</span>
+                  <span className="text-muted-foreground">{bedrooms.length === 1 ? "bedroom" : "bedrooms"}</span>
+                </div>
+                <div className="h-4 border-l border-border" />
+                <div className="text-muted-foreground">
+                  {availableRooms.length} available · {totalOccupants}/{totalCapacity} occupied
+                </div>
               </div>
+              {bedrooms.some(r => r.capacity && r.capacity > 1) && (
+                <p className="text-xs text-muted-foreground mt-2">Shared rooms available</p>
+              )}
             </CardContent>
           </Card>
         )}
 
-        {/* Shared Spaces */}
-        {sharedSpaces.length > 0 && (
+        {/* Shared Spaces Summary */}
+        {Object.keys(sharedSummary).length > 0 && (
           <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Sofa className="h-5 w-5" />
-                Shared Spaces
-              </CardTitle>
+            <CardHeader className="pb-3">
+              <CardTitle className="text-lg">Facilities</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="grid gap-3">
-                {sharedSpaces.map((space) => {
-                  const isRenovation = space.renovation_status === 'under_renovation';
-                  return (
-                    <div
-                      key={space.id}
-                      className={`flex items-center justify-between p-4 rounded-lg border ${
-                        isRenovation ? 'border-amber-500/50 opacity-70' : 'bg-background'
-                      }`}
-                    >
-                      <div className="flex items-center gap-3">
-                        <span className="text-xl">{getSpaceTypeIcon(space.type)}</span>
-                        <div>
-                          <p className="font-medium">{space.room_number}</p>
-                          <Badge variant="secondary" className="text-xs">{getSpaceTypeLabel(space.type)}</Badge>
-                          {space.gender_tag && (
-                            <Badge variant="outline" className="text-xs ml-1">{space.gender_tag}</Badge>
-                          )}
-                          {isRenovation && space.renovation_description && (
-                            <p className="text-xs text-destructive mt-1">{space.renovation_description}</p>
-                          )}
-                          <div className="mt-2">
-                            <RoomFurnitureManager roomId={space.id} readOnly spaceType={space.type} />
-                          </div>
-                        </div>
-                      </div>
-                      {isRenovation && (
-                        <Badge variant="outline" className="border-amber-500 text-amber-700">🔧 Under Renovation</Badge>
-                      )}
+              <div className="grid grid-cols-2 gap-3">
+                {Object.entries(sharedSummary).map(([type, count]) => (
+                  <div key={type} className="flex items-center gap-3 p-2 rounded-lg bg-muted/50">
+                    <span className="text-xl">{getSpaceTypeIcon(type)}</span>
+                    <div>
+                      <p className="text-sm font-medium">{getSpaceTypeLabel(type)}</p>
+                      {count > 1 && <p className="text-xs text-muted-foreground">×{count}</p>}
                     </div>
-                  );
-                })}
+                    <Check className="h-4 w-4 text-green-500 ml-auto" />
+                  </div>
+                ))}
               </div>
             </CardContent>
           </Card>
         )}
-
-
 
         {/* Landlord Info */}
         <Card>
@@ -589,7 +493,6 @@ export default function PropertyDetails() {
                   <DialogTitle>Request a Room</DialogTitle>
                 </DialogHeader>
                 <div className="space-y-4 pt-4">
-                  {/* Room Selection */}
                   <div>
                     <Label className="text-sm font-medium mb-3 block">Select a Room</Label>
                     <RadioGroup value={selectedRoomId} onValueChange={setSelectedRoomId}>
@@ -610,7 +513,6 @@ export default function PropertyDetails() {
                       </div>
                     </RadioGroup>
                   </div>
-
                   <div>
                     <Label className="text-sm font-medium mb-2 block">Message (optional)</Label>
                     <Textarea
