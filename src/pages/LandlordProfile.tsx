@@ -144,7 +144,6 @@ export default function LandlordProfile() {
                   {profile.firstName} {profile.surname}
                 </h2>
                 <p className="text-sm text-muted-foreground">Landlord</p>
-                <p className="text-sm text-muted-foreground">{profile.email}</p>
               </div>
             </div>
           </CardContent>
