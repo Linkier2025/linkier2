@@ -36,7 +36,7 @@ export function SplashScreen({ onFinished }: SplashScreenProps) {
             alt="Linkier"
             width={96}
             height={96}
-            className="rounded-2xl shadow-lg"
+            className="rounded-2xl shadow-lg object-cover"
           />
         </div>
 
