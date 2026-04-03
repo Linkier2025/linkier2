@@ -1,6 +1,6 @@
 import { useNavigate } from "react-router-dom";
 import { Card, CardContent } from "@/components/ui/card";
-import { Megaphone, MessageSquare, ChevronRight, Bell, HardHat } from "lucide-react";
+import { Megaphone, MessageSquare, ChevronRight, Bell, HardHat, DollarSign } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { useState, useEffect } from "react";
@@ -34,6 +34,13 @@ export default function Manage() {
   }, [user]);
 
   const items = [
+    {
+      label: "Rent Tracking",
+      description: "Track tenant payments and monthly revenue",
+      icon: DollarSign,
+      path: "/rent-tracking",
+      badge: null,
+    },
     {
       label: "Announcements",
       description: "Create and manage announcements for your tenants",
