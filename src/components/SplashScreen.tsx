@@ -28,26 +28,12 @@ export function SplashScreen({ onFinished }: SplashScreenProps) {
       <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-black/50 to-black/70" />
 
       {/* Content */}
-      <div className="relative z-10 flex flex-col items-center">
-        {/* Icon */}
-        <div className="animate-scale-in mb-6">
-          <img
-            src="/app-icon.png"
-            alt="Linkier"
-            width={96}
-            height={96}
-            className="rounded-2xl shadow-lg object-cover"
-          />
-        </div>
-
-        {/* App Name */}
-        <h1 className="animate-fade-in text-4xl font-bold tracking-tight text-white mb-2">
+      <div className="relative z-10 flex flex-col items-center justify-center">
+        <h1 className="animate-fade-in text-5xl font-extrabold tracking-tight text-white">
           Linkier
         </h1>
-
-        {/* Tagline */}
         <p
-          className="text-white/80 text-sm tracking-wide animate-fade-in"
+          className="text-white/70 text-sm tracking-wide animate-fade-in mt-2"
           style={{ animationDelay: "0.2s", animationFillMode: "both" }}
         >
           Student housing made easy
