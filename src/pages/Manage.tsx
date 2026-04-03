@@ -35,6 +35,13 @@ export default function Manage() {
 
   const items = [
     {
+      label: "Rent Tracking",
+      description: "Track tenant payments and monthly revenue",
+      icon: DollarSign,
+      path: "/rent-tracking",
+      badge: null,
+    },
+    {
       label: "Announcements",
       description: "Create and manage announcements for your tenants",
       icon: Megaphone,
