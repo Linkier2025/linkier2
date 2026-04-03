@@ -181,7 +181,6 @@ export default function StudentProfile() {
                   {profile.firstName} {profile.surname}
                 </h2>
                 <p className="text-sm text-muted-foreground">Student</p>
-                <p className="text-sm text-muted-foreground truncate">{profile.email}</p>
               </div>
             </div>
           </CardContent>
