@@ -301,7 +301,7 @@ export default function Tenants() {
                     {room.tenants.map((tenant) => (
                       <div
                         key={tenant.assignment_id}
-                        className="p-4 bg-muted/50 rounded-lg space-y-3"
+                       className="p-3 bg-muted/50 rounded-lg space-y-2"
                       >
                        <div className="flex items-start gap-3">
                           <Avatar className="h-9 w-9 shrink-0">
