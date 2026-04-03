@@ -147,6 +147,11 @@ const App = () => (
                   <LandlordLayout><AddProperty /></LandlordLayout>
                 </ProtectedRoute>
               } />
+              <Route path="/space/:spaceId" element={
+                <ProtectedRoute userType="landlord">
+                  <LandlordLayout><SpaceDetail /></LandlordLayout>
+                </ProtectedRoute>
+              } />
               <Route path="/viewing-requests" element={
                 <ProtectedRoute userType="landlord">
                   <LandlordLayout><ViewingRequests /></LandlordLayout>
