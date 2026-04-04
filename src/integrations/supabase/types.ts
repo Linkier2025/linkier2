@@ -738,6 +738,7 @@ export type Database = {
         Args: { p_assignment_id: string }
         Returns: boolean
       }
+      check_phone_exists: { Args: { p_phone: string }; Returns: boolean }
       confirm_payment: { Args: { p_assignment_id: string }; Returns: boolean }
       get_available_room: { Args: { p_property_id: string }; Returns: string }
       is_landlord: { Args: never; Returns: boolean }
