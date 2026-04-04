@@ -84,14 +84,10 @@ const StudentSignup = () => {
       return;
     }
 
-    // Check duplicate phone
-    const { data: existingPhone } = await supabase
-      .from('profiles')
-      .select('id')
-      .eq('phone', formData.phone)
-      .maybeSingle();
+    // Check duplicate phone using RPC (bypasses RLS for unauthenticated users)
+    const { data: phoneExists } = await supabase.rpc('check_phone_exists', { p_phone: formData.phone });
 
-    if (existingPhone) {
+    if (phoneExists) {
       setPhoneError("This phone number is already in use");
       toast({ title: "Duplicate Phone", description: "This phone number is already in use", variant: "destructive" });
       return;

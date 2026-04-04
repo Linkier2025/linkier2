@@ -34,13 +34,23 @@ const StudentLogin = () => {
     if (!email || !password || isLoading) return;
     
     setIsLoading(true);
-    const { error } = await signIn(email, password);
-    if (!error) {
-      // Check user type after login
+    try {
+      const { error } = await signIn(email, password);
+      if (error) {
+        setIsLoading(false);
+        return;
+      }
+      // Get the current user after successful sign-in
+      const { data: { user: authUser } } = await supabase.auth.getUser();
+      if (!authUser) {
+        setIsLoading(false);
+        return;
+      }
+      
       const { data: profileData } = await supabase
         .from('profiles')
         .select('user_type')
-        .eq('user_id', (await supabase.auth.getUser()).data.user?.id)
+        .eq('user_id', authUser.id)
         .single();
       
       if (profileData?.user_type === 'landlord') {
@@ -50,10 +60,11 @@ const StudentLogin = () => {
           description: "This is a landlord account. Please use the landlord login page.",
           variant: "destructive",
         });
+        setIsLoading(false);
         return;
       }
       navigate('/explore');
-    } else {
+    } catch {
       setIsLoading(false);
     }
   };
