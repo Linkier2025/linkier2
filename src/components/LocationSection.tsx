@@ -50,12 +50,6 @@ export function LocationSection({
     });
   };
 
-  // Build a 2-row grid by pairing properties
-  const pairs: Property[][] = [];
-  for (let i = 0; i < properties.length; i += 2) {
-    pairs.push(properties.slice(i, i + 2));
-  }
-
   return (
     <section className="space-y-3">
       {/* Section header */}
@@ -77,30 +71,27 @@ export function LocationSection({
         </div>
       </div>
 
-      {/* Horizontal scroll container with 2-row grid */}
+      {/* Horizontal scroll - single row */}
       <div
         ref={scrollRef}
         className="flex gap-3 overflow-x-auto pb-2 snap-x snap-mandatory scrollbar-hide"
         style={{ WebkitOverflowScrolling: "touch" }}
       >
-        {pairs.map((pair, idx) => (
-          <div key={idx} className="flex flex-col gap-3 snap-start shrink-0 w-[44vw] md:w-[220px]">
-            {pair.map((property) => (
-              <PropertyCard
-                key={property.id}
-                id={property.id}
-                title={property.title}
-                rent_amount={property.rent_amount}
-                location={property.location}
-                rooms={property.rooms}
-                gender_preference={property.gender_preference}
-                rating={property.rating ?? 0}
-                images={property.images}
-                isFavorite={favorites.includes(property.id)}
-                occupancy={occupancyMap[property.id]}
-                onToggleFavorite={onToggleFavorite}
-              />
-            ))}
+        {properties.map((property) => (
+          <div key={property.id} className="snap-start shrink-0 w-[44vw] md:w-[220px]">
+            <PropertyCard
+              id={property.id}
+              title={property.title}
+              rent_amount={property.rent_amount}
+              location={property.location}
+              rooms={property.rooms}
+              gender_preference={property.gender_preference}
+              rating={property.rating ?? 0}
+              images={property.images}
+              isFavorite={favorites.includes(property.id)}
+              occupancy={occupancyMap[property.id]}
+              onToggleFavorite={onToggleFavorite}
+            />
           </div>
         ))}
       </div>
