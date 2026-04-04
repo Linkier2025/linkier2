@@ -149,7 +149,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       } else {
         toast({
           title: "Account Created",
-          description: "Please check your email to verify your account.",
+          description: "Welcome to Linkier!",
         });
       }
       
