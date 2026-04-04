@@ -399,7 +399,14 @@ export default function Tenants() {
             <AlertDialogFooter>
               <AlertDialogCancel disabled={processing}>Cancel</AlertDialogCancel>
               <AlertDialogAction
-                onClick={confirmDialog.type === 'payment' ? handleTogglePayment : handleMoveOut}
+                onClick={(e) => {
+                  e.preventDefault();
+                  if (confirmDialog.type === 'payment') {
+                    handleTogglePayment();
+                  } else {
+                    handleMoveOut();
+                  }
+                }}
                 disabled={processing}
                 className={confirmDialog.type === 'moveout' ? 'bg-destructive hover:bg-destructive/90' : ''}
               >
