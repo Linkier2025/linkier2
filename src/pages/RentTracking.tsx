@@ -115,7 +115,7 @@ export default function RentTracking() {
             )
           )
         `)
-        .eq('status', 'active')
+        .in('status', ['active', 'inactive'])
         .order('created_at', { ascending: false }) as any);
 
       if (assignmentsError) throw assignmentsError;
