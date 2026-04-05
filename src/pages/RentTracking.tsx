@@ -209,13 +209,17 @@ export default function RentTracking() {
           )
         `)
         .eq('student_id', user.id)
-        .eq('status', 'active')
+        .in('status', ['active', 'inactive', 'moved_out'])
+        .order('updated_at', { ascending: false })
+        .limit(1)
         .maybeSingle() as any);
 
       if (!assignmentData) {
         setLoading(false);
         return;
       }
+
+      const isMovedOut = assignmentData.status === 'moved_out';
 
       // Fetch payments for this student's assignment
       const { data: paymentsData } = await (supabase
