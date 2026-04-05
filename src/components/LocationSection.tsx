@@ -74,26 +74,31 @@ export function LocationSection({
       {/* Horizontal scroll - single row */}
       <div
         ref={scrollRef}
-        className="flex gap-3 overflow-x-auto pb-2 snap-x snap-mandatory scrollbar-hide"
+        className="overflow-x-auto overflow-y-hidden pb-2 scrollbar-hide"
         style={{ WebkitOverflowScrolling: "touch" }}
       >
-        {properties.map((property) => (
-          <div key={property.id} className="snap-start shrink-0 w-[44vw] md:w-[220px]">
-            <PropertyCard
-              id={property.id}
-              title={property.title}
-              rent_amount={property.rent_amount}
-              location={property.location}
-              rooms={property.rooms}
-              gender_preference={property.gender_preference}
-              rating={property.rating ?? 0}
-              images={property.images}
-              isFavorite={favorites.includes(property.id)}
-              occupancy={occupancyMap[property.id]}
-              onToggleFavorite={onToggleFavorite}
-            />
-          </div>
-        ))}
+        <div className="flex min-w-max flex-nowrap gap-3 snap-x snap-mandatory">
+          {properties.map((property) => (
+            <div
+              key={property.id}
+              className="snap-start shrink-0 w-[calc(50vw-1.25rem)] min-w-[170px] max-w-[220px] md:w-[220px]"
+            >
+              <PropertyCard
+                id={property.id}
+                title={property.title}
+                rent_amount={property.rent_amount}
+                location={property.location}
+                rooms={property.rooms}
+                gender_preference={property.gender_preference}
+                rating={property.rating ?? 0}
+                images={property.images}
+                isFavorite={favorites.includes(property.id)}
+                occupancy={occupancyMap[property.id]}
+                onToggleFavorite={onToggleFavorite}
+              />
+            </div>
+          ))}
+        </div>
       </div>
     </section>
   );
