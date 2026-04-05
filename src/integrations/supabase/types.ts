@@ -751,6 +751,10 @@ export type Database = {
         Args: { p_assignment_id: string; p_status: string }
         Returns: boolean
       }
+      toggle_tenant_status: {
+        Args: { p_assignment_id: string; p_status: string }
+        Returns: boolean
+      }
     }
     Enums: {
       [_ in never]: never
