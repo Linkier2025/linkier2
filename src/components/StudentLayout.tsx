@@ -14,7 +14,7 @@ export function StudentLayout({ children }: { children: React.ReactNode }) {
         .from("room_assignments")
         .select("*", { count: "exact", head: true })
         .eq("student_id", user.id)
-        .in("status", ["active", "inactive"]);
+        .in("status", ["active", "inactive", "moved_out"]);
       setIsTenant((count || 0) > 0);
     };
     check();

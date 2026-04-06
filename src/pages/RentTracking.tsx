@@ -69,6 +69,7 @@ export default function RentTracking() {
   const [tenants, setTenants] = useState<ActiveTenant[]>([]);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
+  const [isMovedOut, setIsMovedOut] = useState(false);
   const [tenantSearch, setTenantSearch] = useState("");
   const [confirmDialog, setConfirmDialog] = useState(false);
 
@@ -201,6 +202,7 @@ export default function RentTracking() {
         .from('room_assignments')
         .select(`
           id,
+          status,
           payment_status,
           rooms!inner (
             room_number,
@@ -219,7 +221,7 @@ export default function RentTracking() {
         return;
       }
 
-      const isMovedOut = assignmentData.status === 'moved_out';
+      setIsMovedOut(assignmentData.status === 'moved_out');
 
       // Fetch payments for this student's assignment
       const { data: paymentsData } = await (supabase
@@ -379,17 +381,25 @@ export default function RentTracking() {
     const lastRemainingBalance = latestPayment?.remaining_balance || 0;
 
     return (
-      <div className="min-h-screen bg-background">
+      <div className={`min-h-screen bg-background ${isMovedOut ? 'opacity-60 pointer-events-auto' : ''}`}>
         <div className="container mx-auto p-4 max-w-4xl">
           <div className="flex items-center gap-3 mb-6">
             <Button variant="ghost" size="icon" onClick={() => navigate("/my-stay")}>
               <ArrowLeft className="h-5 w-5" />
             </Button>
             <div>
-              <h1 className="text-2xl font-bold">Rent Tracking</h1>
-              <p className="text-sm text-muted-foreground">View your payment history</p>
+              <h1 className="text-2xl font-bold">{isMovedOut ? 'Payment History' : 'Rent Tracking'}</h1>
+              <p className="text-sm text-muted-foreground">{isMovedOut ? 'Read-only history of past payments' : 'View your payment history'}</p>
             </div>
           </div>
+
+          {isMovedOut && (
+            <Card className="mb-4 border-muted bg-muted/50">
+              <CardContent className="p-3 text-center text-sm text-muted-foreground">
+                You are no longer a tenant. This is a read-only view of your payment history.
+              </CardContent>
+            </Card>
+          )}
 
           {!currentTenant ? (
             <Card className="text-center py-12">
@@ -402,7 +412,7 @@ export default function RentTracking() {
           ) : (
             <div className="space-y-4">
               {/* Stats */}
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+              <div className={`grid grid-cols-2 ${isMovedOut ? '' : 'md:grid-cols-4'} gap-3`}>
                 <Card>
                   <CardContent className="p-4">
                     <p className="text-xs text-muted-foreground">Monthly Rent</p>
@@ -415,25 +425,29 @@ export default function RentTracking() {
                     <p className="text-xl font-bold text-green-600">${totalPaid}</p>
                   </CardContent>
                 </Card>
-                <Card>
-                  <CardContent className="p-4">
-                    <p className="text-xs text-muted-foreground">Balance</p>
-                    <p className={`text-xl font-bold ${lastRemainingBalance > 0 ? 'text-red-600' : 'text-green-600'}`}>
-                      ${lastRemainingBalance}
-                    </p>
-                  </CardContent>
-                </Card>
-                <Card>
-                  <CardContent className="p-4">
-                    <p className="text-xs text-muted-foreground">Next Due</p>
-                    <p className="text-sm font-bold">
-                      {latestPayment?.next_due_date
-                        ? format(new Date(latestPayment.next_due_date), "MMM dd, yyyy")
-                        : "N/A"}
-                    </p>
-                    {getOverdueBadge(latestPayment?.next_due_date || null)}
-                  </CardContent>
-                </Card>
+                {!isMovedOut && (
+                  <>
+                    <Card>
+                      <CardContent className="p-4">
+                        <p className="text-xs text-muted-foreground">Balance</p>
+                        <p className={`text-xl font-bold ${lastRemainingBalance > 0 ? 'text-red-600' : 'text-green-600'}`}>
+                          ${lastRemainingBalance}
+                        </p>
+                      </CardContent>
+                    </Card>
+                    <Card>
+                      <CardContent className="p-4">
+                        <p className="text-xs text-muted-foreground">Next Due</p>
+                        <p className="text-sm font-bold">
+                          {latestPayment?.next_due_date
+                            ? format(new Date(latestPayment.next_due_date), "MMM dd, yyyy")
+                            : "N/A"}
+                        </p>
+                        {getOverdueBadge(latestPayment?.next_due_date || null)}
+                      </CardContent>
+                    </Card>
+                  </>
+                )}
               </div>
 
               {/* Status */}
