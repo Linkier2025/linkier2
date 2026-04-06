@@ -314,6 +314,6 @@ export default function Requests() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-    </StudentLayout>
+    </>
   );
 }
