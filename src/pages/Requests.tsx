@@ -249,18 +249,16 @@ export default function Requests() {
 
   if (loading) {
     return (
-      <StudentLayout>
-        <div className="p-4 space-y-4">
-          <Skeleton className="h-8 w-40" />
-          <Skeleton className="h-24 w-full" />
-          <Skeleton className="h-24 w-full" />
-        </div>
-      </StudentLayout>
+      <div className="p-4 space-y-4">
+        <Skeleton className="h-8 w-40" />
+        <Skeleton className="h-24 w-full" />
+        <Skeleton className="h-24 w-full" />
+      </div>
     );
   }
 
   return (
-    <StudentLayout>
+    <>
       <div className="px-4 pt-4 pb-2">
         <h1 className="text-xl font-bold text-foreground">My Requests</h1>
       </div>
