@@ -202,6 +202,7 @@ export default function RentTracking() {
         .from('room_assignments')
         .select(`
           id,
+          status,
           payment_status,
           rooms!inner (
             room_number,
@@ -220,13 +221,7 @@ export default function RentTracking() {
         return;
       }
 
-      // status field isn't in select, re-fetch to check
-      const { data: statusCheck } = await supabase
-        .from('room_assignments')
-        .select('status')
-        .eq('id', assignmentData.id)
-        .single();
-      const isMovedOut = statusCheck?.status === 'moved_out';
+      setIsMovedOut(assignmentData.status === 'moved_out');
 
       // Fetch payments for this student's assignment
       const { data: paymentsData } = await (supabase
