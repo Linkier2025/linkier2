@@ -219,7 +219,13 @@ export default function RentTracking() {
         return;
       }
 
-      const isMovedOut = assignmentData.status === 'moved_out';
+      // status field isn't in select, re-fetch to check
+      const { data: statusCheck } = await supabase
+        .from('room_assignments')
+        .select('status')
+        .eq('id', assignmentData.id)
+        .single();
+      const isMovedOut = statusCheck?.status === 'moved_out';
 
       // Fetch payments for this student's assignment
       const { data: paymentsData } = await (supabase
