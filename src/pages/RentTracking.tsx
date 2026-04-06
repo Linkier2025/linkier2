@@ -412,7 +412,7 @@ export default function RentTracking() {
           ) : (
             <div className="space-y-4">
               {/* Stats */}
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+              <div className={`grid grid-cols-2 ${isMovedOut ? '' : 'md:grid-cols-4'} gap-3`}>
                 <Card>
                   <CardContent className="p-4">
                     <p className="text-xs text-muted-foreground">Monthly Rent</p>
@@ -425,25 +425,29 @@ export default function RentTracking() {
                     <p className="text-xl font-bold text-green-600">${totalPaid}</p>
                   </CardContent>
                 </Card>
-                <Card>
-                  <CardContent className="p-4">
-                    <p className="text-xs text-muted-foreground">Balance</p>
-                    <p className={`text-xl font-bold ${lastRemainingBalance > 0 ? 'text-red-600' : 'text-green-600'}`}>
-                      ${lastRemainingBalance}
-                    </p>
-                  </CardContent>
-                </Card>
-                <Card>
-                  <CardContent className="p-4">
-                    <p className="text-xs text-muted-foreground">Next Due</p>
-                    <p className="text-sm font-bold">
-                      {latestPayment?.next_due_date
-                        ? format(new Date(latestPayment.next_due_date), "MMM dd, yyyy")
-                        : "N/A"}
-                    </p>
-                    {getOverdueBadge(latestPayment?.next_due_date || null)}
-                  </CardContent>
-                </Card>
+                {!isMovedOut && (
+                  <>
+                    <Card>
+                      <CardContent className="p-4">
+                        <p className="text-xs text-muted-foreground">Balance</p>
+                        <p className={`text-xl font-bold ${lastRemainingBalance > 0 ? 'text-red-600' : 'text-green-600'}`}>
+                          ${lastRemainingBalance}
+                        </p>
+                      </CardContent>
+                    </Card>
+                    <Card>
+                      <CardContent className="p-4">
+                        <p className="text-xs text-muted-foreground">Next Due</p>
+                        <p className="text-sm font-bold">
+                          {latestPayment?.next_due_date
+                            ? format(new Date(latestPayment.next_due_date), "MMM dd, yyyy")
+                            : "N/A"}
+                        </p>
+                        {getOverdueBadge(latestPayment?.next_due_date || null)}
+                      </CardContent>
+                    </Card>
+                  </>
+                )}
               </div>
 
               {/* Status */}
