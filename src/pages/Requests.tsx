@@ -9,7 +9,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
 import { useUnreadNotifications } from "@/hooks/useUnreadNotifications";
 import { Skeleton } from "@/components/ui/skeleton";
-import { StudentLayout } from "@/components/StudentLayout";
+
 import {
   AlertDialog,
   AlertDialogAction,
