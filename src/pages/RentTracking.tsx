@@ -68,7 +68,7 @@ export default function RentTracking() {
   const [payments, setPayments] = useState<PaymentRecord[]>([]);
   const [tenants, setTenants] = useState<ActiveTenant[]>([]);
   const [loading, setLoading] = useState(true);
-  const [submitting, setSubmitting] = useState(false);
+  const [isMovedOut, setIsMovedOut] = useState(false);
   const [tenantSearch, setTenantSearch] = useState("");
   const [confirmDialog, setConfirmDialog] = useState(false);
 
