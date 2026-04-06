@@ -9,7 +9,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
 import { useUnreadNotifications } from "@/hooks/useUnreadNotifications";
 import { Skeleton } from "@/components/ui/skeleton";
-import { StudentLayout } from "@/components/StudentLayout";
+
 import {
   AlertDialog,
   AlertDialogAction,
@@ -249,18 +249,16 @@ export default function Requests() {
 
   if (loading) {
     return (
-      <StudentLayout>
-        <div className="p-4 space-y-4">
-          <Skeleton className="h-8 w-40" />
-          <Skeleton className="h-24 w-full" />
-          <Skeleton className="h-24 w-full" />
-        </div>
-      </StudentLayout>
+      <div className="p-4 space-y-4">
+        <Skeleton className="h-8 w-40" />
+        <Skeleton className="h-24 w-full" />
+        <Skeleton className="h-24 w-full" />
+      </div>
     );
   }
 
   return (
-    <StudentLayout>
+    <>
       <div className="px-4 pt-4 pb-2">
         <h1 className="text-xl font-bold text-foreground">My Requests</h1>
       </div>
@@ -316,6 +314,6 @@ export default function Requests() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-    </StudentLayout>
+    </>
   );
 }
