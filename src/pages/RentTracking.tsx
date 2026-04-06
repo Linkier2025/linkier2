@@ -381,17 +381,25 @@ export default function RentTracking() {
     const lastRemainingBalance = latestPayment?.remaining_balance || 0;
 
     return (
-      <div className="min-h-screen bg-background">
+      <div className={`min-h-screen bg-background ${isMovedOut ? 'opacity-60 pointer-events-auto' : ''}`}>
         <div className="container mx-auto p-4 max-w-4xl">
           <div className="flex items-center gap-3 mb-6">
             <Button variant="ghost" size="icon" onClick={() => navigate("/my-stay")}>
               <ArrowLeft className="h-5 w-5" />
             </Button>
             <div>
-              <h1 className="text-2xl font-bold">Rent Tracking</h1>
-              <p className="text-sm text-muted-foreground">View your payment history</p>
+              <h1 className="text-2xl font-bold">{isMovedOut ? 'Payment History' : 'Rent Tracking'}</h1>
+              <p className="text-sm text-muted-foreground">{isMovedOut ? 'Read-only history of past payments' : 'View your payment history'}</p>
             </div>
           </div>
+
+          {isMovedOut && (
+            <Card className="mb-4 border-muted bg-muted/50">
+              <CardContent className="p-3 text-center text-sm text-muted-foreground">
+                You are no longer a tenant. This is a read-only view of your payment history.
+              </CardContent>
+            </Card>
+          )}
 
           {!currentTenant ? (
             <Card className="text-center py-12">
