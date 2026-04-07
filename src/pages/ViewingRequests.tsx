@@ -132,7 +132,7 @@ export default function ViewingRequests() {
         `)
         .order('requested_at', { ascending: false });
 
-      if (isLandlord) {
+      if (landlord) {
         query = query.eq('landlord_id', user.id);
       } else {
         query = query.eq('student_id', user.id);
