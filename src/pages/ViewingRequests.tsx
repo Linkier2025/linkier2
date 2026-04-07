@@ -98,6 +98,17 @@ export default function ViewingRequests() {
     }
   }, [user, profile]);
 
+  // Refetch on app resume
+  useEffect(() => {
+    const handleVisibility = () => {
+      if (document.visibilityState === "visible" && user && profile) {
+        fetchAllRequests();
+      }
+    };
+    document.addEventListener("visibilitychange", handleVisibility);
+    return () => document.removeEventListener("visibilitychange", handleVisibility);
+  }, [user, profile]);
+
   const [confirmOfferDialog, setConfirmOfferDialog] = useState<{ open: boolean; request: RentalRequest | null }>({ open: false, request: null });
   const [acceptingOffer, setAcceptingOffer] = useState(false);
   const [hasActiveTenant, setHasActiveTenant] = useState(false);

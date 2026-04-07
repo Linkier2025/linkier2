@@ -1,6 +1,4 @@
-import { useRef } from "react";
-import { ChevronLeft, ChevronRight, MapPin } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { MapPin } from "lucide-react";
 import { PropertyCard } from "@/components/PropertyCard";
 
 interface Property {
@@ -39,66 +37,35 @@ export function LocationSection({
   favorites,
   onToggleFavorite,
 }: LocationSectionProps) {
-  const scrollRef = useRef<HTMLDivElement>(null);
-
-  const scroll = (direction: "left" | "right") => {
-    if (!scrollRef.current) return;
-    const amount = scrollRef.current.clientWidth * 0.75;
-    scrollRef.current.scrollBy({
-      left: direction === "left" ? -amount : amount,
-      behavior: "smooth",
-    });
-  };
-
   return (
     <section className="space-y-3">
       {/* Section header */}
-      <div className="flex items-center justify-between px-1">
-        <div className="flex items-center gap-2">
-          <MapPin className="h-5 w-5 text-primary" />
-          <h2 className="text-lg font-bold text-foreground">{location}</h2>
-          <span className="text-xs text-muted-foreground">
-            {properties.length} {properties.length === 1 ? "property" : "properties"}
-          </span>
-        </div>
-        <div className="hidden md:flex gap-1">
-          <Button variant="outline" size="icon" className="h-8 w-8 rounded-full" onClick={() => scroll("left")}>
-            <ChevronLeft className="h-4 w-4" />
-          </Button>
-          <Button variant="outline" size="icon" className="h-8 w-8 rounded-full" onClick={() => scroll("right")}>
-            <ChevronRight className="h-4 w-4" />
-          </Button>
-        </div>
+      <div className="flex items-center gap-2 px-1">
+        <MapPin className="h-5 w-5 text-primary" />
+        <h2 className="text-lg font-bold text-foreground">{location}</h2>
+        <span className="text-xs text-muted-foreground">
+          {properties.length} {properties.length === 1 ? "property" : "properties"}
+        </span>
       </div>
 
-      {/* Horizontal scroll - single row */}
-      <div
-        ref={scrollRef}
-        className="overflow-x-auto overflow-y-hidden pb-2 scrollbar-hide"
-        style={{ WebkitOverflowScrolling: "touch" }}
-      >
-        <div className="flex min-w-max flex-nowrap gap-3 snap-x snap-mandatory">
-          {properties.map((property) => (
-            <div
-              key={property.id}
-              className="snap-start shrink-0 w-[calc(50vw-1.25rem)] min-w-[170px] max-w-[220px] md:w-[220px]"
-            >
-              <PropertyCard
-                id={property.id}
-                title={property.title}
-                rent_amount={property.rent_amount}
-                location={property.location}
-                rooms={property.rooms}
-                gender_preference={property.gender_preference}
-                rating={property.rating ?? 0}
-                images={property.images}
-                isFavorite={favorites.includes(property.id)}
-                occupancy={occupancyMap[property.id]}
-                onToggleFavorite={onToggleFavorite}
-              />
-            </div>
-          ))}
-        </div>
+      {/* 2-column grid layout */}
+      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
+        {properties.map((property) => (
+          <PropertyCard
+            key={property.id}
+            id={property.id}
+            title={property.title}
+            rent_amount={property.rent_amount}
+            location={property.location}
+            rooms={property.rooms}
+            gender_preference={property.gender_preference}
+            rating={property.rating ?? 0}
+            images={property.images}
+            isFavorite={favorites.includes(property.id)}
+            occupancy={occupancyMap[property.id]}
+            onToggleFavorite={onToggleFavorite}
+          />
+        ))}
       </div>
     </section>
   );
