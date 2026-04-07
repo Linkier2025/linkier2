@@ -92,19 +92,21 @@ export default function ViewingRequests() {
   const { markCategoryAsRead } = useUnreadNotifications();
 
   useEffect(() => {
-    if (user) {
+    if (user && profile) {
       fetchAllRequests();
       markCategoryAsRead("requests");
     }
-  }, [user, isLandlord]);
+  }, [user, profile]);
 
   const [confirmOfferDialog, setConfirmOfferDialog] = useState<{ open: boolean; request: RentalRequest | null }>({ open: false, request: null });
   const [acceptingOffer, setAcceptingOffer] = useState(false);
   const [hasActiveTenant, setHasActiveTenant] = useState(false);
 
   const fetchAllRequests = async () => {
+    if (!user || !profile) return;
+    const landlord = profile.user_type === 'landlord';
     setLoading(true);
-    await Promise.all([fetchViewings(), fetchRentalRequests(), checkActiveTenant()]);
+    await Promise.all([fetchViewings(landlord), fetchRentalRequests(landlord), checkActiveTenant()]);
     setLoading(false);
   };
 
@@ -118,7 +120,7 @@ export default function ViewingRequests() {
     setHasActiveTenant((count || 0) > 0);
   };
 
-  const fetchViewings = async () => {
+  const fetchViewings = async (landlord: boolean) => {
     if (!user) return;
 
     try {
@@ -130,7 +132,7 @@ export default function ViewingRequests() {
         `)
         .order('requested_at', { ascending: false });
 
-      if (isLandlord) {
+      if (landlord) {
         query = query.eq('landlord_id', user.id);
       } else {
         query = query.eq('student_id', user.id);
@@ -161,7 +163,7 @@ export default function ViewingRequests() {
     }
   };
 
-  const fetchRentalRequests = async () => {
+  const fetchRentalRequests = async (landlord: boolean) => {
     if (!user) return;
 
     try {
@@ -170,7 +172,7 @@ export default function ViewingRequests() {
         .select('*')
         .order('requested_at', { ascending: false });
 
-      if (isLandlord) {
+      if (landlord) {
         query = query.eq('landlord_id', user.id);
       } else {
         query = query.eq('student_id', user.id);
@@ -244,7 +246,7 @@ export default function ViewingRequests() {
       setSelectedViewing(null);
       setScheduledDate("");
       setLandlordNotes("");
-      fetchViewings();
+      fetchAllRequests();
     } catch (error) {
       console.error('Error scheduling viewing:', error);
       toast({
@@ -266,7 +268,7 @@ export default function ViewingRequests() {
 
       if (error) throw error;
       toast({ title: "Viewing marked as completed" });
-      fetchViewings();
+      fetchAllRequests();
     } catch (error) {
       toast({ title: "Error", description: "Failed to update.", variant: "destructive" });
     }
@@ -281,7 +283,7 @@ export default function ViewingRequests() {
 
       if (error) throw error;
       toast({ title: "Viewing request declined" });
-      fetchViewings();
+      fetchAllRequests();
     } catch (error) {
       toast({ title: "Error", description: "Failed to decline.", variant: "destructive" });
     }
@@ -296,7 +298,7 @@ export default function ViewingRequests() {
 
       if (error) throw error;
       toast({ title: "Request cancelled" });
-      fetchViewings();
+      fetchAllRequests();
     } catch (error) {
       toast({ title: "Error", description: "Failed to cancel.", variant: "destructive" });
     }
@@ -315,7 +317,7 @@ export default function ViewingRequests() {
         title: "Offer Sent",
         description: "The student has been notified. They must accept the offer to become a tenant.",
       });
-      fetchRentalRequests();
+      fetchAllRequests();
     } catch (error: any) {
       console.error('Error:', error);
       toast({
@@ -337,7 +339,7 @@ export default function ViewingRequests() {
 
       if (error) throw error;
       toast({ title: "Request declined" });
-      fetchRentalRequests();
+      fetchAllRequests();
     } catch (error) {
       toast({ title: "Error", description: "Failed to decline.", variant: "destructive" });
     }
@@ -352,7 +354,7 @@ export default function ViewingRequests() {
 
       if (error) throw error;
       toast({ title: "Request cancelled" });
-      fetchRentalRequests();
+      fetchAllRequests();
     } catch (error) {
       toast({ title: "Error", description: "Failed to cancel.", variant: "destructive" });
     }
