@@ -103,8 +103,10 @@ export default function ViewingRequests() {
   const [hasActiveTenant, setHasActiveTenant] = useState(false);
 
   const fetchAllRequests = async () => {
+    if (!user || !profile) return;
+    const landlord = profile.user_type === 'landlord';
     setLoading(true);
-    await Promise.all([fetchViewings(), fetchRentalRequests(), checkActiveTenant()]);
+    await Promise.all([fetchViewings(landlord), fetchRentalRequests(landlord), checkActiveTenant()]);
     setLoading(false);
   };
 
