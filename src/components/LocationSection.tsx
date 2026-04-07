@@ -37,36 +37,15 @@ export function LocationSection({
   favorites,
   onToggleFavorite,
 }: LocationSectionProps) {
-  const scrollRef = useRef<HTMLDivElement>(null);
-
-  const scroll = (direction: "left" | "right") => {
-    if (!scrollRef.current) return;
-    const amount = scrollRef.current.clientWidth * 0.75;
-    scrollRef.current.scrollBy({
-      left: direction === "left" ? -amount : amount,
-      behavior: "smooth",
-    });
-  };
-
   return (
     <section className="space-y-3">
       {/* Section header */}
-      <div className="flex items-center justify-between px-1">
-        <div className="flex items-center gap-2">
-          <MapPin className="h-5 w-5 text-primary" />
-          <h2 className="text-lg font-bold text-foreground">{location}</h2>
-          <span className="text-xs text-muted-foreground">
-            {properties.length} {properties.length === 1 ? "property" : "properties"}
-          </span>
-        </div>
-        <div className="hidden md:flex gap-1">
-          <Button variant="outline" size="icon" className="h-8 w-8 rounded-full" onClick={() => scroll("left")}>
-            <ChevronLeft className="h-4 w-4" />
-          </Button>
-          <Button variant="outline" size="icon" className="h-8 w-8 rounded-full" onClick={() => scroll("right")}>
-            <ChevronRight className="h-4 w-4" />
-          </Button>
-        </div>
+      <div className="flex items-center gap-2 px-1">
+        <MapPin className="h-5 w-5 text-primary" />
+        <h2 className="text-lg font-bold text-foreground">{location}</h2>
+        <span className="text-xs text-muted-foreground">
+          {properties.length} {properties.length === 1 ? "property" : "properties"}
+        </span>
       </div>
 
       {/* 2-column grid layout */}
