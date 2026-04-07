@@ -1,6 +1,4 @@
-import { useRef } from "react";
-import { ChevronLeft, ChevronRight, MapPin } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { MapPin } from "lucide-react";
 import { PropertyCard } from "@/components/PropertyCard";
 
 interface Property {
