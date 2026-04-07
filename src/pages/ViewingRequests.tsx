@@ -92,11 +92,11 @@ export default function ViewingRequests() {
   const { markCategoryAsRead } = useUnreadNotifications();
 
   useEffect(() => {
-    if (user) {
+    if (user && profile) {
       fetchAllRequests();
       markCategoryAsRead("requests");
     }
-  }, [user, isLandlord]);
+  }, [user, profile]);
 
   const [confirmOfferDialog, setConfirmOfferDialog] = useState<{ open: boolean; request: RentalRequest | null }>({ open: false, request: null });
   const [acceptingOffer, setAcceptingOffer] = useState(false);
