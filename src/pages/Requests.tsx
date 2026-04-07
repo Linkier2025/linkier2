@@ -54,6 +54,17 @@ export default function Requests() {
     }
   }, [user]);
 
+  // Refetch on app resume (e.g. returning from home screen)
+  useEffect(() => {
+    const handleVisibility = () => {
+      if (document.visibilityState === "visible" && user) {
+        fetchRequests();
+      }
+    };
+    document.addEventListener("visibilitychange", handleVisibility);
+    return () => document.removeEventListener("visibilitychange", handleVisibility);
+  }, [user]);
+
   const fetchRequests = async () => {
     if (!user) return;
     setLoading(true);
