@@ -120,7 +120,7 @@ export default function ViewingRequests() {
     setHasActiveTenant((count || 0) > 0);
   };
 
-  const fetchViewings = async () => {
+  const fetchViewings = async (landlord: boolean) => {
     if (!user) return;
 
     try {
