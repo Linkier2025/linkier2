@@ -145,6 +145,47 @@ export default function Settings() {
           </CardContent>
         </Card>
 
+        {/* Push Notifications */}
+        {pushSupported && (
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                {pushEnabled ? <Bell className="h-5 w-5" /> : <BellOff className="h-5 w-5" />}
+                Push Notifications
+              </CardTitle>
+              <CardDescription>
+                Receive real-time notifications even when the app is closed
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-foreground">
+                    {pushEnabled ? "Notifications enabled" : "Notifications disabled"}
+                  </p>
+                  <p className="text-sm text-muted-foreground">
+                    {pushEnabled ? "You'll receive alerts for requests, updates & announcements" : "Enable to get notified about important events"}
+                  </p>
+                </div>
+                <Switch
+                  checked={pushEnabled}
+                  disabled={pushLoading}
+                  onCheckedChange={async (checked) => {
+                    if (checked) {
+                      const ok = await pushSubscribe();
+                      if (ok) toast({ title: "Notifications enabled", description: "You'll now receive push notifications." });
+                      else toast({ title: "Permission denied", description: "Please allow notifications in your browser settings.", variant: "destructive" });
+                    } else {
+                      await pushUnsubscribe();
+                      toast({ title: "Notifications disabled", description: "You won't receive push notifications anymore." });
+                    }
+                  }}
+                />
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
         {/* Change Password */}
         <Card>
           <CardHeader>
