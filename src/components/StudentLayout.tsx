@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { StudentBottomNav } from "./StudentBottomNav";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
+import { usePushPrompt } from "@/hooks/usePushPrompt";
 
 export function StudentLayout({ children }: { children: React.ReactNode }) {
   const { user } = useAuth();
