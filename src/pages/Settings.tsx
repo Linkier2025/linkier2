@@ -43,6 +43,8 @@ export default function Settings() {
   const [deleteLoading, setDeleteLoading] = useState(false);
   const [deleteError, setDeleteError] = useState("");
 
+  const { isSupported: pushSupported, isSubscribed: pushEnabled, loading: pushLoading, subscribe: pushSubscribe, unsubscribe: pushUnsubscribe } = usePushNotifications();
+
   const dashboardRoute = profile?.user_type === "landlord" ? "/my-properties" : "/explore";
 
   const handlePasswordReset = async () => {
