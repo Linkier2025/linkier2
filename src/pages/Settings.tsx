@@ -3,11 +3,12 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
-import { ArrowLeft, Lock, LogOut, Trash2, AlertTriangle, Mail, Sun, Moon } from "lucide-react";
+import { ArrowLeft, Lock, LogOut, Trash2, AlertTriangle, Mail, Sun, Moon, Bell, BellOff } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
 import { Link, useNavigate } from "react-router-dom";
 import { toast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
+import { usePushNotifications } from "@/hooks/usePushNotifications";
 import { supabase } from "@/integrations/supabase/client";
 import {
   Dialog,
@@ -41,6 +42,8 @@ export default function Settings() {
   const [deleteConfirmText, setDeleteConfirmText] = useState("");
   const [deleteLoading, setDeleteLoading] = useState(false);
   const [deleteError, setDeleteError] = useState("");
+
+  const { isSupported: pushSupported, isSubscribed: pushEnabled, loading: pushLoading, subscribe: pushSubscribe, unsubscribe: pushUnsubscribe } = usePushNotifications();
 
   const dashboardRoute = profile?.user_type === "landlord" ? "/my-properties" : "/explore";
 
@@ -141,6 +144,47 @@ export default function Settings() {
             </div>
           </CardContent>
         </Card>
+
+        {/* Push Notifications */}
+        {pushSupported && (
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                {pushEnabled ? <Bell className="h-5 w-5" /> : <BellOff className="h-5 w-5" />}
+                Push Notifications
+              </CardTitle>
+              <CardDescription>
+                Receive real-time notifications even when the app is closed
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-foreground">
+                    {pushEnabled ? "Notifications enabled" : "Notifications disabled"}
+                  </p>
+                  <p className="text-sm text-muted-foreground">
+                    {pushEnabled ? "You'll receive alerts for requests, updates & announcements" : "Enable to get notified about important events"}
+                  </p>
+                </div>
+                <Switch
+                  checked={pushEnabled}
+                  disabled={pushLoading}
+                  onCheckedChange={async (checked) => {
+                    if (checked) {
+                      const ok = await pushSubscribe();
+                      if (ok) toast({ title: "Notifications enabled", description: "You'll now receive push notifications." });
+                      else toast({ title: "Permission denied", description: "Please allow notifications in your browser settings.", variant: "destructive" });
+                    } else {
+                      await pushUnsubscribe();
+                      toast({ title: "Notifications disabled", description: "You won't receive push notifications anymore." });
+                    }
+                  }}
+                />
+              </div>
+            </CardContent>
+          </Card>
+        )}
 
         {/* Change Password */}
         <Card>
