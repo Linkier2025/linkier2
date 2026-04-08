@@ -6,6 +6,7 @@ import { usePushPrompt } from "@/hooks/usePushPrompt";
 
 export function StudentLayout({ children }: { children: React.ReactNode }) {
   const { user } = useAuth();
+  usePushPrompt();
   const [isTenant, setIsTenant] = useState(false);
 
   useEffect(() => {
