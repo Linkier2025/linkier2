@@ -52,7 +52,7 @@ export function usePushNotifications() {
 
       const subscription = await reg.pushManager.subscribe({
         userVisibleOnly: true,
-        applicationServerKey: vapidKey,
+        applicationServerKey: vapidKey as BufferSource,
       });
 
       const subJson = subscription.toJSON();
