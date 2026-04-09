@@ -572,12 +572,9 @@ export default function AddProperty() {
 
               <div className="space-y-2">
                 <Label htmlFor="location">Location</Label>
-                <Input
-                  id="location"
+                <LocationCombobox
                   value={formData.location}
-                  onChange={(e) => setFormData({...formData, location: e.target.value})}
-                  placeholder="e.g. Rondebosch, Cape Town"
-                  required
+                  onChange={(val) => setFormData({...formData, location: val})}
                 />
               </div>
 
