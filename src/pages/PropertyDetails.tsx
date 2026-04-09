@@ -1,9 +1,9 @@
 import { useState, useEffect } from "react";
-import { useParams, Link } from "react-router-dom";
+import { useParams, Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { ArrowLeft, MapPin, Users, Star, Heart, Calendar, Home, MessageCircle, DoorOpen, Check } from "lucide-react";
+import { ArrowLeft, MapPin, Users, Star, Heart, Calendar, Home, MessageCircle, DoorOpen, Check, GraduationCap, User } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -51,6 +51,7 @@ interface PropertyData {
 export default function PropertyDetails() {
   const { id } = useParams();
   const { user } = useAuth();
+  const navigate = useNavigate();
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [isFavorite, setIsFavorite] = useState(false);
   const [property, setProperty] = useState<PropertyData | null>(null);
@@ -194,11 +195,13 @@ export default function PropertyDetails() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-background p-4">
-        <div className="max-w-4xl mx-auto space-y-6">
-          <Skeleton className="h-12 w-full" />
-          <Skeleton className="h-96 w-full" />
-          <Skeleton className="h-64 w-full" />
+      <div className="min-h-screen bg-background">
+        <div className="max-w-4xl mx-auto p-4 space-y-4">
+          <Skeleton className="h-8 w-32" />
+          <Skeleton className="h-64 w-full rounded-xl" />
+          <Skeleton className="h-6 w-3/4" />
+          <Skeleton className="h-10 w-1/3" />
+          <Skeleton className="h-20 w-full" />
         </div>
       </div>
     );
@@ -207,11 +210,9 @@ export default function PropertyDetails() {
   if (!property) {
     return (
       <div className="min-h-screen bg-background p-4">
-        <div className="max-w-4xl mx-auto text-center">
-          <h1 className="text-2xl font-bold">Property not found</h1>
-          <Link to="/properties">
-            <Button className="mt-4">Back to Properties</Button>
-          </Link>
+        <div className="max-w-4xl mx-auto text-center pt-20">
+          <h1 className="text-xl font-bold">Property not found</h1>
+          <Button className="mt-4" onClick={() => navigate(-1)}>Go Back</Button>
         </div>
       </div>
     );
@@ -225,191 +226,167 @@ export default function PropertyDetails() {
   const sharedSpaces = rooms.filter(r => r.type !== 'bedroom');
   const availableRooms = bedrooms.filter(r => r.capacity && r.current_occupants < r.capacity && r.renovation_status !== 'under_renovation');
 
-  // Summarize shared spaces by type
   const sharedSummary: Record<string, number> = {};
   sharedSpaces.forEach(s => {
-    const label = s.type;
-    sharedSummary[label] = (sharedSummary[label] || 0) + 1;
+    sharedSummary[s.type] = (sharedSummary[s.type] || 0) + 1;
   });
 
   const totalCapacity = bedrooms.reduce((sum, r) => sum + (r.capacity || 0), 0);
   const totalOccupants = bedrooms.reduce((sum, r) => sum + r.current_occupants, 0);
 
   return (
-    <div className="min-h-screen bg-background p-4">
-      <div className="max-w-4xl mx-auto space-y-6">
-        <div className="flex items-center gap-4">
-          <Link to="/properties">
-            <Button variant="ghost" size="icon">
-              <ArrowLeft className="h-5 w-5" />
-            </Button>
-          </Link>
-          <h1 className="text-2xl font-bold">Property Details</h1>
+    <div className="min-h-screen bg-background pb-28">
+      {/* Image Gallery - Full width on mobile */}
+      <div className="relative">
+        <img
+          src={displayImages[currentImageIndex]}
+          alt={property.title}
+          className="w-full h-56 md:h-80 object-cover"
+        />
+        {/* Back button overlay */}
+        <button
+          onClick={() => navigate(-1)}
+          className="absolute top-3 left-3 h-9 w-9 rounded-full bg-background/80 backdrop-blur-sm flex items-center justify-center hover:bg-background transition-colors"
+        >
+          <ArrowLeft className="h-4 w-4" />
+        </button>
+        {/* Favorite button */}
+        <button
+          onClick={toggleFavorite}
+          className="absolute top-3 right-3 h-9 w-9 rounded-full bg-background/80 backdrop-blur-sm flex items-center justify-center hover:bg-background transition-colors"
+        >
+          <Heart className={`h-4 w-4 ${isFavorite ? 'fill-destructive text-destructive' : 'text-foreground'}`} />
+        </button>
+        {/* Image counter */}
+        {displayImages.length > 1 && (
+          <>
+            <div className="absolute bottom-3 left-1/2 -translate-x-1/2 bg-background/80 backdrop-blur-sm text-foreground text-xs px-2.5 py-1 rounded-full font-medium">
+              {currentImageIndex + 1} / {displayImages.length}
+            </div>
+            <button
+              className="absolute left-2 top-1/2 -translate-y-1/2 h-8 w-8 rounded-full bg-background/70 flex items-center justify-center"
+              onClick={() => setCurrentImageIndex(i => i === 0 ? displayImages.length - 1 : i - 1)}
+            >
+              <ArrowLeft className="h-4 w-4" />
+            </button>
+            <button
+              className="absolute right-2 top-1/2 -translate-y-1/2 h-8 w-8 rounded-full bg-background/70 flex items-center justify-center"
+              onClick={() => setCurrentImageIndex(i => i === displayImages.length - 1 ? 0 : i + 1)}
+            >
+              <ArrowLeft className="h-4 w-4 rotate-180" />
+            </button>
+          </>
+        )}
+      </div>
+
+      <div className="max-w-4xl mx-auto px-4 space-y-5 pt-4">
+        {/* Title + Price + Location */}
+        <div>
+          <div className="flex items-start justify-between gap-3">
+            <h1 className="text-xl font-bold leading-tight">{property.title}</h1>
+            <div className="flex items-center gap-1 shrink-0">
+              <Star className="h-4 w-4 fill-warning text-warning" />
+              <span className="text-sm font-medium">{property.rating || "–"}</span>
+            </div>
+          </div>
+          <p className="text-2xl font-bold text-primary mt-1">
+            ${property.rent_amount.toLocaleString()}
+            <span className="text-sm font-normal text-muted-foreground"> /month</span>
+          </p>
+          <div className="flex items-center gap-1.5 mt-1.5 text-sm text-muted-foreground">
+            <MapPin className="h-3.5 w-3.5 shrink-0" />
+            <span>{property.location}</span>
+          </div>
         </div>
 
-        {/* Image Gallery */}
-        <Card>
-          <CardContent className="p-0">
-            <div className="relative">
-              <img
-                src={displayImages[currentImageIndex]}
-                alt={property.title}
-                className="w-full h-64 md:h-96 object-cover rounded-t-lg"
-              />
-              <Button
-                variant="ghost"
-                size="icon"
-                className="absolute top-2 right-2 bg-background/80 hover:bg-background"
-                onClick={toggleFavorite}
-              >
-                <Heart 
-                  className={`h-5 w-5 ${isFavorite ? 'fill-destructive text-destructive' : 'text-muted-foreground'}`} 
-                />
-              </Button>
-              
-              {displayImages.length > 1 && (
-                <>
-                  <div className="absolute top-2 left-2 bg-background/80 text-foreground text-xs px-2 py-1 rounded-md font-medium">
-                    {currentImageIndex + 1} / {displayImages.length}
-                  </div>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="absolute left-2 top-1/2 -translate-y-1/2 bg-background/80 hover:bg-background h-8 w-8"
-                    onClick={() => setCurrentImageIndex(i => i === 0 ? displayImages.length - 1 : i - 1)}
-                  >
-                    <ArrowLeft className="h-4 w-4" />
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="absolute right-2 top-1/2 -translate-y-1/2 bg-background/80 hover:bg-background h-8 w-8"
-                    onClick={() => setCurrentImageIndex(i => i === displayImages.length - 1 ? 0 : i + 1)}
-                  >
-                    <ArrowLeft className="h-4 w-4 rotate-180" />
-                  </Button>
-                  <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 flex gap-2">
-                    {displayImages.map((_, index) => (
-                      <button
-                        key={index}
-                        className={`w-2 h-2 rounded-full transition-colors ${index === currentImageIndex ? 'bg-background' : 'bg-background/50'}`}
-                        onClick={() => setCurrentImageIndex(index)}
-                      />
-                    ))}
-                  </div>
-                </>
-              )}
-            </div>
-          </CardContent>
-        </Card>
+        {/* Key Details Row */}
+        <div className="flex items-center gap-4 py-3 px-1 border-y border-border overflow-x-auto">
+          <div className="flex items-center gap-1.5 text-sm shrink-0">
+            <DoorOpen className="h-4 w-4 text-muted-foreground" />
+            <span className="font-medium">{bedrooms.length}</span>
+            <span className="text-muted-foreground">{bedrooms.length === 1 ? "bed" : "beds"}</span>
+          </div>
+          <div className="h-4 border-l border-border" />
+          <div className="flex items-center gap-1.5 text-sm shrink-0">
+            <User className="h-4 w-4 text-muted-foreground" />
+            <span className="text-muted-foreground">{property.gender_preference || "Mixed"}</span>
+          </div>
+          {property.university && (
+            <>
+              <div className="h-4 border-l border-border" />
+              <div className="flex items-center gap-1.5 text-sm shrink-0">
+                <GraduationCap className="h-4 w-4 text-muted-foreground" />
+                <span className="text-muted-foreground">{property.university}</span>
+              </div>
+            </>
+          )}
+        </div>
 
-        {/* Property Info */}
-        <Card>
-          <CardHeader>
-            <div className="flex justify-between items-start">
-              <div>
-                <CardTitle className="text-2xl">{property.title}</CardTitle>
-                <div className="flex items-center gap-2 mt-2 text-muted-foreground">
-                  <MapPin className="h-4 w-4" />
-                  {property.location}
-                </div>
-                {property.house_number && (
-                  <div className="text-sm text-muted-foreground mt-1">{property.house_number}</div>
-                )}
-                {property.boarding_house_name && (
-                  <div className="text-sm text-muted-foreground">{property.boarding_house_name}</div>
-                )}
-              </div>
-              <div className="text-right">
-                <div className="text-2xl font-bold text-primary">
-                  ${property.rent_amount.toLocaleString()} USD/month
-                </div>
-                <div className="flex items-center gap-1 mt-1">
-                  <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
-                  <span>{property.rating}</span>
-                </div>
-              </div>
-            </div>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="grid grid-cols-2 gap-4">
-              <div className="flex items-center gap-2">
-                <Users className="h-4 w-4" />
-                <span>{bedrooms.length} {bedrooms.length === 1 ? "bedroom" : "bedrooms"}</span>
-              </div>
-              <div>
-                <span className="font-medium">Gender: </span>
-                {property.gender_preference || "Not specified"}
-              </div>
-              <div>
-                <span className="font-medium">University: </span>
-                {property.university || "Not specified"}
-              </div>
-            </div>
+        {/* Secondary address info */}
+        {(property.house_number || property.boarding_house_name) && (
+          <div className="text-xs text-muted-foreground space-y-0.5">
+            {property.house_number && <p>{property.house_number}</p>}
+            {property.boarding_house_name && <p>{property.boarding_house_name}</p>}
+          </div>
+        )}
 
-            {property.amenities && property.amenities.length > 0 && (
-              <div>
-                <h3 className="font-semibold mb-2">Amenities</h3>
-                <div className="flex flex-wrap gap-2">
-                  {property.amenities.map((amenity) => (
-                    <Badge key={amenity} variant="secondary">{amenity}</Badge>
-                  ))}
-                </div>
-              </div>
-            )}
+        {/* Description */}
+        {property.description && (
+          <div>
+            <h3 className="text-sm font-semibold mb-1.5">About</h3>
+            <p className="text-sm text-muted-foreground leading-relaxed">{property.description}</p>
+          </div>
+        )}
 
-            {property.description && (
-              <div>
-                <h3 className="font-semibold mb-2">Description</h3>
-                <p className="text-muted-foreground">{property.description}</p>
-              </div>
-            )}
-          </CardContent>
-        </Card>
+        {/* Amenities */}
+        {property.amenities && property.amenities.length > 0 && (
+          <div>
+            <h3 className="text-sm font-semibold mb-2">Amenities</h3>
+            <div className="flex flex-wrap gap-1.5">
+              {property.amenities.map((amenity) => (
+                <Badge key={amenity} variant="secondary" className="text-xs font-normal px-2.5 py-1">
+                  {amenity}
+                </Badge>
+              ))}
+            </div>
+          </div>
+        )}
 
         {/* Bedrooms Summary */}
         {bedrooms.length > 0 && (
           <Card>
-            <CardHeader className="pb-3">
-              <CardTitle className="flex items-center gap-2 text-lg">
-                <DoorOpen className="h-5 w-5" />
-                Bedrooms
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="flex items-center gap-4 text-sm">
-                <div className="flex items-center gap-2">
-                  <span className="font-semibold text-lg">{bedrooms.length}</span>
-                  <span className="text-muted-foreground">{bedrooms.length === 1 ? "bedroom" : "bedrooms"}</span>
-                </div>
-                <div className="h-4 border-l border-border" />
-                <div className="text-muted-foreground">
+            <CardContent className="p-4">
+              <div className="flex items-center gap-2 mb-2">
+                <DoorOpen className="h-4 w-4 text-muted-foreground" />
+                <h3 className="text-sm font-semibold">Bedrooms</h3>
+              </div>
+              <div className="flex items-center gap-3 text-sm">
+                <span className="font-semibold text-lg">{bedrooms.length}</span>
+                <span className="text-muted-foreground">
                   {availableRooms.length} available · {totalOccupants}/{totalCapacity} occupied
-                </div>
+                </span>
               </div>
               {bedrooms.some(r => r.capacity && r.capacity > 1) && (
-                <p className="text-xs text-muted-foreground mt-2">Shared rooms available</p>
+                <p className="text-xs text-muted-foreground mt-1">Shared rooms available</p>
               )}
             </CardContent>
           </Card>
         )}
 
-        {/* Shared Spaces Summary */}
+        {/* Facilities */}
         {Object.keys(sharedSummary).length > 0 && (
           <Card>
-            <CardHeader className="pb-3">
-              <CardTitle className="text-lg">Facilities</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-2 gap-3">
+            <CardContent className="p-4">
+              <h3 className="text-sm font-semibold mb-3">Facilities</h3>
+              <div className="grid grid-cols-2 gap-2">
                 {Object.entries(sharedSummary).map(([type, count]) => (
-                  <div key={type} className="flex items-center gap-3 p-2 rounded-lg bg-muted/50">
-                    <span className="text-xl">{getSpaceTypeIcon(type)}</span>
-                    <div>
-                      <p className="text-sm font-medium">{getSpaceTypeLabel(type)}</p>
-                      {count > 1 && <p className="text-xs text-muted-foreground">×{count}</p>}
+                  <div key={type} className="flex items-center gap-2.5 p-2 rounded-lg bg-muted/50">
+                    <span className="text-lg">{getSpaceTypeIcon(type)}</span>
+                    <div className="min-w-0">
+                      <p className="text-xs font-medium truncate">{getSpaceTypeLabel(type)}</p>
+                      {count > 1 && <p className="text-[10px] text-muted-foreground">×{count}</p>}
                     </div>
-                    <Check className="h-4 w-4 text-green-500 ml-auto" />
+                    <Check className="h-3.5 w-3.5 text-green-500 ml-auto shrink-0" />
                   </div>
                 ))}
               </div>
@@ -419,15 +396,19 @@ export default function PropertyDetails() {
 
         {/* Landlord Info */}
         <Card>
-          <CardHeader>
-            <CardTitle>Landlord Information</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="flex justify-between items-center">
-              <div>
-                <h4 className="font-medium">
-                  {property.landlord.first_name} {property.landlord.surname}
-                </h4>
+          <CardContent className="p-4">
+            <h3 className="text-sm font-semibold mb-3">Landlord</h3>
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="h-10 w-10 rounded-full bg-muted flex items-center justify-center">
+                  <User className="h-5 w-5 text-muted-foreground" />
+                </div>
+                <div>
+                  <p className="text-sm font-medium">
+                    {property.landlord.first_name} {property.landlord.surname}
+                  </p>
+                  <p className="text-xs text-muted-foreground">Property Owner</p>
+                </div>
               </div>
               <ContactOptionsSheet
                 phone={property.landlord.phone}
@@ -435,104 +416,104 @@ export default function PropertyDetails() {
                 name={`${property.landlord.first_name} ${property.landlord.surname}`.trim() || "Landlord"}
                 trigger={
                   <Button variant="outline" size="sm">
-                    <MessageCircle className="h-4 w-4 mr-2" />
-                    Contact Landlord
+                    <MessageCircle className="h-4 w-4 mr-1.5" />
+                    Contact
                   </Button>
                 }
               />
             </div>
           </CardContent>
         </Card>
+      </div>
 
-        {/* Action Buttons */}
-        <div className="sticky bottom-4 z-10 bg-background/95 backdrop-blur-sm p-3 -mx-4 border-t">
-          <div className="flex gap-3 max-w-4xl mx-auto">
-            <Dialog open={viewingDialogOpen} onOpenChange={setViewingDialogOpen}>
-              <DialogTrigger asChild>
-                <Button size="lg" variant="outline" className="flex-1 min-w-0">
-                  <Calendar className="mr-2 h-5 w-5 shrink-0" />
-                  <span className="truncate">Request Viewing</span>
-                </Button>
-              </DialogTrigger>
-              <DialogContent>
-                <DialogHeader>
-                  <DialogTitle>Request a Property Viewing</DialogTitle>
-                </DialogHeader>
-                <div className="space-y-4 pt-4">
-                  <div>
-                    <p className="text-sm text-muted-foreground mb-2">
-                      Send a message to the landlord with your viewing request:
-                    </p>
-                    <Textarea
-                      placeholder="Let the landlord know when you'd like to view the property..."
-                      value={viewingMessage}
-                      onChange={(e) => setViewingMessage(e.target.value)}
-                      rows={4}
-                    />
-                  </div>
-                  <Button 
-                    onClick={handleRequestViewing} 
-                    className="w-full"
-                    disabled={submittingViewing}
-                  >
-                    {submittingViewing ? "Sending..." : "Send Viewing Request"}
-                  </Button>
+      {/* Sticky CTA Bar */}
+      <div className="fixed bottom-0 left-0 right-0 z-20 bg-background/95 backdrop-blur-sm border-t safe-area-bottom">
+        <div className="flex gap-3 max-w-4xl mx-auto p-3">
+          <Dialog open={viewingDialogOpen} onOpenChange={setViewingDialogOpen}>
+            <DialogTrigger asChild>
+              <Button size="lg" variant="outline" className="flex-1 min-w-0">
+                <Calendar className="mr-1.5 h-4 w-4 shrink-0" />
+                <span className="truncate text-sm">Request Viewing</span>
+              </Button>
+            </DialogTrigger>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Request a Property Viewing</DialogTitle>
+              </DialogHeader>
+              <div className="space-y-4 pt-4">
+                <div>
+                  <p className="text-sm text-muted-foreground mb-2">
+                    Send a message to the landlord with your viewing request:
+                  </p>
+                  <Textarea
+                    placeholder="Let the landlord know when you'd like to view the property..."
+                    value={viewingMessage}
+                    onChange={(e) => setViewingMessage(e.target.value)}
+                    rows={4}
+                  />
                 </div>
-              </DialogContent>
-            </Dialog>
+                <Button 
+                  onClick={handleRequestViewing} 
+                  className="w-full"
+                  disabled={submittingViewing}
+                >
+                  {submittingViewing ? "Sending..." : "Send Viewing Request"}
+                </Button>
+              </div>
+            </DialogContent>
+          </Dialog>
 
-            <Dialog open={rentalDialogOpen} onOpenChange={setRentalDialogOpen}>
-              <DialogTrigger asChild>
-                <Button size="lg" className="flex-1 min-w-0" disabled={availableRooms.length === 0}>
-                  <Home className="mr-2 h-5 w-5 shrink-0" />
-                  <span className="truncate">{availableRooms.length === 0 ? "No Bedrooms Available" : "Request Bedroom"}</span>
-                </Button>
-              </DialogTrigger>
-              <DialogContent>
-                <DialogHeader>
-                  <DialogTitle>Request a Room</DialogTitle>
-                </DialogHeader>
-                <div className="space-y-4 pt-4">
-                  <div>
-                    <Label className="text-sm font-medium mb-3 block">Select a Room</Label>
-                    <RadioGroup value={selectedRoomId} onValueChange={setSelectedRoomId}>
-                      <div className="grid gap-2">
-                        {availableRooms.map((room) => (
-                          <div key={room.id} className="flex items-center space-x-3 p-3 border rounded-lg hover:bg-muted/50">
-                            <RadioGroupItem value={room.id} id={`room-${room.id}`} />
-                            <Label htmlFor={`room-${room.id}`} className="flex-1 cursor-pointer">
-                              <div className="flex justify-between items-center">
-                                <span className="font-medium">{room.room_number}</span>
-                                <Badge variant="secondary">
-                                  {room.current_occupants}/{room.capacity} occupied
-                                </Badge>
-                              </div>
-                            </Label>
-                          </div>
-                        ))}
-                      </div>
-                    </RadioGroup>
-                  </div>
-                  <div>
-                    <Label className="text-sm font-medium mb-2 block">Message (optional)</Label>
-                    <Textarea
-                      placeholder="Introduce yourself and let the landlord know why you'd like this room..."
-                      value={rentalMessage}
-                      onChange={(e) => setRentalMessage(e.target.value)}
-                      rows={3}
-                    />
-                  </div>
-                  <Button 
-                    onClick={handleRequestRental} 
-                    className="w-full"
-                    disabled={submittingRental || !selectedRoomId}
-                  >
-                    {submittingRental ? "Sending..." : "Send Room Request"}
-                  </Button>
+          <Dialog open={rentalDialogOpen} onOpenChange={setRentalDialogOpen}>
+            <DialogTrigger asChild>
+              <Button size="lg" className="flex-1 min-w-0" disabled={availableRooms.length === 0}>
+                <Home className="mr-1.5 h-4 w-4 shrink-0" />
+                <span className="truncate text-sm">{availableRooms.length === 0 ? "No Rooms Available" : "Request Bedroom"}</span>
+              </Button>
+            </DialogTrigger>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Request a Room</DialogTitle>
+              </DialogHeader>
+              <div className="space-y-4 pt-4">
+                <div>
+                  <Label className="text-sm font-medium mb-3 block">Select a Room</Label>
+                  <RadioGroup value={selectedRoomId} onValueChange={setSelectedRoomId}>
+                    <div className="grid gap-2">
+                      {availableRooms.map((room) => (
+                        <div key={room.id} className="flex items-center space-x-3 p-3 border rounded-lg hover:bg-muted/50">
+                          <RadioGroupItem value={room.id} id={`room-${room.id}`} />
+                          <Label htmlFor={`room-${room.id}`} className="flex-1 cursor-pointer">
+                            <div className="flex justify-between items-center">
+                              <span className="font-medium">{room.room_number}</span>
+                              <Badge variant="secondary">
+                                {room.current_occupants}/{room.capacity} occupied
+                              </Badge>
+                            </div>
+                          </Label>
+                        </div>
+                      ))}
+                    </div>
+                  </RadioGroup>
                 </div>
-              </DialogContent>
-            </Dialog>
-          </div>
+                <div>
+                  <Label className="text-sm font-medium mb-2 block">Message (optional)</Label>
+                  <Textarea
+                    placeholder="Introduce yourself and let the landlord know why you'd like this room..."
+                    value={rentalMessage}
+                    onChange={(e) => setRentalMessage(e.target.value)}
+                    rows={3}
+                  />
+                </div>
+                <Button 
+                  onClick={handleRequestRental} 
+                  className="w-full"
+                  disabled={submittingRental || !selectedRoomId}
+                >
+                  {submittingRental ? "Sending..." : "Send Room Request"}
+                </Button>
+              </div>
+            </DialogContent>
+          </Dialog>
         </div>
       </div>
     </div>

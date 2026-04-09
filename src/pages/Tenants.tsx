@@ -1,10 +1,11 @@
 import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { User, Home, Users, MessageCircle, DollarSign, LogOut as LogOutIcon, Moon, Sun } from "lucide-react";
+import { User, Home, Users, MessageCircle, DollarSign, LogOut as LogOutIcon, Moon, Sun, ArrowLeft } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
@@ -56,6 +57,7 @@ interface RoomOccupancy {
 type DialogType = 'payment' | 'moveout' | 'toggle_status';
 
 export default function Tenants() {
+  const navigate = useNavigate();
   const { user } = useAuth();
   const [allTenants, setAllTenants] = useState<ActiveTenant[]>([]);
   const [loading, setLoading] = useState(true);
@@ -357,6 +359,9 @@ export default function Tenants() {
     <div className="px-4 pt-6 pb-4">
       <div className="max-w-6xl mx-auto space-y-6">
         <div className="flex items-center gap-3">
+          <button onClick={() => navigate(-1)} className="flex items-center justify-center h-8 w-8 rounded-full hover:bg-accent transition-colors">
+            <ArrowLeft className="h-4 w-4" />
+          </button>
           <h1 className="text-2xl font-bold">My Tenants</h1>
           <Badge variant="secondary">{allTenants.length} total</Badge>
         </div>

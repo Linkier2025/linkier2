@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { DollarSign, Calendar, FileText, TrendingDown } from "lucide-react";
+import { DollarSign, Calendar, FileText, TrendingDown, ArrowLeft } from "lucide-react";
 import { format } from "date-fns";
 
 export default function PaymentHistory() {
@@ -88,14 +88,14 @@ export default function PaymentHistory() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-background to-muted/20">
       <div className="container mx-auto p-6">
-        <div className="flex justify-between items-center mb-6">
+        <div className="flex items-center gap-3 mb-6">
+          <button onClick={() => navigate(-1)} className="flex items-center justify-center h-8 w-8 rounded-full hover:bg-accent transition-colors">
+            <ArrowLeft className="h-4 w-4" />
+          </button>
           <div>
             <h1 className="text-3xl font-bold">Payment History</h1>
             <p className="text-muted-foreground">View your rent payment records and history</p>
           </div>
-          <Button onClick={() => navigate("/student-dashboard")}>
-            Back to Dashboard
-          </Button>
         </div>
 
         {/* Statistics Cards */}
