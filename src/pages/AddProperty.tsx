@@ -13,6 +13,7 @@ import { toast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { SpaceConfigurator, SpaceConfiguration } from "@/components/SpaceConfigurator";
+import { LocationCombobox } from "@/components/LocationCombobox";
 
 type RoomConfiguration = SpaceConfiguration;
 
