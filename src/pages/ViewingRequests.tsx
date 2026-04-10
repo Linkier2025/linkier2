@@ -333,12 +333,14 @@ export default function ViewingRequests() {
     }
   };
 
-  const handleAcceptRental = async (request: RentalRequest) => {
+  const handleAcceptRental = async (request: RentalRequest, overrideRoomId?: string) => {
     setUpdating(true);
     try {
-      const { data, error } = await supabase.rpc('accept_rental_request', {
-        p_request_id: request.id,
-      });
+      const params: any = { p_request_id: request.id };
+      if (overrideRoomId) {
+        params.p_assigned_room_id = overrideRoomId;
+      }
+      const { data, error } = await supabase.rpc('accept_rental_request', params);
 
       if (error) throw error;
 
@@ -346,6 +348,8 @@ export default function ViewingRequests() {
         title: "Offer Sent",
         description: "The student has been notified. They must accept the offer to become a tenant.",
       });
+      setAssignRoomDialog({ open: false, request: null });
+      setSelectedAssignRoomId("");
       fetchAllRequests();
     } catch (error: any) {
       console.error('Error:', error);
@@ -357,6 +361,32 @@ export default function ViewingRequests() {
     } finally {
       setUpdating(false);
     }
+  };
+
+  const handleOpenAssignRoom = async (request: RentalRequest) => {
+    // Fetch available rooms for this property
+    const { data: roomsData } = await supabase
+      .from('rooms')
+      .select('id, room_number, capacity')
+      .eq('property_id', request.property_id)
+      .eq('type', 'bedroom');
+
+    if (roomsData) {
+      // Get current occupants for each room
+      const roomsWithOccupants = await Promise.all(
+        roomsData.map(async (room) => {
+          const { count } = await supabase
+            .from('room_assignments')
+            .select('*', { count: 'exact', head: true })
+            .eq('room_id', room.id)
+            .in('status', ['active', 'reserved']);
+          return { ...room, current_occupants: count || 0 };
+        })
+      );
+      setAvailableRooms(roomsWithOccupants.filter(r => r.capacity && r.current_occupants < r.capacity));
+    }
+    setSelectedAssignRoomId("");
+    setAssignRoomDialog({ open: true, request });
   };
 
   const handleDeclineRental = async (request: RentalRequest) => {
