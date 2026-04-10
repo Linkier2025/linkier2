@@ -688,7 +688,16 @@ export default function ViewingRequests() {
                               {request.preferred_room_number && (
                                 <div className="flex items-center gap-2 mt-1 text-sm text-muted-foreground">
                                   <DoorOpen className="h-4 w-4" />
-                                  Preferred: {request.preferred_room_number}
+                                  Requested: {request.preferred_room_number}
+                                </div>
+                              )}
+                              {request.assigned_room_number && (
+                                <div className="flex items-center gap-2 mt-1 text-sm font-medium text-primary">
+                                  <DoorOpen className="h-4 w-4" />
+                                  Assigned: {request.assigned_room_number}
+                                  {request.preferred_room_number && request.assigned_room_number !== request.preferred_room_number && (
+                                    <Badge variant="outline" className="text-xs ml-1">Changed</Badge>
+                                  )}
                                 </div>
                               )}
                               {request.property.rent_amount && (
@@ -1035,6 +1044,52 @@ export default function ViewingRequests() {
             </AlertDialogFooter>
           </AlertDialogContent>
         </AlertDialog>
+
+        {/* Assign Different Room Dialog */}
+        <Dialog open={assignRoomDialog.open} onOpenChange={(open) => { if (!open) setAssignRoomDialog({ open: false, request: null }); }}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Assign a Different Room</DialogTitle>
+            </DialogHeader>
+            <div className="space-y-4 pt-2">
+              {assignRoomDialog.request?.preferred_room_number && (
+                <p className="text-sm text-muted-foreground">
+                  Student preferred: <strong>{assignRoomDialog.request.preferred_room_number}</strong>
+                </p>
+              )}
+              <div>
+                <Label>Select Room</Label>
+                <RadioGroup value={selectedAssignRoomId} onValueChange={setSelectedAssignRoomId} className="mt-2 space-y-2">
+                  {availableRooms.map((room) => (
+                    <div key={room.id} className="flex items-center space-x-2 p-3 border rounded-lg">
+                      <RadioGroupItem value={room.id} id={`room-${room.id}`} />
+                      <Label htmlFor={`room-${room.id}`} className="flex-1 cursor-pointer">
+                        <span className="font-medium">{room.room_number}</span>
+                        <span className="text-sm text-muted-foreground ml-2">
+                          ({room.current_occupants}/{room.capacity} occupied)
+                        </span>
+                      </Label>
+                    </div>
+                  ))}
+                </RadioGroup>
+                {availableRooms.length === 0 && (
+                  <p className="text-sm text-muted-foreground mt-2">No available rooms found.</p>
+                )}
+              </div>
+            </div>
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setAssignRoomDialog({ open: false, request: null })}>
+                Cancel
+              </Button>
+              <Button
+                onClick={() => assignRoomDialog.request && handleAcceptRental(assignRoomDialog.request, selectedAssignRoomId)}
+                disabled={!selectedAssignRoomId || updating}
+              >
+                {updating ? "Sending..." : "Send Offer"}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
       </div>
     </div>
   );
