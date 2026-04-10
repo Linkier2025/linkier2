@@ -25,6 +25,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { format } from "date-fns";
 
 interface StudentInfo {
@@ -65,8 +66,10 @@ interface RentalRequest {
   status: string;
   requested_at: string;
   student_message: string | null;
-  room_id: string | null;
-  room_number: string | null;
+  preferred_room_id: string | null;
+  preferred_room_number: string | null;
+  assigned_room_id: string | null;
+  assigned_room_number: string | null;
   property: {
     title: string;
     location: string;
@@ -86,6 +89,9 @@ export default function ViewingRequests() {
   const [scheduledDate, setScheduledDate] = useState("");
   const [landlordNotes, setLandlordNotes] = useState("");
   const [updating, setUpdating] = useState(false);
+  const [assignRoomDialog, setAssignRoomDialog] = useState<{ open: boolean; request: RentalRequest | null }>({ open: false, request: null });
+  const [availableRooms, setAvailableRooms] = useState<{ id: string; room_number: string; capacity: number; current_occupants: number }[]>([]);
+  const [selectedAssignRoomId, setSelectedAssignRoomId] = useState<string>("");
 
   const isLandlord = profile?.user_type === 'landlord';
 
@@ -193,7 +199,7 @@ export default function ViewingRequests() {
       if (error) throw error;
 
       const requestsWithDetails = await Promise.all(
-        (requestsData || []).map(async (request) => {
+        (requestsData || []).map(async (request: any) => {
           const { data: propertyData } = await supabase
             .from('properties')
             .select('title, location, rent_amount, images')
@@ -206,21 +212,34 @@ export default function ViewingRequests() {
             .eq('user_id', request.student_id)
             .maybeSingle();
 
-          // Fetch room number if room_id exists
-          let roomNumber: string | null = null;
-          if ((request as any).room_id) {
+          // Fetch preferred room number
+          let preferredRoomNumber: string | null = null;
+          if (request.preferred_room_id) {
             const { data: roomData } = await supabase
               .from('rooms')
               .select('room_number')
-              .eq('id', (request as any).room_id)
+              .eq('id', request.preferred_room_id)
               .maybeSingle();
-            roomNumber = roomData?.room_number || null;
+            preferredRoomNumber = roomData?.room_number || null;
+          }
+
+          // Fetch assigned room number
+          let assignedRoomNumber: string | null = null;
+          if (request.assigned_room_id) {
+            const { data: roomData } = await supabase
+              .from('rooms')
+              .select('room_number')
+              .eq('id', request.assigned_room_id)
+              .maybeSingle();
+            assignedRoomNumber = roomData?.room_number || null;
           }
 
           return {
             ...request,
-            room_id: (request as any).room_id || null,
-            room_number: roomNumber,
+            preferred_room_id: request.preferred_room_id || null,
+            preferred_room_number: preferredRoomNumber,
+            assigned_room_id: request.assigned_room_id || null,
+            assigned_room_number: assignedRoomNumber,
             property: propertyData || { title: 'Unknown', location: 'Unknown', rent_amount: 0, images: null },
             student: studentData
           };
@@ -315,12 +334,14 @@ export default function ViewingRequests() {
     }
   };
 
-  const handleAcceptRental = async (request: RentalRequest) => {
+  const handleAcceptRental = async (request: RentalRequest, overrideRoomId?: string) => {
     setUpdating(true);
     try {
-      const { data, error } = await supabase.rpc('accept_rental_request', {
-        p_request_id: request.id,
-      });
+      const params: any = { p_request_id: request.id };
+      if (overrideRoomId) {
+        params.p_assigned_room_id = overrideRoomId;
+      }
+      const { data, error } = await supabase.rpc('accept_rental_request', params);
 
       if (error) throw error;
 
@@ -328,6 +349,8 @@ export default function ViewingRequests() {
         title: "Offer Sent",
         description: "The student has been notified. They must accept the offer to become a tenant.",
       });
+      setAssignRoomDialog({ open: false, request: null });
+      setSelectedAssignRoomId("");
       fetchAllRequests();
     } catch (error: any) {
       console.error('Error:', error);
@@ -339,6 +362,32 @@ export default function ViewingRequests() {
     } finally {
       setUpdating(false);
     }
+  };
+
+  const handleOpenAssignRoom = async (request: RentalRequest) => {
+    // Fetch available rooms for this property
+    const { data: roomsData } = await supabase
+      .from('rooms')
+      .select('id, room_number, capacity')
+      .eq('property_id', request.property_id)
+      .eq('type', 'bedroom');
+
+    if (roomsData) {
+      // Get current occupants for each room
+      const roomsWithOccupants = await Promise.all(
+        roomsData.map(async (room) => {
+          const { count } = await supabase
+            .from('room_assignments')
+            .select('*', { count: 'exact', head: true })
+            .eq('room_id', room.id)
+            .in('status', ['active', 'reserved']);
+          return { ...room, current_occupants: count || 0 };
+        })
+      );
+      setAvailableRooms(roomsWithOccupants.filter(r => r.capacity && r.current_occupants < r.capacity));
+    }
+    setSelectedAssignRoomId("");
+    setAssignRoomDialog({ open: true, request });
   };
 
   const handleDeclineRental = async (request: RentalRequest) => {
@@ -549,10 +598,10 @@ export default function ViewingRequests() {
                                 <MapPin className="h-4 w-4" />
                                 {request.property.location}
                               </div>
-                              {request.room_number && (
+                              {request.preferred_room_number && (
                                 <div className="flex items-center gap-2 mt-1 text-sm">
                                   <DoorOpen className="h-4 w-4 text-primary" />
-                                  <span className="font-medium">Requested Room: {request.room_number}</span>
+                                  <span className="font-medium">Preferred Room: {request.preferred_room_number}</span>
                                 </div>
                               )}
                             </div>
@@ -579,16 +628,25 @@ export default function ViewingRequests() {
 
                           <div className="flex gap-2 pt-2">
                             <Button
-                              className="flex-1 bg-green-600 hover:bg-green-700"
+                              className="flex-1"
+                              variant="default"
                               onClick={() => handleAcceptRental(request)}
                               disabled={updating}
                             >
                               <Check className="h-4 w-4 mr-2" />
-                              Send Offer
+                              {request.preferred_room_number ? `Approve (${request.preferred_room_number})` : "Approve"}
+                            </Button>
+                            <Button
+                              variant="outline"
+                              className="flex-1"
+                              onClick={() => handleOpenAssignRoom(request)}
+                              disabled={updating}
+                            >
+                              <DoorOpen className="h-4 w-4 mr-2" />
+                              Assign Different Room
                             </Button>
                             <Button
                               variant="destructive"
-                              className="flex-1"
                               onClick={() => handleDeclineRental(request)}
                             >
                               <X className="h-4 w-4 mr-2" />
@@ -628,10 +686,19 @@ export default function ViewingRequests() {
                                 <MapPin className="h-4 w-4" />
                                 {request.property.location}
                               </div>
-                              {request.room_number && (
+                              {request.preferred_room_number && (
                                 <div className="flex items-center gap-2 mt-1 text-sm text-muted-foreground">
                                   <DoorOpen className="h-4 w-4" />
-                                  Room {request.room_number}
+                                  Requested: {request.preferred_room_number}
+                                </div>
+                              )}
+                              {request.assigned_room_number && (
+                                <div className="flex items-center gap-2 mt-1 text-sm font-medium text-primary">
+                                  <DoorOpen className="h-4 w-4" />
+                                  Assigned: {request.assigned_room_number}
+                                  {request.preferred_room_number && request.assigned_room_number !== request.preferred_room_number && (
+                                    <Badge variant="outline" className="text-xs ml-1">Changed</Badge>
+                                  )}
                                 </div>
                               )}
                               {request.property.rent_amount && (
@@ -703,10 +770,10 @@ export default function ViewingRequests() {
                                 <MapPin className="h-4 w-4" />
                                 {request.property.location}
                               </div>
-                              {request.room_number && (
+                              {request.preferred_room_number && (
                                 <div className="flex items-center gap-2 mt-1 text-sm text-muted-foreground">
                                   <DoorOpen className="h-4 w-4" />
-                                  Room {request.room_number}
+                                  Preferred: {request.preferred_room_number}
                                 </div>
                               )}
                             </div>
@@ -755,10 +822,10 @@ export default function ViewingRequests() {
                                 <MapPin className="h-4 w-4" />
                                 {request.property.location}
                               </div>
-                              {request.room_number && (
+                              {request.preferred_room_number && (
                                 <div className="flex items-center gap-2 mt-1 text-sm text-muted-foreground">
                                   <DoorOpen className="h-4 w-4" />
-                                  Room {request.room_number}
+                                  Preferred: {request.preferred_room_number}
                                 </div>
                               )}
                             </div>
@@ -978,6 +1045,52 @@ export default function ViewingRequests() {
             </AlertDialogFooter>
           </AlertDialogContent>
         </AlertDialog>
+
+        {/* Assign Different Room Dialog */}
+        <Dialog open={assignRoomDialog.open} onOpenChange={(open) => { if (!open) setAssignRoomDialog({ open: false, request: null }); }}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Assign a Different Room</DialogTitle>
+            </DialogHeader>
+            <div className="space-y-4 pt-2">
+              {assignRoomDialog.request?.preferred_room_number && (
+                <p className="text-sm text-muted-foreground">
+                  Student preferred: <strong>{assignRoomDialog.request.preferred_room_number}</strong>
+                </p>
+              )}
+              <div>
+                <Label>Select Room</Label>
+                <RadioGroup value={selectedAssignRoomId} onValueChange={setSelectedAssignRoomId} className="mt-2 space-y-2">
+                  {availableRooms.map((room) => (
+                    <div key={room.id} className="flex items-center space-x-2 p-3 border rounded-lg">
+                      <RadioGroupItem value={room.id} id={`room-${room.id}`} />
+                      <Label htmlFor={`room-${room.id}`} className="flex-1 cursor-pointer">
+                        <span className="font-medium">{room.room_number}</span>
+                        <span className="text-sm text-muted-foreground ml-2">
+                          ({room.current_occupants}/{room.capacity} occupied)
+                        </span>
+                      </Label>
+                    </div>
+                  ))}
+                </RadioGroup>
+                {availableRooms.length === 0 && (
+                  <p className="text-sm text-muted-foreground mt-2">No available rooms found.</p>
+                )}
+              </div>
+            </div>
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setAssignRoomDialog({ open: false, request: null })}>
+                Cancel
+              </Button>
+              <Button
+                onClick={() => assignRoomDialog.request && handleAcceptRental(assignRoomDialog.request, selectedAssignRoomId)}
+                disabled={!selectedAssignRoomId || updating}
+              >
+                {updating ? "Sending..." : "Send Offer"}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
       </div>
     </div>
   );
