@@ -507,42 +507,52 @@ export type Database = {
       }
       rental_requests: {
         Row: {
+          assigned_room_id: string | null
           created_at: string
           id: string
           landlord_id: string
+          preferred_room_id: string | null
           property_id: string
           requested_at: string
-          room_id: string | null
           status: string
           student_id: string
           student_message: string | null
           updated_at: string
         }
         Insert: {
+          assigned_room_id?: string | null
           created_at?: string
           id?: string
           landlord_id: string
+          preferred_room_id?: string | null
           property_id: string
           requested_at?: string
-          room_id?: string | null
           status?: string
           student_id: string
           student_message?: string | null
           updated_at?: string
         }
         Update: {
+          assigned_room_id?: string | null
           created_at?: string
           id?: string
           landlord_id?: string
+          preferred_room_id?: string | null
           property_id?: string
           requested_at?: string
-          room_id?: string | null
           status?: string
           student_id?: string
           student_message?: string | null
           updated_at?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "rental_requests_assigned_room_id_fkey"
+            columns: ["assigned_room_id"]
+            isOneToOne: false
+            referencedRelation: "rooms"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "rental_requests_property_id_fkey"
             columns: ["property_id"]
@@ -552,7 +562,7 @@ export type Database = {
           },
           {
             foreignKeyName: "rental_requests_room_id_fkey"
-            columns: ["room_id"]
+            columns: ["preferred_room_id"]
             isOneToOne: false
             referencedRelation: "rooms"
             referencedColumns: ["id"]
@@ -767,7 +777,12 @@ export type Database = {
     }
     Functions: {
       accept_offer: { Args: { p_request_id: string }; Returns: Json }
-      accept_rental_request: { Args: { p_request_id: string }; Returns: Json }
+      accept_rental_request:
+        | { Args: { p_request_id: string }; Returns: Json }
+        | {
+            Args: { p_assigned_room_id?: string; p_request_id: string }
+            Returns: Json
+          }
       cancel_reservation: {
         Args: { p_assignment_id: string }
         Returns: boolean
