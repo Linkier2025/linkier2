@@ -685,10 +685,10 @@ export default function ViewingRequests() {
                                 <MapPin className="h-4 w-4" />
                                 {request.property.location}
                               </div>
-                              {request.room_number && (
+                              {request.preferred_room_number && (
                                 <div className="flex items-center gap-2 mt-1 text-sm text-muted-foreground">
                                   <DoorOpen className="h-4 w-4" />
-                                  Room {request.room_number}
+                                  Preferred: {request.preferred_room_number}
                                 </div>
                               )}
                               {request.property.rent_amount && (
@@ -760,10 +760,10 @@ export default function ViewingRequests() {
                                 <MapPin className="h-4 w-4" />
                                 {request.property.location}
                               </div>
-                              {request.room_number && (
+                              {request.preferred_room_number && (
                                 <div className="flex items-center gap-2 mt-1 text-sm text-muted-foreground">
                                   <DoorOpen className="h-4 w-4" />
-                                  Room {request.room_number}
+                                  Preferred: {request.preferred_room_number}
                                 </div>
                               )}
                             </div>
@@ -812,10 +812,10 @@ export default function ViewingRequests() {
                                 <MapPin className="h-4 w-4" />
                                 {request.property.location}
                               </div>
-                              {request.room_number && (
+                              {request.preferred_room_number && (
                                 <div className="flex items-center gap-2 mt-1 text-sm text-muted-foreground">
                                   <DoorOpen className="h-4 w-4" />
-                                  Room {request.room_number}
+                                  Preferred: {request.preferred_room_number}
                                 </div>
                               )}
                             </div>
