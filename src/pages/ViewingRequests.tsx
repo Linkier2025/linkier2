@@ -597,10 +597,10 @@ export default function ViewingRequests() {
                                 <MapPin className="h-4 w-4" />
                                 {request.property.location}
                               </div>
-                              {request.room_number && (
+                              {request.preferred_room_number && (
                                 <div className="flex items-center gap-2 mt-1 text-sm">
                                   <DoorOpen className="h-4 w-4 text-primary" />
-                                  <span className="font-medium">Requested Room: {request.room_number}</span>
+                                  <span className="font-medium">Preferred Room: {request.preferred_room_number}</span>
                                 </div>
                               )}
                             </div>
@@ -627,16 +627,25 @@ export default function ViewingRequests() {
 
                           <div className="flex gap-2 pt-2">
                             <Button
-                              className="flex-1 bg-green-600 hover:bg-green-700"
+                              className="flex-1"
+                              variant="default"
                               onClick={() => handleAcceptRental(request)}
                               disabled={updating}
                             >
                               <Check className="h-4 w-4 mr-2" />
-                              Send Offer
+                              {request.preferred_room_number ? `Approve (${request.preferred_room_number})` : "Approve"}
+                            </Button>
+                            <Button
+                              variant="outline"
+                              className="flex-1"
+                              onClick={() => handleOpenAssignRoom(request)}
+                              disabled={updating}
+                            >
+                              <DoorOpen className="h-4 w-4 mr-2" />
+                              Assign Different Room
                             </Button>
                             <Button
                               variant="destructive"
-                              className="flex-1"
                               onClick={() => handleDeclineRental(request)}
                             >
                               <X className="h-4 w-4 mr-2" />
