@@ -65,8 +65,10 @@ interface RentalRequest {
   status: string;
   requested_at: string;
   student_message: string | null;
-  room_id: string | null;
-  room_number: string | null;
+  preferred_room_id: string | null;
+  preferred_room_number: string | null;
+  assigned_room_id: string | null;
+  assigned_room_number: string | null;
   property: {
     title: string;
     location: string;
@@ -86,6 +88,9 @@ export default function ViewingRequests() {
   const [scheduledDate, setScheduledDate] = useState("");
   const [landlordNotes, setLandlordNotes] = useState("");
   const [updating, setUpdating] = useState(false);
+  const [assignRoomDialog, setAssignRoomDialog] = useState<{ open: boolean; request: RentalRequest | null }>({ open: false, request: null });
+  const [availableRooms, setAvailableRooms] = useState<{ id: string; room_number: string; capacity: number; current_occupants: number }[]>([]);
+  const [selectedAssignRoomId, setSelectedAssignRoomId] = useState<string>("");
 
   const isLandlord = profile?.user_type === 'landlord';
 
@@ -193,7 +198,7 @@ export default function ViewingRequests() {
       if (error) throw error;
 
       const requestsWithDetails = await Promise.all(
-        (requestsData || []).map(async (request) => {
+        (requestsData || []).map(async (request: any) => {
           const { data: propertyData } = await supabase
             .from('properties')
             .select('title, location, rent_amount, images')
@@ -206,21 +211,34 @@ export default function ViewingRequests() {
             .eq('user_id', request.student_id)
             .maybeSingle();
 
-          // Fetch room number if room_id exists
-          let roomNumber: string | null = null;
-          if ((request as any).room_id) {
+          // Fetch preferred room number
+          let preferredRoomNumber: string | null = null;
+          if (request.preferred_room_id) {
             const { data: roomData } = await supabase
               .from('rooms')
               .select('room_number')
-              .eq('id', (request as any).room_id)
+              .eq('id', request.preferred_room_id)
               .maybeSingle();
-            roomNumber = roomData?.room_number || null;
+            preferredRoomNumber = roomData?.room_number || null;
+          }
+
+          // Fetch assigned room number
+          let assignedRoomNumber: string | null = null;
+          if (request.assigned_room_id) {
+            const { data: roomData } = await supabase
+              .from('rooms')
+              .select('room_number')
+              .eq('id', request.assigned_room_id)
+              .maybeSingle();
+            assignedRoomNumber = roomData?.room_number || null;
           }
 
           return {
             ...request,
-            room_id: (request as any).room_id || null,
-            room_number: roomNumber,
+            preferred_room_id: request.preferred_room_id || null,
+            preferred_room_number: preferredRoomNumber,
+            assigned_room_id: request.assigned_room_id || null,
+            assigned_room_number: assignedRoomNumber,
             property: propertyData || { title: 'Unknown', location: 'Unknown', rent_amount: 0, images: null },
             student: studentData
           };
