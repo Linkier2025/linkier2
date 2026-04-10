@@ -170,9 +170,9 @@ export default function PropertyDetails() {
           student_id: user.id,
           landlord_id: property.landlord_id,
           student_message: rentalMessage,
-          room_id: selectedRoomId,
+          preferred_room_id: selectedRoomId,
           status: 'pending'
-        });
+        } as any);
       if (error) throw error;
       toast({ title: "Room request sent!", description: "The landlord will review your request." });
       setRentalDialogOpen(false);
