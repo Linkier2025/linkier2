@@ -29,7 +29,8 @@ interface RequestItem {
   property_location: string;
   property_rent: number;
   property_image: string | null;
-  room_number: string | null;
+  preferred_room_number: string | null;
+  assigned_room_number: string | null;
   status: string;
   created_at: string;
   student_message: string | null;
@@ -80,15 +81,19 @@ export default function Requests() {
       // Fetch rental requests
       const { data: rentalsData } = await supabase
         .from("rental_requests")
-        .select("id, status, requested_at, student_message, property_id, room_id, properties(title, location, rent_amount, images)")
+        .select("id, status, requested_at, student_message, property_id, preferred_room_id, assigned_room_id, properties(title, location, rent_amount, images)")
         .eq("student_id", user.id)
         .order("requested_at", { ascending: false });
 
-      // Get room numbers for rental requests with room_id
-      const roomIds = (rentalsData || []).filter(r => (r as any).room_id).map(r => (r as any).room_id);
+      // Get room numbers for preferred and assigned rooms
+      const allRoomIds = [
+        ...(rentalsData || []).filter((r: any) => r.preferred_room_id).map((r: any) => r.preferred_room_id),
+        ...(rentalsData || []).filter((r: any) => r.assigned_room_id).map((r: any) => r.assigned_room_id),
+      ].filter((v, i, a) => a.indexOf(v) === i);
+
       let roomsMap = new Map<string, string>();
-      if (roomIds.length > 0) {
-        const { data: roomsData } = await supabase.from("rooms").select("id, room_number").in("id", roomIds);
+      if (allRoomIds.length > 0) {
+        const { data: roomsData } = await supabase.from("rooms").select("id, room_number").in("id", allRoomIds);
         roomsData?.forEach(r => roomsMap.set(r.id, r.room_number));
       }
 
@@ -101,7 +106,8 @@ export default function Requests() {
           property_location: v.properties?.location || "",
           property_rent: v.properties?.rent_amount || 0,
           property_image: v.properties?.images?.[0] || null,
-          room_number: null,
+          preferred_room_number: null,
+          assigned_room_number: null,
           status: v.status,
           created_at: v.requested_at,
           student_message: v.student_message,
@@ -115,7 +121,8 @@ export default function Requests() {
           property_location: r.properties?.location || "",
           property_rent: r.properties?.rent_amount || 0,
           property_image: r.properties?.images?.[0] || null,
-          room_number: r.room_id ? roomsMap.get(r.room_id) || null : null,
+          preferred_room_number: r.preferred_room_id ? roomsMap.get(r.preferred_room_id) || null : null,
+          assigned_room_number: r.assigned_room_id ? roomsMap.get(r.assigned_room_id) || null : null,
           status: r.status,
           created_at: r.requested_at,
           student_message: r.student_message,
@@ -215,10 +222,19 @@ export default function Requests() {
               <MapPin className="h-3 w-3" />
               {req.property_location}
             </div>
-            {req.room_number && (
+            {req.preferred_room_number && (
               <div className="flex items-center gap-1 text-xs text-muted-foreground mt-0.5">
                 <DoorOpen className="h-3 w-3" />
-                Room {req.room_number}
+                Requested: {req.preferred_room_number}
+              </div>
+            )}
+            {req.assigned_room_number && (
+              <div className="flex items-center gap-1 text-xs font-medium text-primary mt-0.5">
+                <DoorOpen className="h-3 w-3" />
+                Assigned: {req.assigned_room_number}
+                {req.preferred_room_number && req.assigned_room_number !== req.preferred_room_number && (
+                  <span className="text-[10px] text-muted-foreground ml-1">(changed)</span>
+                )}
               </div>
             )}
             <div className="flex items-center justify-between mt-2">
