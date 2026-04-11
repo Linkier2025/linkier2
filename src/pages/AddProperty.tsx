@@ -13,7 +13,8 @@ import { toast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { SpaceConfigurator, SpaceConfiguration } from "@/components/SpaceConfigurator";
-import { LocationCombobox } from "@/components/LocationCombobox";
+import { CityAreaSelector } from "@/components/CityAreaSelector";
+import { UNIVERSITIES, UNIVERSITY_SHORT } from "@/lib/locationConfig";
 
 type RoomConfiguration = SpaceConfiguration;
 
@@ -41,6 +42,8 @@ export default function AddProperty() {
     title: "",
     rent: "",
     location: "",
+    locationCity: "",
+    locationArea: "",
     university: "",
     rooms: "",
     gender: "",
@@ -48,7 +51,8 @@ export default function AddProperty() {
     amenities: [] as string[],
     houseNumber: "",
     boardingHouseName: "",
-    totalRooms: ""
+    totalRooms: "",
+    targetUniversities: [] as string[],
   });
   const [savedFormData, setSavedFormData] = useState(formData);
   const [savedRoomConfigs, setSavedRoomConfigs] = useState(roomConfigurations);
@@ -77,6 +81,8 @@ export default function AddProperty() {
           title: data.title || "",
           rent: data.rent_amount?.toString() || "",
           location: data.location || "",
+          locationCity: (data as any).location_city || "",
+          locationArea: (data as any).location_area || "",
           university: data.university || "",
           rooms: data.rooms?.toString() || "",
           gender: data.gender_preference || "",
@@ -84,7 +90,8 @@ export default function AddProperty() {
           amenities: data.amenities || [],
           houseNumber: data.house_number || "",
           boardingHouseName: data.boarding_house_name || "",
-          totalRooms: data.total_rooms?.toString() || ""
+          totalRooms: data.total_rooms?.toString() || "",
+          targetUniversities: (data as any).target_universities || [],
         };
         setFormData(fd);
         setSavedFormData(fd);
@@ -317,11 +324,16 @@ export default function AddProperty() {
     setLoading(true);
 
     try {
+      // Build display location from city + area
+      const displayLocation = [formData.locationCity, formData.locationArea].filter(Boolean).join(", ") || formData.location;
+
       const propertyData = {
         landlord_id: user.id,
         title: formData.title,
         rent_amount: parseFloat(formData.rent),
-        location: formData.location,
+        location: displayLocation,
+        location_city: formData.locationCity || null,
+        location_area: formData.locationArea || null,
         university: formData.university,
         rooms: parseInt(formData.rooms),
         gender_preference: formData.gender,
@@ -332,8 +344,9 @@ export default function AddProperty() {
         boarding_house_name: formData.boardingHouseName,
         total_rooms: formData.totalRooms ? parseInt(formData.totalRooms) : null,
         room_configurations: roomConfigurations as any,
+        target_universities: formData.targetUniversities.length > 0 ? formData.targetUniversities : null,
         status: 'available'
-      };
+      } as any;
 
       if (id) {
         // Update existing property
@@ -444,7 +457,10 @@ export default function AddProperty() {
                 <ViewField label="Monthly Rent (USD)" value={formData.rent ? `$${formData.rent}` : "—"} />
                 <ViewField label="Rooms Available" value={formData.rooms ? `${formData.rooms} Room(s)` : "—"} />
               </div>
-              <ViewField label="Location" value={formData.location} />
+              <div className="grid grid-cols-2 gap-4">
+                <ViewField label="City" value={formData.locationCity} />
+                <ViewField label="Area" value={formData.locationArea} />
+              </div>
               <div className="grid grid-cols-2 gap-4">
                 <ViewField label="House Number" value={formData.houseNumber} />
                 <ViewField label="Boarding House Name" value={formData.boardingHouseName} />
@@ -570,13 +586,12 @@ export default function AddProperty() {
                 </div>
               </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="location">Location</Label>
-                <LocationCombobox
-                  value={formData.location}
-                  onChange={(val) => setFormData({...formData, location: val})}
-                />
-              </div>
+              <CityAreaSelector
+                city={formData.locationCity}
+                area={formData.locationArea}
+                onCityChange={(v) => setFormData({...formData, locationCity: v})}
+                onAreaChange={(v) => setFormData({...formData, locationArea: v})}
+              />
 
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
@@ -638,14 +653,9 @@ export default function AddProperty() {
                       <SelectValue placeholder="Select university" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="uz">University of Zimbabwe</SelectItem>
-                      <SelectItem value="nust">National University of Science and Technology</SelectItem>
-                      <SelectItem value="msu">Midlands State University</SelectItem>
-                      <SelectItem value="hit">Harare Institute of Technology</SelectItem>
-                      <SelectItem value="cut">Chinhoyi University of Technology</SelectItem>
-                      <SelectItem value="gzu">Great Zimbabwe University</SelectItem>
-                      <SelectItem value="buse">Bindura University of Science Education</SelectItem>
-                      <SelectItem value="lsu">Lupane State University</SelectItem>
+                      {UNIVERSITIES.map((u) => (
+                        <SelectItem key={u.value} value={u.value}>{u.label} — {u.value}</SelectItem>
+                      ))}
                     </SelectContent>
                   </Select>
                 </div>
@@ -661,6 +671,30 @@ export default function AddProperty() {
                       <SelectItem value="mixed">Mixed</SelectItem>
                     </SelectContent>
                   </Select>
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label>Target Universities (optional)</Label>
+                <p className="text-xs text-muted-foreground">Leave empty to show to all students</p>
+                <div className="grid grid-cols-2 gap-2">
+                  {UNIVERSITIES.map((u) => (
+                    <div key={u.value} className="flex items-center space-x-2">
+                      <Checkbox
+                        id={`target-${u.value}`}
+                        checked={formData.targetUniversities.includes(u.value)}
+                        onCheckedChange={(checked) => {
+                          setFormData(prev => ({
+                            ...prev,
+                            targetUniversities: checked
+                              ? [...prev.targetUniversities, u.value]
+                              : prev.targetUniversities.filter(v => v !== u.value)
+                          }));
+                        }}
+                      />
+                      <Label htmlFor={`target-${u.value}`} className="text-sm">{u.label}</Label>
+                    </div>
+                  ))}
                 </div>
               </div>
 
