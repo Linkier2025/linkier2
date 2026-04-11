@@ -318,12 +318,15 @@ export type Database = {
           images: string[] | null
           landlord_id: string
           location: string
+          location_area: string | null
+          location_city: string | null
           occupancy_rate: string | null
           rating: number | null
           rent_amount: number
           room_configurations: Json | null
           rooms: number
           status: string | null
+          target_universities: string[] | null
           title: string
           total_rooms: number | null
           university: string | null
@@ -340,12 +343,15 @@ export type Database = {
           images?: string[] | null
           landlord_id: string
           location: string
+          location_area?: string | null
+          location_city?: string | null
           occupancy_rate?: string | null
           rating?: number | null
           rent_amount: number
           room_configurations?: Json | null
           rooms: number
           status?: string | null
+          target_universities?: string[] | null
           title: string
           total_rooms?: number | null
           university?: string | null
@@ -362,12 +368,15 @@ export type Database = {
           images?: string[] | null
           landlord_id?: string
           location?: string
+          location_area?: string | null
+          location_city?: string | null
           occupancy_rate?: string | null
           rating?: number | null
           rent_amount?: number
           room_configurations?: Json | null
           rooms?: number
           status?: string | null
+          target_universities?: string[] | null
           title?: string
           total_rooms?: number | null
           university?: string | null
