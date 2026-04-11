@@ -13,7 +13,8 @@ import { toast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { SpaceConfigurator, SpaceConfiguration } from "@/components/SpaceConfigurator";
-import { LocationCombobox } from "@/components/LocationCombobox";
+import { CityAreaSelector } from "@/components/CityAreaSelector";
+import { UNIVERSITIES, UNIVERSITY_SHORT } from "@/lib/locationConfig";
 
 type RoomConfiguration = SpaceConfiguration;
 
@@ -41,6 +42,8 @@ export default function AddProperty() {
     title: "",
     rent: "",
     location: "",
+    locationCity: "",
+    locationArea: "",
     university: "",
     rooms: "",
     gender: "",
@@ -48,7 +51,8 @@ export default function AddProperty() {
     amenities: [] as string[],
     houseNumber: "",
     boardingHouseName: "",
-    totalRooms: ""
+    totalRooms: "",
+    targetUniversities: [] as string[],
   });
   const [savedFormData, setSavedFormData] = useState(formData);
   const [savedRoomConfigs, setSavedRoomConfigs] = useState(roomConfigurations);
@@ -77,6 +81,8 @@ export default function AddProperty() {
           title: data.title || "",
           rent: data.rent_amount?.toString() || "",
           location: data.location || "",
+          locationCity: (data as any).location_city || "",
+          locationArea: (data as any).location_area || "",
           university: data.university || "",
           rooms: data.rooms?.toString() || "",
           gender: data.gender_preference || "",
@@ -84,7 +90,8 @@ export default function AddProperty() {
           amenities: data.amenities || [],
           houseNumber: data.house_number || "",
           boardingHouseName: data.boarding_house_name || "",
-          totalRooms: data.total_rooms?.toString() || ""
+          totalRooms: data.total_rooms?.toString() || "",
+          targetUniversities: (data as any).target_universities || [],
         };
         setFormData(fd);
         setSavedFormData(fd);
@@ -317,11 +324,16 @@ export default function AddProperty() {
     setLoading(true);
 
     try {
+      // Build display location from city + area
+      const displayLocation = [formData.locationCity, formData.locationArea].filter(Boolean).join(", ") || formData.location;
+
       const propertyData = {
         landlord_id: user.id,
         title: formData.title,
         rent_amount: parseFloat(formData.rent),
-        location: formData.location,
+        location: displayLocation,
+        location_city: formData.locationCity || null,
+        location_area: formData.locationArea || null,
         university: formData.university,
         rooms: parseInt(formData.rooms),
         gender_preference: formData.gender,
@@ -332,8 +344,9 @@ export default function AddProperty() {
         boarding_house_name: formData.boardingHouseName,
         total_rooms: formData.totalRooms ? parseInt(formData.totalRooms) : null,
         room_configurations: roomConfigurations as any,
+        target_universities: formData.targetUniversities.length > 0 ? formData.targetUniversities : null,
         status: 'available'
-      };
+      } as any;
 
       if (id) {
         // Update existing property
