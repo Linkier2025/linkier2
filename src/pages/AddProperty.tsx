@@ -672,6 +672,30 @@ export default function AddProperty() {
               </div>
 
               <div className="space-y-2">
+                <Label>Target Universities (optional)</Label>
+                <p className="text-xs text-muted-foreground">Leave empty to show to all students</p>
+                <div className="grid grid-cols-2 gap-2">
+                  {UNIVERSITIES.map((u) => (
+                    <div key={u.value} className="flex items-center space-x-2">
+                      <Checkbox
+                        id={`target-${u.value}`}
+                        checked={formData.targetUniversities.includes(u.value)}
+                        onCheckedChange={(checked) => {
+                          setFormData(prev => ({
+                            ...prev,
+                            targetUniversities: checked
+                              ? [...prev.targetUniversities, u.value]
+                              : prev.targetUniversities.filter(v => v !== u.value)
+                          }));
+                        }}
+                      />
+                      <Label htmlFor={`target-${u.value}`} className="text-sm">{u.label}</Label>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div className="space-y-2">
                 <Label htmlFor="description">Description</Label>
                 <Textarea
                   id="description"
