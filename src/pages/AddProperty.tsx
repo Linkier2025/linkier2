@@ -583,13 +583,12 @@ export default function AddProperty() {
                 </div>
               </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="location">Location</Label>
-                <LocationCombobox
-                  value={formData.location}
-                  onChange={(val) => setFormData({...formData, location: val})}
-                />
-              </div>
+              <CityAreaSelector
+                city={formData.locationCity}
+                area={formData.locationArea}
+                onCityChange={(v) => setFormData({...formData, locationCity: v})}
+                onAreaChange={(v) => setFormData({...formData, locationArea: v})}
+              />
 
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
@@ -651,14 +650,9 @@ export default function AddProperty() {
                       <SelectValue placeholder="Select university" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="uz">University of Zimbabwe</SelectItem>
-                      <SelectItem value="nust">National University of Science and Technology</SelectItem>
-                      <SelectItem value="msu">Midlands State University</SelectItem>
-                      <SelectItem value="hit">Harare Institute of Technology</SelectItem>
-                      <SelectItem value="cut">Chinhoyi University of Technology</SelectItem>
-                      <SelectItem value="gzu">Great Zimbabwe University</SelectItem>
-                      <SelectItem value="buse">Bindura University of Science Education</SelectItem>
-                      <SelectItem value="lsu">Lupane State University</SelectItem>
+                      {UNIVERSITIES.map((u) => (
+                        <SelectItem key={u.value} value={u.value}>{u.label} — {u.value}</SelectItem>
+                      ))}
                     </SelectContent>
                   </Select>
                 </div>
