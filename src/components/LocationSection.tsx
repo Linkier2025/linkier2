@@ -60,6 +60,9 @@ export function LocationSection({
             title={property.title}
             rent_amount={property.rent_amount}
             location={property.location}
+            location_city={property.location_city}
+            location_area={property.location_area}
+            target_universities={property.target_universities}
             rooms={property.rooms}
             gender_preference={property.gender_preference}
             rating={property.rating ?? 0}
