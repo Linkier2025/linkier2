@@ -457,7 +457,10 @@ export default function AddProperty() {
                 <ViewField label="Monthly Rent (USD)" value={formData.rent ? `$${formData.rent}` : "—"} />
                 <ViewField label="Rooms Available" value={formData.rooms ? `${formData.rooms} Room(s)` : "—"} />
               </div>
-              <ViewField label="Location" value={formData.location} />
+              <div className="grid grid-cols-2 gap-4">
+                <ViewField label="City" value={formData.locationCity} />
+                <ViewField label="Area" value={formData.locationArea} />
+              </div>
               <div className="grid grid-cols-2 gap-4">
                 <ViewField label="House Number" value={formData.houseNumber} />
                 <ViewField label="Boarding House Name" value={formData.boardingHouseName} />
