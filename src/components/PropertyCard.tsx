@@ -3,12 +3,16 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { AspectRatio } from "@/components/ui/aspect-ratio";
 import { Link } from "react-router-dom";
+import { UNIVERSITY_SHORT } from "@/lib/locationConfig";
 
 interface PropertyCardProps {
   id: string;
   title: string;
   rent_amount: number;
   location: string;
+  location_city?: string | null;
+  location_area?: string | null;
+  target_universities?: string[] | null;
   rooms: number;
   gender_preference: string | null;
   rating: number;
@@ -27,6 +31,10 @@ export function PropertyCard({
   id,
   title,
   rent_amount,
+  location,
+  location_city,
+  location_area,
+  target_universities,
   rooms,
   gender_preference,
   rating,
@@ -35,6 +43,9 @@ export function PropertyCard({
   occupancy,
   onToggleFavorite,
 }: PropertyCardProps) {
+  const displayLocation = [location_area, location_city].filter(Boolean).join(", ") || location;
+  const uniTags = (target_universities || []).map((u) => UNIVERSITY_SHORT[u] || u);
+
   return (
     <Link to={`/property/${id}`} className="block group">
       <div className="rounded-xl overflow-hidden bg-card border border-border shadow-sm hover:shadow-md transition-shadow">
@@ -66,6 +77,11 @@ export function PropertyCard({
               Full
             </Badge>
           )}
+          {uniTags.length > 0 && (
+            <Badge className="absolute bottom-2 left-2 bg-primary/90 text-primary-foreground text-[10px] px-1.5 py-0.5">
+              For {uniTags.join(", ")}
+            </Badge>
+          )}
         </div>
 
         {/* Info */}
@@ -79,6 +95,8 @@ export function PropertyCard({
               <span className="text-xs text-foreground">{rating || "–"}</span>
             </div>
           </div>
+
+          <p className="text-xs text-muted-foreground line-clamp-1">{displayLocation}</p>
 
           <div className="flex items-center gap-1 text-xs text-muted-foreground">
             <Users className="h-3 w-3" />

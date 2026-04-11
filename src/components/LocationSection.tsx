@@ -6,12 +6,15 @@ interface Property {
   title: string;
   rent_amount: number;
   location: string;
+  location_city?: string | null;
+  location_area?: string | null;
   university: string | null;
   rooms: number;
   gender_preference: string | null;
   rating: number;
   images: string[] | null;
   amenities: string[] | null;
+  target_universities?: string[] | null;
 }
 
 interface PropertyOccupancy {
