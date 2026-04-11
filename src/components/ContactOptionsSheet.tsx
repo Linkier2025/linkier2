@@ -11,8 +11,16 @@ interface ContactOptionsSheetProps {
 
 export function ContactOptionsSheet({ phone, email, name = "Contact", trigger }: ContactOptionsSheetProps) {
   const formatPhoneForWhatsApp = (phoneNumber: string) => {
-    // Remove spaces, dashes, and parentheses, keep + for country code
-    return phoneNumber.replace(/[\s\-()]/g, '');
+    // Remove spaces, dashes, and parentheses
+    let cleaned = phoneNumber.replace(/[\s\-()]/g, '');
+    // If already has +, return as-is
+    if (cleaned.startsWith('+')) return cleaned;
+    // If starts with 0, replace leading 0 with +263 (Zimbabwe)
+    if (cleaned.startsWith('0')) return '+263' + cleaned.slice(1);
+    // If starts with 263, add +
+    if (cleaned.startsWith('263')) return '+' + cleaned;
+    // Fallback: prepend +263
+    return '+263' + cleaned;
   };
 
   const contactOptions = [
