@@ -97,7 +97,7 @@ const StudentLogin = () => {
       {/* Main Content */}
       <main className="relative z-10 flex-1 flex flex-col items-center justify-center px-6 pb-8">
         <div className="w-full max-w-md">
-          <Card className="p-6 bg-white/95 backdrop-blur-sm shadow-strong">
+          <Card className="p-6 bg-white/95 dark:bg-[rgba(18,18,18,0.9)] backdrop-blur-sm shadow-strong dark:shadow-[0_8px_30px_rgba(0,0,0,0.5)]">
             <div className="space-y-6">
               <div className="text-center">
                 <h2 className="text-2xl font-bold text-foreground">Student Login</h2>
