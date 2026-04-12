@@ -327,7 +327,7 @@ export default function Explore() {
 
       {/* Content */}
       <div className="px-4 py-5 space-y-8 max-w-6xl mx-auto">
-        {groupedByLocation.length === 0 ? (
+        {groupedByArea.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-20 text-center">
             <Search className="h-12 w-12 text-muted-foreground/40 mb-4" />
             <p className="text-lg font-medium text-foreground">No properties found</p>
@@ -343,10 +343,10 @@ export default function Explore() {
             )}
           </div>
         ) : (
-          groupedByLocation.map(([location, props]) => (
+          groupedByArea.map(({ area, city, properties: props }) => (
             <LocationSection
-              key={location}
-              location={location}
+              key={`${area}-${city}`}
+              location={`${area}, ${city}`}
               properties={props}
               occupancyMap={occupancyMap}
               favorites={favorites}
