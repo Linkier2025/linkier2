@@ -145,7 +145,9 @@ export default function Explore() {
         (property.location_city || "").toLowerCase().includes(searchTerm.toLowerCase()) ||
         (property.location_area || "").toLowerCase().includes(searchTerm.toLowerCase());
       const matchesUniversity =
-        !filters.university || property.university === filters.university;
+        !filters.university || 
+        (property.target_universities && property.target_universities.includes(filters.university)) ||
+        property.university === filters.university;
       const matchesMinRent =
         !filters.minRent || property.rent_amount >= Number(filters.minRent);
       const matchesMaxRent =
@@ -178,15 +180,22 @@ export default function Explore() {
     });
   }, [properties, searchTerm, filters, studentUniversity]);
 
-  const groupedByLocation = useMemo(() => {
+  // Group by sub_location (location_area), with city context
+  const groupedByArea = useMemo(() => {
     const groups: Record<string, Property[]> = {};
     filteredProperties.forEach((p) => {
-      // Group by city if available, otherwise fall back to location
-      const loc = p.location_city || p.location || "Other";
-      if (!groups[loc]) groups[loc] = [];
-      groups[loc].push(p);
+      const area = p.location_area || p.location || "Other";
+      const city = p.location_city || "Harare";
+      const key = `${area}|||${city}`;
+      if (!groups[key]) groups[key] = [];
+      groups[key].push(p);
     });
-    return Object.entries(groups).sort(([a], [b]) => a.localeCompare(b));
+    return Object.entries(groups)
+      .map(([key, props]) => {
+        const [area, city] = key.split("|||");
+        return { area, city, properties: props };
+      })
+      .sort((a, b) => a.area.localeCompare(b.area));
   }, [filteredProperties]);
 
   const clearFilters = () => {
@@ -318,7 +327,7 @@ export default function Explore() {
 
       {/* Content */}
       <div className="px-4 py-5 space-y-8 max-w-6xl mx-auto">
-        {groupedByLocation.length === 0 ? (
+        {groupedByArea.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-20 text-center">
             <Search className="h-12 w-12 text-muted-foreground/40 mb-4" />
             <p className="text-lg font-medium text-foreground">No properties found</p>
@@ -334,10 +343,10 @@ export default function Explore() {
             )}
           </div>
         ) : (
-          groupedByLocation.map(([location, props]) => (
+          groupedByArea.map(({ area, city, properties: props }) => (
             <LocationSection
-              key={location}
-              location={location}
+              key={`${area}-${city}`}
+              location={`${area}, ${city}`}
               properties={props}
               occupancyMap={occupancyMap}
               favorites={favorites}

@@ -51,26 +51,27 @@ export function LocationSection({
         </span>
       </div>
 
-      {/* 2-column grid layout */}
-      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
+      {/* Horizontal scroll row */}
+      <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide" style={{ scrollSnapType: 'x mandatory' }}>
         {properties.map((property) => (
-          <PropertyCard
-            key={property.id}
-            id={property.id}
-            title={property.title}
-            rent_amount={property.rent_amount}
-            location={property.location}
-            location_city={property.location_city}
-            location_area={property.location_area}
-            target_universities={property.target_universities}
-            rooms={property.rooms}
-            gender_preference={property.gender_preference}
-            rating={property.rating ?? 0}
-            images={property.images}
-            isFavorite={favorites.includes(property.id)}
-            occupancy={occupancyMap[property.id]}
-            onToggleFavorite={onToggleFavorite}
-          />
+          <div key={property.id} className="min-w-[170px] max-w-[200px] flex-shrink-0" style={{ scrollSnapAlign: 'start' }}>
+            <PropertyCard
+              id={property.id}
+              title={property.title}
+              rent_amount={property.rent_amount}
+              location={property.location}
+              location_city={property.location_city}
+              location_area={property.location_area}
+              target_universities={property.target_universities}
+              rooms={property.rooms}
+              gender_preference={property.gender_preference}
+              rating={property.rating ?? 0}
+              images={property.images}
+              isFavorite={favorites.includes(property.id)}
+              occupancy={occupancyMap[property.id]}
+              onToggleFavorite={onToggleFavorite}
+            />
+          </div>
         ))}
       </div>
     </section>

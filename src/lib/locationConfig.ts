@@ -10,22 +10,22 @@ export const CITIES: CityConfig[] = [
   },
   {
     name: "Bulawayo",
-    areas: ["Selbourne Park", "Hillside", "Famona", "Nkulumane", "CBD"],
+    areas: ["Selbourne Park", "Hillside", "Famona", "Nkulumane", "CBD", "Ascot"],
   },
   {
     name: "Gweru",
     areas: ["Senga", "Mkoba", "CBD"],
   },
   {
-    name: "Mutare",
-    areas: [],
+    name: "Chinhoyi",
+    areas: ["Chinhoyi CBD", "Coldstream"],
   },
   {
     name: "Masvingo",
-    areas: [],
+    areas: ["Mucheke", "Rujeko"],
   },
   {
-    name: "Chinhoyi",
+    name: "Mutare",
     areas: [],
   },
   {
@@ -63,3 +63,16 @@ export const UNIVERSITIES = [
 export const UNIVERSITY_SHORT: Record<string, string> = Object.fromEntries(
   UNIVERSITIES.map((u) => [u.value, u.label])
 );
+
+// Map universities to their default cities
+export const UNIVERSITY_CITY_MAP: Record<string, string> = {
+  "University of Zimbabwe": "Harare",
+  "Harare Institute of Technology": "Harare",
+  "National University of Science and Technology": "Bulawayo",
+  "Midlands State University": "Gweru",
+  "Chinhoyi University of Technology": "Chinhoyi",
+  "Bindura University of Science Education": "Bindura",
+  "Great Zimbabwe University": "Masvingo",
+  "Africa University": "Mutare",
+  "Lupane State University": "Lupane",
+};
