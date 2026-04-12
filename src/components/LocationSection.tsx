@@ -51,10 +51,10 @@ export function LocationSection({
         </span>
       </div>
 
-      {/* Horizontal scroll row */}
-      <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide" style={{ scrollSnapType: 'x mandatory' }}>
+      {/* Responsive grid */}
+      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
         {properties.map((property) => (
-          <div key={property.id} className="min-w-[170px] max-w-[200px] flex-shrink-0" style={{ scrollSnapAlign: 'start' }}>
+          <div key={property.id}>
             <PropertyCard
               id={property.id}
               title={property.title}

@@ -51,17 +51,17 @@ export function PropertyCard({
       <div className="rounded-xl overflow-hidden bg-card border border-border shadow-sm hover:shadow-md transition-shadow">
         {/* Image */}
         <div className="relative">
-          <AspectRatio ratio={4 / 3}>
+          <div className="h-[130px] sm:h-[150px]">
             <img
               src={images?.[0] || "/placeholder.svg"}
               alt={title}
               className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
             />
-          </AspectRatio>
+          </div>
           <Button
             variant="ghost"
             size="icon"
-            className="absolute top-2 right-2 h-8 w-8 rounded-full bg-background/80 hover:bg-background backdrop-blur-sm"
+            className="absolute top-1.5 right-1.5 h-7 w-7 rounded-full bg-background/80 hover:bg-background backdrop-blur-sm"
             onClick={(e) => {
               e.preventDefault();
               e.stopPropagation();
@@ -69,50 +69,50 @@ export function PropertyCard({
             }}
           >
             <Heart
-              className={`h-4 w-4 ${isFavorite ? "fill-destructive text-destructive" : "text-foreground/60"}`}
+              className={`h-3.5 w-3.5 ${isFavorite ? "fill-destructive text-destructive" : "text-foreground/60"}`}
             />
           </Button>
           {occupancy?.isFullyOccupied && (
-            <Badge className="absolute top-2 left-2 bg-destructive/90 text-destructive-foreground text-[10px] px-1.5 py-0.5">
+            <Badge className="absolute top-1.5 left-1.5 bg-destructive/90 text-destructive-foreground text-[9px] px-1 py-0">
               Full
             </Badge>
           )}
           {uniTags.length > 0 && (
-            <Badge className="absolute bottom-2 left-2 bg-primary/90 text-primary-foreground text-[10px] px-1.5 py-0.5">
+            <Badge className="absolute bottom-1.5 left-1.5 bg-primary/90 text-primary-foreground text-[9px] px-1 py-0 max-w-[90%] truncate">
               For {uniTags.join(", ")}
             </Badge>
           )}
         </div>
 
         {/* Info */}
-        <div className="p-3 space-y-1">
+        <div className="p-2.5 space-y-0.5">
           <div className="flex items-start justify-between gap-1">
-            <h3 className="font-semibold text-sm text-foreground leading-tight line-clamp-1">
+            <h3 className="font-semibold text-xs text-foreground leading-tight line-clamp-1">
               {title}
             </h3>
             <div className="flex items-center gap-0.5 shrink-0">
-              <Star className="h-3 w-3 fill-warning text-warning" />
-              <span className="text-xs text-foreground">{rating || "–"}</span>
+              <Star className="h-2.5 w-2.5 fill-warning text-warning" />
+              <span className="text-[10px] text-foreground">{rating || "–"}</span>
             </div>
           </div>
 
-          <p className="text-xs text-muted-foreground line-clamp-1">{displayLocation}</p>
+          <p className="text-[10px] text-muted-foreground line-clamp-1">{displayLocation}</p>
 
-          <div className="flex items-center justify-between text-xs text-muted-foreground">
+          <div className="flex items-center justify-between text-[10px] text-muted-foreground">
             <span>{gender_preference || "Mixed"}</span>
             {occupancy && (
               <Badge
                 variant={occupancy.isFullyOccupied ? "destructive" : "secondary"}
-                className="text-[10px] px-1.5 py-0"
+                className="text-[9px] px-1 py-0 leading-tight"
               >
-                {occupancy.isFullyOccupied ? "Full" : `${occupancy.availableRooms} rooms available`}
+                {occupancy.isFullyOccupied ? "Full" : `${occupancy.availableRooms} avail.`}
               </Badge>
             )}
           </div>
 
-          <p className="text-sm font-bold text-primary pt-0.5">
+          <p className="text-xs font-bold text-primary">
             ${rent_amount.toLocaleString()}
-            <span className="text-xs font-normal text-muted-foreground">/mo</span>
+            <span className="text-[10px] font-normal text-muted-foreground">/mo</span>
           </p>
         </div>
       </div>
