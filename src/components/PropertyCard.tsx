@@ -98,17 +98,14 @@ export function PropertyCard({
 
           <p className="text-xs text-muted-foreground line-clamp-1">{displayLocation}</p>
 
-          <div className="flex items-center gap-1 text-xs text-muted-foreground">
-            <Users className="h-3 w-3" />
-            <span>
-              {rooms} {rooms === 1 ? "bedroom" : "bedrooms"} · {gender_preference || "Mixed"}
-            </span>
+          <div className="flex items-center justify-between text-xs text-muted-foreground">
+            <span>{gender_preference || "Mixed"}</span>
             {occupancy && (
               <Badge
                 variant={occupancy.isFullyOccupied ? "destructive" : "secondary"}
-                className="ml-auto text-[10px] px-1 py-0"
+                className="text-[10px] px-1.5 py-0"
               >
-                {occupancy.availableRooms} avail
+                {occupancy.isFullyOccupied ? "Full" : `${occupancy.availableRooms} rooms available`}
               </Badge>
             )}
           </div>
