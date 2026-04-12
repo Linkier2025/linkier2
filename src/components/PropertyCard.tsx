@@ -1,7 +1,6 @@
 import { Heart, Star } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { AspectRatio } from "@/components/ui/aspect-ratio";
 import { Link } from "react-router-dom";
 import { UNIVERSITY_SHORT } from "@/lib/locationConfig";
 
