@@ -799,6 +799,7 @@ export type Database = {
       check_phone_exists: { Args: { p_phone: string }; Returns: boolean }
       confirm_payment: { Args: { p_assignment_id: string }; Returns: boolean }
       get_available_room: { Args: { p_property_id: string }; Returns: string }
+      get_own_user_type: { Args: never; Returns: string }
       is_landlord: { Args: never; Returns: boolean }
       is_roommate: {
         Args: { p_room_id: string; p_user_id: string }
