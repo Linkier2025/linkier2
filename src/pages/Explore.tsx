@@ -162,7 +162,8 @@ export default function Explore() {
         property.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
         property.location.toLowerCase().includes(searchTerm.toLowerCase()) ||
         (property.location_city || "").toLowerCase().includes(searchTerm.toLowerCase()) ||
-        (property.location_area || "").toLowerCase().includes(searchTerm.toLowerCase());
+        (property.location_area || "").toLowerCase().includes(searchTerm.toLowerCase()) ||
+        (property.landlord_name || "").toLowerCase().includes(searchTerm.toLowerCase());
       const matchesUniversity =
         !filters.university || 
         (property.target_universities && property.target_universities.includes(filters.university)) ||
