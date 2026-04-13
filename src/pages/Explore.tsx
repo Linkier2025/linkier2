@@ -248,7 +248,7 @@ export default function Explore() {
           <div className="relative flex-1">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input
-              placeholder="Search city, area, or property..."
+              placeholder="Search location, property, or landlord..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="pl-10 h-10 rounded-full bg-muted border-0 text-sm"
