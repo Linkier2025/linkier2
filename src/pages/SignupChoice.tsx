@@ -44,28 +44,28 @@ const SignupChoice = () => {
 
           {/* Choice Cards */}
           <div className="space-y-4">
-            <Card className="p-6 bg-white/95 backdrop-blur-sm shadow-strong hover:shadow-strong cursor-pointer transition-all duration-200"
+            <Card className="p-6 bg-white backdrop-blur-sm shadow-strong hover:shadow-strong cursor-pointer transition-all duration-200 border-0"
                   onClick={() => navigate('/student-signup')}>
               <div className="flex items-center space-x-4">
-                <div className="p-3 bg-primary/10 rounded-full">
-                  <GraduationCap className="h-8 w-8 text-primary" />
+                <div className="p-3 bg-blue-100 rounded-full">
+                  <GraduationCap className="h-8 w-8 text-blue-600" />
                 </div>
                 <div className="flex-1">
-                  <h3 className="text-lg font-semibold text-foreground">I'm a Student</h3>
-                  <p className="text-muted-foreground text-sm">Looking for accommodation</p>
+                  <h3 className="text-lg font-semibold text-gray-900">I'm a Student</h3>
+                  <p className="text-gray-500 text-sm">Looking for accommodation</p>
                 </div>
               </div>
             </Card>
 
-            <Card className="p-6 bg-white/95 backdrop-blur-sm shadow-strong hover:shadow-strong cursor-pointer transition-all duration-200"
+            <Card className="p-6 bg-white backdrop-blur-sm shadow-strong hover:shadow-strong cursor-pointer transition-all duration-200 border-0"
                   onClick={() => navigate('/landlord-signup')}>
               <div className="flex items-center space-x-4">
-                <div className="p-3 bg-secondary/10 rounded-full">
-                  <Home className="h-8 w-8 text-secondary" />
+                <div className="p-3 bg-emerald-100 rounded-full">
+                  <Home className="h-8 w-8 text-emerald-600" />
                 </div>
                 <div className="flex-1">
-                  <h3 className="text-lg font-semibold text-foreground">I'm a Landlord</h3>
-                  <p className="text-muted-foreground text-sm">I have properties to rent</p>
+                  <h3 className="text-lg font-semibold text-gray-900">I'm a Landlord</h3>
+                  <p className="text-gray-500 text-sm">I have properties to rent</p>
                 </div>
               </div>
             </Card>
