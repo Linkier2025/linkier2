@@ -25,6 +25,7 @@ interface Property {
   images: string[] | null;
   amenities: string[] | null;
   target_universities: string[] | null;
+  landlord_name?: string;
 }
 
 interface PropertyOccupancy {
@@ -78,7 +79,25 @@ export default function Explore() {
         .eq("status", "available");
 
       if (error) throw error;
-      setProperties((data as any) || []);
+
+      // Fetch landlord names for all properties
+      const landlordIds = [...new Set((data || []).map((p: any) => p.landlord_id))];
+      let landlordMap: Record<string, string> = {};
+      if (landlordIds.length > 0) {
+        const { data: profiles } = await supabase
+          .from("profiles")
+          .select("user_id, first_name, surname")
+          .in("user_id", landlordIds);
+        (profiles || []).forEach((p: any) => {
+          landlordMap[p.user_id] = [p.first_name, p.surname].filter(Boolean).join(" ");
+        });
+      }
+
+      const propertiesWithLandlord = (data || []).map((p: any) => ({
+        ...p,
+        landlord_name: landlordMap[p.landlord_id] || "",
+      }));
+      setProperties(propertiesWithLandlord);
 
       const propertyIds = (data || []).map((p: any) => p.id);
       if (propertyIds.length > 0) {
@@ -143,7 +162,8 @@ export default function Explore() {
         property.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
         property.location.toLowerCase().includes(searchTerm.toLowerCase()) ||
         (property.location_city || "").toLowerCase().includes(searchTerm.toLowerCase()) ||
-        (property.location_area || "").toLowerCase().includes(searchTerm.toLowerCase());
+        (property.location_area || "").toLowerCase().includes(searchTerm.toLowerCase()) ||
+        (property.landlord_name || "").toLowerCase().includes(searchTerm.toLowerCase());
       const matchesUniversity =
         !filters.university || 
         (property.target_universities && property.target_universities.includes(filters.university)) ||
@@ -228,7 +248,7 @@ export default function Explore() {
           <div className="relative flex-1">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input
-              placeholder="Search city, area, or property..."
+              placeholder="Search location, property, or landlord..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="pl-10 h-10 rounded-full bg-muted border-0 text-sm"
