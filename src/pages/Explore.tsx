@@ -79,7 +79,25 @@ export default function Explore() {
         .eq("status", "available");
 
       if (error) throw error;
-      setProperties((data as any) || []);
+
+      // Fetch landlord names for all properties
+      const landlordIds = [...new Set((data || []).map((p: any) => p.landlord_id))];
+      let landlordMap: Record<string, string> = {};
+      if (landlordIds.length > 0) {
+        const { data: profiles } = await supabase
+          .from("profiles")
+          .select("user_id, first_name, surname")
+          .in("user_id", landlordIds);
+        (profiles || []).forEach((p: any) => {
+          landlordMap[p.user_id] = [p.first_name, p.surname].filter(Boolean).join(" ");
+        });
+      }
+
+      const propertiesWithLandlord = (data || []).map((p: any) => ({
+        ...p,
+        landlord_name: landlordMap[p.landlord_id] || "",
+      }));
+      setProperties(propertiesWithLandlord);
 
       const propertyIds = (data || []).map((p: any) => p.id);
       if (propertyIds.length > 0) {
