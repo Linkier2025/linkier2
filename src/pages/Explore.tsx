@@ -25,6 +25,7 @@ interface Property {
   images: string[] | null;
   amenities: string[] | null;
   target_universities: string[] | null;
+  landlord_name?: string;
 }
 
 interface PropertyOccupancy {
