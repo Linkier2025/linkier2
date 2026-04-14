@@ -77,7 +77,7 @@ const SignupChoice = () => {
               Already have an account?{" "}
               <Button 
                 variant="link" 
-                className="text-primary underline-offset-4 hover:text-primary/80 p-0 h-auto font-semibold"
+                className="text-blue-500 underline-offset-4 hover:text-blue-400 p-0 h-auto font-semibold"
                 onClick={() => navigate('/')}
               >
                 Sign in
