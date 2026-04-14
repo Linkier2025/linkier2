@@ -26,6 +26,11 @@ export function SplashScreen({ onFinished }: SplashScreenProps) {
     >
       <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-black/50 to-black/70" />
       <div className="relative z-10 flex flex-col items-center justify-center">
+        <img 
+          src="/icon-512.png" 
+          alt="Linkier" 
+          className="animate-fade-in w-32 h-32 rounded-3xl shadow-2xl mb-4"
+        />
         <h1 className="animate-fade-in text-5xl font-extrabold tracking-tight text-white">
           Linkier
         </h1>
