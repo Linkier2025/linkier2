@@ -59,21 +59,35 @@ export function useUnreadNotifications() {
   }, [fetchCount]);
 
   useEffect(() => {
-    fetchCount();
-    const interval = setInterval(fetchCount, 30000);
+    let channel: ReturnType<typeof supabase.channel> | null = null;
 
-    const channel = supabase
-      .channel("notification-count")
-      .on(
-        "postgres_changes",
-        { event: "*", schema: "public", table: "notifications" },
-        () => fetchCount()
-      )
-      .subscribe();
+    const setup = async () => {
+      fetchCount();
+
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      channel = supabase
+        .channel(`notifications:${user.id}`)
+        .on(
+          "postgres_changes",
+          {
+            event: "*",
+            schema: "public",
+            table: "notifications",
+            filter: `user_id=eq.${user.id}`,
+          },
+          () => fetchCount()
+        )
+        .subscribe();
+    };
+
+    setup();
+    const interval = setInterval(fetchCount, 30000);
 
     return () => {
       clearInterval(interval);
-      supabase.removeChannel(channel);
+      if (channel) supabase.removeChannel(channel);
     };
   }, [fetchCount]);
 
