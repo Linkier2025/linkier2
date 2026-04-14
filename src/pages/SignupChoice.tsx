@@ -44,28 +44,28 @@ const SignupChoice = () => {
 
           {/* Choice Cards */}
           <div className="space-y-4">
-            <Card className="p-6 bg-white backdrop-blur-sm shadow-strong hover:shadow-strong cursor-pointer transition-all duration-200 border-0"
+            <Card className="p-6 bg-white dark:bg-[#1E1E1E] backdrop-blur-sm shadow-strong dark:shadow-[0_8px_30px_rgba(0,0,0,0.5)] hover:scale-[0.98] cursor-pointer transition-all duration-200 border-0 dark:border dark:border-[#2A2A2A]"
                   onClick={() => navigate('/student-signup')}>
               <div className="flex items-center space-x-4">
-                <div className="p-3 bg-blue-100 rounded-full">
-                  <GraduationCap className="h-8 w-8 text-blue-600" />
+                <div className="p-3 bg-blue-100 dark:bg-blue-900/40 rounded-full">
+                  <GraduationCap className="h-8 w-8 text-blue-600 dark:text-blue-400" />
                 </div>
                 <div className="flex-1">
-                  <h3 className="text-lg font-semibold text-gray-900">I'm a Student</h3>
-                  <p className="text-gray-500 text-sm">Looking for accommodation</p>
+                  <h3 className="text-lg font-semibold text-gray-900 dark:text-white">I'm a Student</h3>
+                  <p className="text-gray-500 dark:text-gray-400 text-sm">Looking for accommodation</p>
                 </div>
               </div>
             </Card>
 
-            <Card className="p-6 bg-white backdrop-blur-sm shadow-strong hover:shadow-strong cursor-pointer transition-all duration-200 border-0"
+            <Card className="p-6 bg-white dark:bg-[#1E1E1E] backdrop-blur-sm shadow-strong dark:shadow-[0_8px_30px_rgba(0,0,0,0.5)] hover:scale-[0.98] cursor-pointer transition-all duration-200 border-0 dark:border dark:border-[#2A2A2A]"
                   onClick={() => navigate('/landlord-signup')}>
               <div className="flex items-center space-x-4">
-                <div className="p-3 bg-emerald-100 rounded-full">
-                  <Home className="h-8 w-8 text-emerald-600" />
+                <div className="p-3 bg-emerald-100 dark:bg-emerald-900/40 rounded-full">
+                  <Home className="h-8 w-8 text-emerald-600 dark:text-emerald-400" />
                 </div>
                 <div className="flex-1">
-                  <h3 className="text-lg font-semibold text-gray-900">I'm a Landlord</h3>
-                  <p className="text-gray-500 text-sm">I have properties to rent</p>
+                  <h3 className="text-lg font-semibold text-gray-900 dark:text-white">I'm a Landlord</h3>
+                  <p className="text-gray-500 dark:text-gray-400 text-sm">I have properties to rent</p>
                 </div>
               </div>
             </Card>

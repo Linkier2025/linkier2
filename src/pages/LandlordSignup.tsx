@@ -128,7 +128,7 @@ const LandlordSignup = () => {
       {/* Main Content */}
       <main className="relative z-10 flex-1 flex flex-col items-center justify-center px-6 py-8">
         <div className="w-full max-w-md">
-          <Card className="p-6 bg-white/95 backdrop-blur-sm shadow-strong">
+          <Card className="p-6 bg-white/95 dark:bg-[rgba(30,30,30,0.95)] backdrop-blur-sm shadow-strong dark:shadow-[0_8px_30px_rgba(0,0,0,0.5)] dark:border-[#2A2A2A]">
             <div className="space-y-6">
               <div className="text-center">
                 <h2 className="text-2xl font-bold text-foreground">Landlord Sign Up</h2>
