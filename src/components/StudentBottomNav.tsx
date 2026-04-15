@@ -10,11 +10,7 @@ interface NavItem {
   badge?: number;
 }
 
-interface StudentBottomNavProps {
-  isTenant?: boolean;
-}
-
-export function StudentBottomNav({ isTenant = false }: StudentBottomNavProps) {
+export function StudentBottomNav() {
   const location = useLocation();
   const navigate = useNavigate();
   const { counts } = useUnreadNotifications();
@@ -23,7 +19,7 @@ export function StudentBottomNav({ isTenant = false }: StudentBottomNavProps) {
     { label: "Explore", icon: Search, path: "/explore" },
     { label: "Saved", icon: Heart, path: "/wishlist" },
     { label: "Requests", icon: FileText, path: "/requests", badge: counts.requests },
-    ...(isTenant ? [{ label: "My Stay", icon: Home, path: "/my-stay", badge: counts.myStay }] : []),
+    { label: "My Stay", icon: Home, path: "/my-stay", badge: counts.myStay },
     { label: "Profile", icon: User, path: "/student-profile" },
   ];
 
