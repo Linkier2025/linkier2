@@ -119,12 +119,12 @@ export default function MyStay() {
       }
 
       // Fetch counts
-      const { count: cCount } = await supabase
+      const { count: cCount } = await (supabase
         .from("complaints")
         .select("*", { count: "exact", head: true })
         .eq("student_id", user.id)
-        .eq("room_assignment_id" as any, assignmentData.id)
-        .in("status", ["pending", "in_progress"]);
+        .eq("room_assignment_id", assignmentData.id)
+        .in("status", ["pending", "in_progress"]) as any);
       setComplaintsCount(cCount || 0);
 
       const { count: aCount } = await supabase
