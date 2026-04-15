@@ -123,6 +123,7 @@ export default function MyStay() {
         .from("complaints")
         .select("*", { count: "exact", head: true })
         .eq("student_id", user.id)
+        .eq("room_assignment_id" as any, assignmentData.id)
         .in("status", ["pending", "in_progress"]);
       setComplaintsCount(cCount || 0);
 
