@@ -401,7 +401,16 @@ export default function RentTracking() {
             </Card>
           )}
 
-          {!currentTenant ? (
+          {loading ? (
+            <div className="space-y-4">
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                {[1,2,3,4].map(i => (
+                  <Card key={i}><CardContent className="p-4"><Skeleton className="h-4 w-20 mb-2" /><Skeleton className="h-6 w-16" /></CardContent></Card>
+                ))}
+              </div>
+              <Card><CardContent className="p-6"><Skeleton className="h-4 w-full mb-2" /><Skeleton className="h-4 w-3/4" /></CardContent></Card>
+            </div>
+          ) : !currentTenant ? (
             <Card className="text-center py-12">
               <CardContent>
                 <Home className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
