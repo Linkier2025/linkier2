@@ -382,72 +382,72 @@ export default function RentTracking() {
 
     return (
       <div className={`min-h-screen bg-background ${isMovedOut ? 'opacity-60 pointer-events-auto' : ''}`}>
-        <div className="container mx-auto p-4 max-w-4xl">
-          <div className="flex items-center gap-3 mb-6">
-            <Button variant="ghost" size="icon" onClick={() => navigate("/my-stay")}>
+        <div className="container mx-auto px-3 sm:px-4 py-4 max-w-4xl pb-24">
+          <div className="flex items-center gap-3 mb-4 sm:mb-6">
+            <Button variant="ghost" size="icon" className="shrink-0" onClick={() => navigate("/my-stay")}>
               <ArrowLeft className="h-5 w-5" />
             </Button>
-            <div>
-              <h1 className="text-2xl font-bold">{isMovedOut ? 'Payment History' : 'Rent Tracking'}</h1>
-              <p className="text-sm text-muted-foreground">{isMovedOut ? 'Read-only history of past payments' : 'View your payment history'}</p>
+            <div className="min-w-0">
+              <h1 className="text-xl sm:text-2xl font-bold truncate">{isMovedOut ? 'Payment History' : 'Rent Tracking'}</h1>
+              <p className="text-xs sm:text-sm text-muted-foreground truncate">{isMovedOut ? 'Read-only history of past payments' : 'View your payment history'}</p>
             </div>
           </div>
 
           {isMovedOut && (
             <Card className="mb-4 border-muted bg-muted/50">
-              <CardContent className="p-3 text-center text-sm text-muted-foreground">
+              <CardContent className="p-3 text-center text-xs sm:text-sm text-muted-foreground">
                 You are no longer a tenant. This is a read-only view of your payment history.
               </CardContent>
             </Card>
           )}
 
           {loading ? (
-            <div className="space-y-4">
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+            <div className="space-y-3 sm:space-y-4">
+              <div className="grid grid-cols-2 gap-2 sm:gap-3">
                 {[1,2,3,4].map(i => (
-                  <Card key={i}><CardContent className="p-4"><Skeleton className="h-4 w-20 mb-2" /><Skeleton className="h-6 w-16" /></CardContent></Card>
+                  <Card key={i}><CardContent className="p-3 sm:p-4"><Skeleton className="h-3 sm:h-4 w-16 sm:w-20 mb-2" /><Skeleton className="h-5 sm:h-6 w-12 sm:w-16" /></CardContent></Card>
                 ))}
               </div>
-              <Card><CardContent className="p-6"><Skeleton className="h-4 w-full mb-2" /><Skeleton className="h-4 w-3/4" /></CardContent></Card>
+              <Card><CardContent className="p-4 sm:p-6"><Skeleton className="h-4 w-full mb-2" /><Skeleton className="h-4 w-3/4" /></CardContent></Card>
             </div>
           ) : !currentTenant ? (
-            <Card className="text-center py-12">
+            <Card className="text-center py-10 sm:py-12">
               <CardContent>
-                <Home className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
-                <p className="text-lg font-medium">No Active Rental</p>
-                <p className="text-sm text-muted-foreground">You need to be a tenant to see rent info.</p>
+                <Home className="h-10 w-10 sm:h-12 sm:w-12 mx-auto mb-3 sm:mb-4 text-muted-foreground" />
+                <p className="text-base sm:text-lg font-medium">No Active Rental</p>
+                <p className="text-xs sm:text-sm text-muted-foreground">You need to be a tenant to see rent info.</p>
               </CardContent>
             </Card>
           ) : (
-            <div className="space-y-4">
+            <div className="space-y-3 sm:space-y-4">
               {/* Stats */}
-              <div className={`grid grid-cols-2 ${isMovedOut ? '' : 'md:grid-cols-4'} gap-3`}>
+              <div className={`grid grid-cols-2 ${isMovedOut ? '' : 'md:grid-cols-4'} gap-2 sm:gap-3`}>
                 <Card>
-                  <CardContent className="p-4">
-                    <p className="text-xs text-muted-foreground">Monthly Rent</p>
-                    <p className="text-xl font-bold">${monthlyRent}</p>
+                  <CardContent className="p-3 sm:p-4">
+                    <p className="text-[10px] sm:text-xs text-muted-foreground">Monthly Rent</p>
+                    <p className="text-lg sm:text-xl font-bold">${monthlyRent}</p>
                   </CardContent>
                 </Card>
                 <Card>
-                  <CardContent className="p-4">
-                    <p className="text-xs text-muted-foreground">Total Paid</p>
-                    <p className="text-xl font-bold text-green-600">${totalPaid}</p>
+                  <CardContent className="p-3 sm:p-4">
+                    <p className="text-[10px] sm:text-xs text-muted-foreground">Total Paid</p>
+                    <p className="text-lg sm:text-xl font-bold text-green-600">${totalPaid}</p>
                   </CardContent>
                 </Card>
                 {!isMovedOut && (
                   <>
                     <Card>
-                      <CardContent className="p-4">
-                        <p className="text-xs text-muted-foreground">Balance</p>
-                        <p className={`text-xl font-bold ${lastRemainingBalance > 0 ? 'text-red-600' : 'text-green-600'}`}>
+                      <CardContent className="p-3 sm:p-4">
+                        <p className="text-[10px] sm:text-xs text-muted-foreground">Balance</p>
+                        <p className={`text-lg sm:text-xl font-bold ${lastRemainingBalance > 0 ? 'text-red-600' : 'text-green-600'}`}>
                           ${lastRemainingBalance}
                         </p>
                       </CardContent>
                     </Card>
                     <Card>
-                      <CardContent className="p-4">
-                        <p className="text-xs text-muted-foreground">Next Due</p>
-                        <p className="text-sm font-bold">
+                      <CardContent className="p-3 sm:p-4">
+                        <p className="text-[10px] sm:text-xs text-muted-foreground">Next Due</p>
+                        <p className="text-xs sm:text-sm font-bold">
                           {latestPayment?.next_due_date
                             ? format(new Date(latestPayment.next_due_date), "MMM dd, yyyy")
                             : "N/A"}
@@ -461,13 +461,13 @@ export default function RentTracking() {
 
               {/* Status */}
               <Card>
-                <CardContent className="p-4">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="font-medium">{currentTenant.property_title}</p>
-                      <p className="text-sm text-muted-foreground">Room {currentTenant.room_number}</p>
+                <CardContent className="p-3 sm:p-4">
+                  <div className="flex items-center justify-between gap-2">
+                    <div className="min-w-0">
+                      <p className="font-medium text-sm sm:text-base truncate">{currentTenant.property_title}</p>
+                      <p className="text-xs sm:text-sm text-muted-foreground">Room {currentTenant.room_number}</p>
                     </div>
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-1 sm:gap-2 shrink-0">
                       {getStatusBadge(latestPayment?.status || 'unpaid')}
                       {getOverdueBadge(latestPayment?.next_due_date || null)}
                     </div>
@@ -477,29 +477,29 @@ export default function RentTracking() {
 
               {/* Payment History */}
               <Card>
-                <CardHeader>
-                  <CardTitle className="text-lg">Payment History</CardTitle>
+                <CardHeader className="pb-2 sm:pb-4">
+                  <CardTitle className="text-base sm:text-lg">Payment History</CardTitle>
                 </CardHeader>
-                <CardContent>
+                <CardContent className="px-3 sm:px-6">
                   {payments.length === 0 ? (
-                    <p className="text-center text-muted-foreground py-6">No payments recorded yet</p>
+                    <p className="text-center text-muted-foreground py-4 sm:py-6 text-sm">No payments recorded yet</p>
                   ) : (
-                    <div className="space-y-3">
+                    <div className="space-y-2 sm:space-y-3">
                       {payments.map((p) => (
-                        <div key={p.id} className="flex items-center justify-between p-3 bg-muted/50 rounded-lg">
-                          <div>
-                            <p className="font-medium">${p.amount}</p>
-                            <p className="text-xs text-muted-foreground">
+                        <div key={p.id} className="flex items-center justify-between p-2.5 sm:p-3 bg-muted/50 rounded-lg gap-2">
+                          <div className="min-w-0">
+                            <p className="font-medium text-sm sm:text-base">${p.amount}</p>
+                            <p className="text-[10px] sm:text-xs text-muted-foreground truncate">
                               {format(new Date(p.payment_date), "MMM dd, yyyy")} • {p.payment_method?.replace("-", " ")}
                             </p>
                             {p.months_paid_for > 1 && (
-                              <p className="text-xs text-muted-foreground">{p.months_paid_for} months</p>
+                              <p className="text-[10px] sm:text-xs text-muted-foreground">{p.months_paid_for} months</p>
                             )}
                           </div>
-                          <div className="text-right">
+                          <div className="text-right shrink-0">
                             {getStatusBadge(p.status)}
                             {p.receipt_number && (
-                              <p className="text-xs text-muted-foreground mt-1">{p.receipt_number}</p>
+                              <p className="text-[10px] sm:text-xs text-muted-foreground mt-1">{p.receipt_number}</p>
                             )}
                           </div>
                         </div>
