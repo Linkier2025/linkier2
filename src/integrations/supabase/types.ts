@@ -67,6 +67,7 @@ export type Database = {
           landlord_id: string | null
           priority: string
           property_id: string
+          room_assignment_id: string | null
           room_id: string | null
           status: string
           student_id: string
@@ -80,6 +81,7 @@ export type Database = {
           landlord_id?: string | null
           priority?: string
           property_id: string
+          room_assignment_id?: string | null
           room_id?: string | null
           status?: string
           student_id: string
@@ -93,6 +95,7 @@ export type Database = {
           landlord_id?: string | null
           priority?: string
           property_id?: string
+          room_assignment_id?: string | null
           room_id?: string | null
           status?: string
           student_id?: string
@@ -100,6 +103,13 @@ export type Database = {
           updated_at?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "complaints_room_assignment_id_fkey"
+            columns: ["room_assignment_id"]
+            isOneToOne: false
+            referencedRelation: "room_assignments"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "fk_property"
             columns: ["property_id"]

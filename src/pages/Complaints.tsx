@@ -121,6 +121,15 @@ export default function Complaints() {
 
         if (isStudent) {
           query = query.eq('student_id', user.id);
+          // Scope to current assignment if active
+          if (tenantAssignment) {
+            query = query.eq('room_assignment_id', tenantAssignment.assignment_id);
+          } else {
+            // No active stay — show nothing
+            setComplaints([]);
+            setLoading(false);
+            return;
+          }
         }
         // Landlord filtering is handled by RLS (landlord_id = auth.uid())
 
@@ -192,7 +201,7 @@ export default function Complaints() {
     };
 
     fetchComplaints();
-  }, [user, isStudent]);
+  }, [user, isStudent, tenantAssignment]);
 
   const handleSubmitComplaint = async () => {
     if (!complaintForm.title || !complaintForm.description) {
@@ -209,12 +218,13 @@ export default function Complaints() {
           student_id: user.id,
           property_id: tenantAssignment.property_id,
           room_id: tenantAssignment.room_id,
+          room_assignment_id: tenantAssignment.assignment_id,
           landlord_id: tenantAssignment.landlord_id,
           title: complaintForm.title,
           description: complaintForm.description,
           priority: complaintForm.priority,
           status: 'pending'
-        })
+        } as any)
         .select(`*, properties(title)`)
         .single();
 
