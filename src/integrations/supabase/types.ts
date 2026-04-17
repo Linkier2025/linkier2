@@ -802,6 +802,7 @@ export type Database = {
             Args: { p_assigned_room_id?: string; p_request_id: string }
             Returns: Json
           }
+      auto_complete_renovations: { Args: never; Returns: undefined }
       cancel_reservation: {
         Args: { p_assignment_id: string }
         Returns: boolean
@@ -816,6 +817,10 @@ export type Database = {
         Returns: boolean
       }
       move_out_tenant: { Args: { p_assignment_id: string }; Returns: boolean }
+      sync_room_renovation_status: {
+        Args: { p_property_id: string; p_room_number: string }
+        Returns: undefined
+      }
       toggle_payment_status: {
         Args: { p_assignment_id: string; p_status: string }
         Returns: boolean

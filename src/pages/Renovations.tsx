@@ -152,18 +152,7 @@ export default function Renovations() {
     if (error) {
       toast({ title: "Error", description: "Failed to add renovation.", variant: "destructive" });
     } else {
-      // Update room renovation status if ongoing
-      if (form.status === "in_progress" && selectedRoom) {
-        await supabase
-          .from("rooms")
-          .update({
-            renovation_status: "under_renovation",
-            renovation_description: title,
-            renovation_start_date: form.startDate || null,
-          })
-          .eq("id", form.roomId);
-      }
-
+      // Room renovation_status is kept in sync automatically by a DB trigger
       toast({ title: "Renovation added", description: `${title} renovation has been added.` });
       setShowForm(false);
       setForm({ propertyId: "", roomId: "", type: "", customType: "", description: "", startDate: "", status: "planned" });
