@@ -42,6 +42,7 @@ export default function MyStay() {
   const [roommates, setRoommates] = useState<Roommate[]>([]);
   const [complaintsCount, setComplaintsCount] = useState(0);
   const [announcementsCount, setAnnouncementsCount] = useState(0);
+  const [latestPayment, setLatestPayment] = useState<LatestPayment | null>(null);
 
   const { markCategoryAsRead } = useUnreadNotifications();
 
