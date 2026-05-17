@@ -270,15 +270,46 @@ export default function MyStay() {
             </div>
           </div>
 
-          {/* Payment Status */}
-          <div className={`mt-4 p-3 rounded-lg ${roomAssignment.payment_status === "paid" ? "bg-green-50 border border-green-200 dark:bg-green-950/30 dark:border-green-800" : "bg-amber-50 border border-amber-200 dark:bg-amber-950/30 dark:border-amber-800"}`}>
-            <div className="flex items-center gap-2">
-              <DollarSign className={`h-4 w-4 ${roomAssignment.payment_status === "paid" ? "text-green-600" : "text-amber-600"}`} />
-              <span className="text-sm font-medium">
-                Rent: {roomAssignment.payment_status === "paid" ? "Paid" : "Unpaid"}
-              </span>
-            </div>
-          </div>
+          {/* Rent Status (dynamic, calculated from latest payment's next due date) */}
+          {(() => {
+            const rent = calculateRentStatus(latestPayment?.next_due_date);
+            const styles = {
+              paid: {
+                wrap: "bg-green-50 border-green-200 dark:bg-green-950/30 dark:border-green-800",
+                icon: "text-green-600",
+                text: "text-green-700 dark:text-green-400",
+                Icon: CheckCircle,
+              },
+              due_soon: {
+                wrap: "bg-amber-50 border-amber-200 dark:bg-amber-950/30 dark:border-amber-800",
+                icon: "text-amber-600",
+                text: "text-amber-700 dark:text-amber-400",
+                Icon: Clock,
+              },
+              overdue: {
+                wrap: "bg-red-50 border-red-200 dark:bg-red-950/30 dark:border-red-800",
+                icon: "text-red-600",
+                text: "text-red-700 dark:text-red-400",
+                Icon: XCircle,
+              },
+              no_payment: {
+                wrap: "bg-muted border-border",
+                icon: "text-muted-foreground",
+                text: "text-muted-foreground",
+                Icon: DollarSign,
+              },
+            }[rent.code];
+            const Icon = styles.Icon;
+            return (
+              <div className={`mt-4 p-3 rounded-lg border ${styles.wrap}`}>
+                <div className="flex items-center gap-2">
+                  <Icon className={`h-4 w-4 ${styles.icon}`} />
+                  <span className={`text-sm font-semibold ${styles.text}`}>{rent.label}</span>
+                </div>
+                <p className={`text-xs mt-1 ${styles.text}`}>{rent.detail}</p>
+              </div>
+            );
+          })()}
         </CardContent>
       </Card>
 
