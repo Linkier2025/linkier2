@@ -29,6 +29,11 @@ interface Roommate {
   avatar_url: string | null;
 }
 
+interface LatestPayment {
+  next_due_date: string | null;
+  payment_date: string | null;
+}
+
 export default function MyStay() {
   const { user } = useAuth();
   const navigate = useNavigate();
