@@ -17,6 +17,8 @@ const syncThemeColor = () => {
   meta.name = "theme-color";
   meta.content = color;
   document.head.appendChild(meta);
+  // Hint the OS/browser to render native UI (status bar icons, scrollbars) with correct contrast
+  document.documentElement.style.colorScheme = dark ? "dark" : "light";
 };
 syncThemeColor();
 new MutationObserver(syncThemeColor).observe(document.documentElement, {
