@@ -3,9 +3,26 @@ import App from './App.tsx'
 import './index.css'
 // Apply saved theme before render to prevent flash
 const savedTheme = localStorage.getItem("theme");
-if (savedTheme === "dark" || (!savedTheme && window.matchMedia("(prefers-color-scheme: dark)").matches)) {
+const isDark = savedTheme === "dark" || (!savedTheme && window.matchMedia("(prefers-color-scheme: dark)").matches);
+if (isDark) {
   document.documentElement.classList.add("dark");
 }
+
+// Keep status bar theme-color in sync with current theme
+const syncThemeColor = () => {
+  const dark = document.documentElement.classList.contains("dark");
+  const color = dark ? "#121212" : "#FFFFFF";
+  document.querySelectorAll('meta[name="theme-color"]').forEach((el) => el.remove());
+  const meta = document.createElement("meta");
+  meta.name = "theme-color";
+  meta.content = color;
+  document.head.appendChild(meta);
+};
+syncThemeColor();
+new MutationObserver(syncThemeColor).observe(document.documentElement, {
+  attributes: true,
+  attributeFilter: ["class"],
+});
 
 createRoot(document.getElementById("root")!).render(<App />);
 
