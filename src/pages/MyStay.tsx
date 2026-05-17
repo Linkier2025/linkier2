@@ -139,6 +139,16 @@ export default function MyStay() {
         .select("*", { count: "exact", head: true })
         .eq("property_id", room.property_id);
       setAnnouncementsCount(aCount || 0);
+
+      // Fetch latest payment for rent status calculation
+      const { data: payData } = await (supabase
+        .from("payments")
+        .select("next_due_date, payment_date")
+        .eq("assignment_id", assignmentData.id)
+        .order("payment_date", { ascending: false })
+        .limit(1)
+        .maybeSingle() as any);
+      setLatestPayment(payData || null);
     } catch (error) {
       console.error("Error:", error);
     } finally {
