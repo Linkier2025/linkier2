@@ -548,8 +548,8 @@ export default function ViewingRequests() {
   }
 
   const pendingRentalRequests = rentalRequests.filter(r => r.status === 'pending');
-  const approvedRentalRequests = rentalRequests.filter(r => r.status === 'approved');
-  const otherRentalRequests = rentalRequests.filter(r => !['pending', 'approved'].includes(r.status));
+  const approvedRentalRequests = rentalRequests.filter(r => r.status === 'offered' || r.status === 'approved');
+  const otherRentalRequests = rentalRequests.filter(r => !['pending', 'offered', 'approved'].includes(r.status));
 
   return (
     <div className="px-4 pt-6 pb-4">

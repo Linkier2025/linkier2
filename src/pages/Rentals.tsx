@@ -138,7 +138,7 @@ export default function Rentals() {
         .from('rental_requests')
         .select('*')
         .eq('student_id', user.id)
-        .in('status', ['pending', 'approved'])
+        .in('status', ['pending', 'offered', 'approved'])
         .order('created_at', { ascending: false });
 
       if (requestsError) throw requestsError;
@@ -184,7 +184,7 @@ export default function Rentals() {
         };
       });
 
-      const approvedOffers = enriched.filter(r => r.status === 'approved');
+      const approvedOffers = enriched.filter(r => r.status === 'offered' || r.status === 'approved');
       const pendingReqs = enriched.filter(r => r.status === 'pending');
 
       setOffers(approvedOffers);

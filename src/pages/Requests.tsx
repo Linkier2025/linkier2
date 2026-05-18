@@ -181,7 +181,8 @@ export default function Requests() {
     const labels: Record<string, string> = {
       pending: "Pending",
       scheduled: "Scheduled",
-      approved: "Offer Received",
+      offered: "Offer Received",
+      approved: "Offer Received", // legacy viewings
       accepted: "Accepted",
       completed: "Completed",
       cancelled: "Cancelled",
@@ -191,14 +192,14 @@ export default function Requests() {
   };
 
   const getStatusVariant = (status: string): "default" | "secondary" | "destructive" | "outline" => {
-    if (status === "approved") return "default";
+    if (status === "offered" || status === "approved") return "default";
     if (["cancelled", "declined"].includes(status)) return "destructive";
     if (["accepted", "completed"].includes(status)) return "outline";
     return "secondary";
   };
 
   const pending = requests.filter(r => ["pending", "scheduled"].includes(r.status));
-  const offers = requests.filter(r => r.status === "approved" && r.type === "rental");
+  const offers = requests.filter(r => r.status === "offered" && r.type === "rental");
   const accepted = requests.filter(r => ["accepted", "completed"].includes(r.status));
   const rejected = requests.filter(r => ["cancelled", "declined"].includes(r.status));
 
@@ -246,7 +247,7 @@ export default function Requests() {
             </div>
 
             {/* Actions */}
-            {req.status === "approved" && req.type === "rental" && (
+            {(req.status === "offered" || req.status === "approved") && req.type === "rental" && (
               <div className="flex gap-2 mt-3">
                 <Button size="sm" className="h-7 text-xs bg-green-600 hover:bg-green-700 flex-1" onClick={() => setConfirmDialog({ open: true, request: req })}>
                   <CheckCircle className="h-3 w-3 mr-1" /> Accept
