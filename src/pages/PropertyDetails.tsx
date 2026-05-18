@@ -466,49 +466,32 @@ export default function PropertyDetails() {
             <DialogTrigger asChild>
               <Button size="lg" className="flex-1 min-w-0" disabled={availableRooms.length === 0}>
                 <Home className="mr-1.5 h-4 w-4 shrink-0" />
-                <span className="truncate text-sm">{availableRooms.length === 0 ? "No Rooms Available" : "Request Bedroom"}</span>
+                <span className="truncate text-sm">{availableRooms.length === 0 ? "No Rooms Available" : "Request to Rent"}</span>
               </Button>
             </DialogTrigger>
             <DialogContent>
               <DialogHeader>
-                <DialogTitle>Request a Room</DialogTitle>
+                <DialogTitle>Send a Rental Request</DialogTitle>
               </DialogHeader>
               <div className="space-y-4 pt-4">
-                <div>
-                  <Label className="text-sm font-medium mb-3 block">Select a Room</Label>
-                  <RadioGroup value={selectedRoomId} onValueChange={setSelectedRoomId}>
-                    <div className="grid gap-2">
-                      {availableRooms.map((room) => (
-                        <div key={room.id} className="flex items-center space-x-3 p-3 border rounded-lg hover:bg-muted/50">
-                          <RadioGroupItem value={room.id} id={`room-${room.id}`} />
-                          <Label htmlFor={`room-${room.id}`} className="flex-1 cursor-pointer">
-                            <div className="flex justify-between items-center">
-                              <span className="font-medium">{room.room_number}</span>
-                              <Badge variant="secondary">
-                                {room.current_occupants}/{room.capacity} occupied
-                              </Badge>
-                            </div>
-                          </Label>
-                        </div>
-                      ))}
-                    </div>
-                  </RadioGroup>
-                </div>
+                <p className="text-sm text-muted-foreground">
+                  The landlord will review your request and assign you a room if approved. You can have multiple pending requests across properties.
+                </p>
                 <div>
                   <Label className="text-sm font-medium mb-2 block">Message (optional)</Label>
                   <Textarea
-                    placeholder="Introduce yourself and let the landlord know why you'd like this room..."
+                    placeholder="Introduce yourself and share why you'd like to live here..."
                     value={rentalMessage}
                     onChange={(e) => setRentalMessage(e.target.value)}
-                    rows={3}
+                    rows={4}
                   />
                 </div>
                 <Button 
                   onClick={handleRequestRental} 
                   className="w-full"
-                  disabled={submittingRental || !selectedRoomId}
+                  disabled={submittingRental}
                 >
-                  {submittingRental ? "Sending..." : "Send Room Request"}
+                  {submittingRental ? "Sending..." : "Send Request"}
                 </Button>
               </div>
             </DialogContent>
