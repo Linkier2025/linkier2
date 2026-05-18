@@ -247,7 +247,7 @@ export default function Requests() {
             </div>
 
             {/* Actions */}
-            {req.status === "approved" && req.type === "rental" && (
+            {(req.status === "offered" || req.status === "approved") && req.type === "rental" && (
               <div className="flex gap-2 mt-3">
                 <Button size="sm" className="h-7 text-xs bg-green-600 hover:bg-green-700 flex-1" onClick={() => setConfirmDialog({ open: true, request: req })}>
                   <CheckCircle className="h-3 w-3 mr-1" /> Accept
