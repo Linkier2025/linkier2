@@ -160,7 +160,7 @@ export default function PropertyDetails() {
   };
 
   const handleRequestRental = async () => {
-    if (!user || !property || !selectedRoomId) return;
+    if (!user || !property) return;
     setSubmittingRental(true);
     try {
       const { error } = await supabase
@@ -170,16 +170,15 @@ export default function PropertyDetails() {
           student_id: user.id,
           landlord_id: property.landlord_id,
           student_message: rentalMessage,
-          preferred_room_id: selectedRoomId,
           status: 'pending'
         } as any);
       if (error) throw error;
-      toast({ title: "Room request sent!", description: "The landlord will review your request." });
+      toast({ title: "Request sent!", description: "The landlord will review your request and assign a room if approved." });
       setRentalDialogOpen(false);
       setRentalMessage("");
       setSelectedRoomId("");
     } catch (error) {
-      toast({ title: "Error", description: "Failed to send room request.", variant: "destructive" });
+      toast({ title: "Error", description: "Failed to send request.", variant: "destructive" });
     } finally {
       setSubmittingRental(false);
     }
