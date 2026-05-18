@@ -138,7 +138,7 @@ export default function Rentals() {
         .from('rental_requests')
         .select('*')
         .eq('student_id', user.id)
-        .in('status', ['pending', 'approved'])
+        .in('status', ['pending', 'offered', 'approved'])
         .order('created_at', { ascending: false });
 
       if (requestsError) throw requestsError;
