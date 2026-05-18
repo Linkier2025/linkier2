@@ -184,7 +184,7 @@ export default function Rentals() {
         };
       });
 
-      const approvedOffers = enriched.filter(r => r.status === 'approved');
+      const approvedOffers = enriched.filter(r => r.status === 'offered' || r.status === 'approved');
       const pendingReqs = enriched.filter(r => r.status === 'pending');
 
       setOffers(approvedOffers);
