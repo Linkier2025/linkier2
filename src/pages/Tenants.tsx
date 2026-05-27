@@ -352,32 +352,32 @@ export default function Tenants() {
   };
 
   return (
-    <div className="px-4 pt-6 pb-4">
-      <div className="max-w-6xl mx-auto space-y-6">
-        <div className="flex items-center gap-3">
-          <button onClick={() => navigate(-1)} className="flex items-center justify-center h-8 w-8 rounded-full hover:bg-accent transition-colors">
+    <div className="px-3 pt-4 pb-4 overflow-x-hidden">
+      <div className="max-w-6xl mx-auto space-y-4">
+        <div className="flex items-center gap-2 min-w-0">
+          <button onClick={() => navigate(-1)} className="flex items-center justify-center h-8 w-8 rounded-full hover:bg-accent transition-colors shrink-0">
             <ArrowLeft className="h-4 w-4" />
           </button>
-          <h1 className="text-2xl font-bold">My Tenants</h1>
-          <Badge variant="secondary">{allTenants.length} total</Badge>
+          <h1 className="text-xl font-bold truncate">My Tenants</h1>
+          <Badge variant="secondary" className="shrink-0 text-[10px]">{allTenants.length}</Badge>
         </div>
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
           <TabsList className="w-full">
-            <TabsTrigger value="active" className="flex-1">
+            <TabsTrigger value="active" className="flex-1 text-xs">
               Active ({activeTenants.length})
             </TabsTrigger>
-            <TabsTrigger value="inactive" className="flex-1">
+            <TabsTrigger value="inactive" className="flex-1 text-xs">
               Inactive ({inactiveTenants.length})
             </TabsTrigger>
           </TabsList>
 
-          <TabsContent value={activeTab} className="mt-4">
+          <TabsContent value={activeTab} className="mt-3">
             {roomOccupancies.length === 0 ? (
               <Card>
                 <CardContent className="py-12 text-center text-muted-foreground">
                   <Users className="h-12 w-12 mx-auto mb-4 text-muted-foreground/50" />
-                  <p className="text-lg font-medium">
+                  <p className="text-base font-medium">
                     {activeTab === 'active' ? 'No active tenants' : 'No inactive tenants'}
                   </p>
                   <p className="text-sm">
@@ -388,20 +388,20 @@ export default function Tenants() {
                 </CardContent>
               </Card>
             ) : (
-              <div className="space-y-4">
+              <div className="space-y-3">
                 {roomOccupancies.map((room) => (
-                  <Card key={room.room_id}>
-                    <CardHeader className="pb-3">
-                      <div className="flex items-center gap-3">
-                        <Home className="h-5 w-5 text-muted-foreground" />
-                        <div>
-                          <CardTitle className="text-lg">{room.property_title}</CardTitle>
-                          <p className="text-sm text-muted-foreground">Room {room.room_number}</p>
+                  <Card key={room.room_id} className="overflow-hidden">
+                    <CardHeader className="p-3 pb-2">
+                      <div className="flex items-center gap-2 min-w-0">
+                        <Home className="h-4 w-4 text-muted-foreground shrink-0" />
+                        <div className="min-w-0 flex-1">
+                          <CardTitle className="text-base truncate">{room.property_title}</CardTitle>
+                          <p className="text-xs text-muted-foreground truncate">Room {room.room_number}</p>
                         </div>
                       </div>
                     </CardHeader>
-                    <CardContent>
-                      <div className="grid gap-3">
+                    <CardContent className="p-3 pt-0">
+                      <div className="grid gap-2">
                         {room.tenants.map(renderTenantCard)}
                       </div>
                     </CardContent>
