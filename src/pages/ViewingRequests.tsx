@@ -897,20 +897,20 @@ export default function ViewingRequests() {
               </Card>
             ) : (
               viewings.map((viewing) => (
-                <Card key={viewing.id}>
-                  <CardHeader>
-                    <div className="flex justify-between items-start">
-                      <div>
-                        <CardTitle>{viewing.property.title}</CardTitle>
-                        <div className="flex items-center gap-2 mt-2 text-sm text-muted-foreground">
-                          <MapPin className="h-4 w-4" />
-                          {viewing.property.location}
+                <Card key={viewing.id} className="overflow-hidden">
+                  <CardHeader className="p-3 pb-2">
+                    <div className="flex justify-between items-start gap-2 min-w-0">
+                      <div className="min-w-0 flex-1">
+                        <CardTitle className="text-base truncate">{viewing.property.title}</CardTitle>
+                        <div className="flex items-center gap-1.5 mt-1 text-xs text-muted-foreground min-w-0">
+                          <MapPin className="h-3.5 w-3.5 shrink-0" />
+                          <span className="truncate">{viewing.property.location}</span>
                         </div>
                       </div>
-                      {getStatusBadge(viewing.status)}
+                      <div className="shrink-0">{getStatusBadge(viewing.status)}</div>
                     </div>
                   </CardHeader>
-                  <CardContent className="space-y-4">
+                  <CardContent className="p-3 pt-0 space-y-3">
                     {isLandlord && <StudentInfoCard student={viewing.student} />}
 
                     <div className="flex items-center gap-2 text-sm text-muted-foreground">
