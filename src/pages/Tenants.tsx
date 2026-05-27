@@ -229,9 +229,9 @@ export default function Tenants() {
   const roomOccupancies = groupByRoom(currentTenants);
 
   const getStatusBadge = (status: string) => {
-    if (status === 'active') return <Badge className="bg-green-600 text-white">Active</Badge>;
-    if (status === 'inactive') return <Badge className="bg-amber-500 text-white">Inactive</Badge>;
-    return <Badge variant="secondary">Moved Out</Badge>;
+    if (status === 'active') return <Badge className="bg-green-600 text-white text-[10px] px-1.5 py-0.5">Active</Badge>;
+    if (status === 'inactive') return <Badge className="bg-amber-500 text-white text-[10px] px-1.5 py-0.5">Inactive</Badge>;
+    return <Badge variant="secondary" className="text-[10px] px-1.5 py-0.5">Moved Out</Badge>;
   };
 
   if (loading) {
@@ -246,50 +246,47 @@ export default function Tenants() {
   }
 
   const renderTenantCard = (tenant: ActiveTenant) => (
-    <div key={tenant.assignment_id} className="p-3 bg-muted/50 rounded-lg space-y-2">
-      <div className="flex items-start gap-3">
+    <div key={tenant.assignment_id} className="p-2.5 bg-muted/50 rounded-lg space-y-2 overflow-hidden">
+      <div className="flex items-start gap-2.5 min-w-0">
         <Avatar className="h-9 w-9 shrink-0">
           <AvatarImage src={tenant.student?.avatar_url || undefined} />
           <AvatarFallback className="text-xs">{getStudentInitials(tenant.student)}</AvatarFallback>
         </Avatar>
         <div className="flex-1 min-w-0">
-          <div className="flex items-center justify-between gap-2">
-            <p className="font-medium text-sm truncate">{getStudentName(tenant.student)}</p>
-            <div className="flex items-center gap-1 shrink-0">
-              {getStatusBadge(tenant.status)}
-              <Badge
-                variant={tenant.payment_status === 'paid' ? 'default' : 'destructive'}
-                className={`text-[10px] ${tenant.payment_status === 'paid' ? 'bg-green-600' : ''}`}
-              >
-                <DollarSign className="h-3 w-3 mr-0.5" />
-                {tenant.payment_status === 'paid' ? 'Paid' : 'Unpaid'}
-              </Badge>
-            </div>
-          </div>
-          <div className="flex flex-wrap gap-1 text-[11px] text-muted-foreground mt-0.5">
-            {tenant.student?.phone && <span>{tenant.student.phone}</span>}
-            {tenant.student?.gender && <span>• {tenant.student.gender}</span>}
-          </div>
+          <p className="font-medium text-sm truncate">{getStudentName(tenant.student)}</p>
+          {tenant.student?.phone && (
+            <p className="text-[11px] text-muted-foreground truncate">{tenant.student.phone}</p>
+          )}
           {tenant.student?.university && (
-            <p className="text-[11px] text-muted-foreground">
-              {tenant.student.university}{tenant.student?.year_of_study ? ` - ${tenant.student.year_of_study}` : ''}
+            <p className="text-[11px] text-muted-foreground truncate">
+              {tenant.student.university}{tenant.student?.year_of_study ? ` · ${tenant.student.year_of_study}` : ''}
             </p>
           )}
         </div>
+        <div className="flex flex-col items-end gap-1 shrink-0 max-w-[40%]">
+          {getStatusBadge(tenant.status)}
+          <Badge
+            variant={tenant.payment_status === 'paid' ? 'default' : 'destructive'}
+            className={`text-[10px] px-1.5 py-0.5 ${tenant.payment_status === 'paid' ? 'bg-green-600' : ''}`}
+          >
+            <DollarSign className="h-2.5 w-2.5 mr-0.5" />
+            {tenant.payment_status === 'paid' ? 'Paid' : 'Unpaid'}
+          </Badge>
+        </div>
       </div>
 
-      <div className="flex flex-wrap gap-1.5 mt-2">
+      <div className="grid grid-cols-2 gap-1.5">
         <Button
           size="sm"
           variant={tenant.payment_status === 'paid' ? 'outline' : 'default'}
-          className={`h-7 text-xs ${tenant.payment_status !== 'paid' ? 'bg-green-600 hover:bg-green-700' : ''}`}
+          className={`h-7 text-[11px] px-2 min-w-0 ${tenant.payment_status !== 'paid' ? 'bg-green-600 hover:bg-green-700' : ''}`}
           onClick={() => setConfirmDialog({
             open: true, type: 'payment', tenant,
             newStatus: tenant.payment_status === 'paid' ? 'unpaid' : 'paid',
           })}
         >
-          <DollarSign className="h-3 w-3 mr-1" />
-          {tenant.payment_status === 'paid' ? 'Mark Unpaid' : 'Mark Paid'}
+          <DollarSign className="h-3 w-3 mr-0.5 shrink-0" />
+          <span className="truncate">{tenant.payment_status === 'paid' ? 'Mark Unpaid' : 'Mark Paid'}</span>
         </Button>
 
         <ContactOptionsSheet
@@ -297,38 +294,37 @@ export default function Tenants() {
           email={tenant.student?.email}
           name={getStudentName(tenant.student)}
           trigger={
-            <Button variant="outline" size="sm" className="h-7 text-xs">
-              <MessageCircle className="h-3 w-3 mr-1" />
-              Contact
+            <Button variant="outline" size="sm" className="h-7 text-[11px] px-2 min-w-0">
+              <MessageCircle className="h-3 w-3 mr-0.5 shrink-0" />
+              <span className="truncate">Contact</span>
             </Button>
           }
         />
 
-        {/* Toggle Active/Inactive */}
         <Button
           size="sm"
           variant="outline"
-          className="h-7 text-xs"
+          className="h-7 text-[11px] px-2 min-w-0"
           onClick={() => setConfirmDialog({
             open: true, type: 'toggle_status', tenant,
             newStatus: tenant.status === 'active' ? 'inactive' : 'active',
           })}
         >
           {tenant.status === 'active' ? (
-            <><Moon className="h-3 w-3 mr-1" /> Mark Inactive</>
+            <><Moon className="h-3 w-3 mr-0.5 shrink-0" /><span className="truncate">Inactive</span></>
           ) : (
-            <><Sun className="h-3 w-3 mr-1" /> Mark Active</>
+            <><Sun className="h-3 w-3 mr-0.5 shrink-0" /><span className="truncate">Activate</span></>
           )}
         </Button>
 
         <Button
           size="sm"
           variant="destructive"
-          className="h-7 text-xs"
+          className="h-7 text-[11px] px-2 min-w-0"
           onClick={() => setConfirmDialog({ open: true, type: 'moveout', tenant })}
         >
-          <LogOutIcon className="h-3 w-3 mr-1" />
-          Move Out
+          <LogOutIcon className="h-3 w-3 mr-0.5 shrink-0" />
+          <span className="truncate">Move Out</span>
         </Button>
       </div>
     </div>
