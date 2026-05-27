@@ -492,41 +492,42 @@ export default function ViewingRequests() {
 
   const StudentInfoCard = ({ student }: { student: StudentInfo | null | undefined }) => {
     if (!student) return null;
-    
+
     return (
-      <div className="flex items-start gap-4 p-4 bg-muted/50 rounded-lg">
-        <Avatar className="h-14 w-14">
+      <div className="flex items-start gap-3 p-3 bg-muted/50 rounded-lg min-w-0 overflow-hidden">
+        <Avatar className="h-11 w-11 shrink-0">
           <AvatarImage src={student.avatar_url || undefined} />
           <AvatarFallback>{getStudentInitials(student)}</AvatarFallback>
         </Avatar>
-        <div className="flex-1 space-y-1">
-          <h3 className="font-semibold">
+        <div className="flex-1 min-w-0 space-y-1">
+          <h3 className="font-semibold text-sm truncate">
             {student.first_name} {student.surname}
           </h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-2 text-sm text-muted-foreground">
+          <div className="grid grid-cols-1 gap-1 text-xs text-muted-foreground">
             {student.email && (
-              <div className="flex items-center gap-2">
-                <Mail className="h-4 w-4" />
-                {student.email}
+              <div className="flex items-center gap-1.5 min-w-0">
+                <Mail className="h-3.5 w-3.5 shrink-0" />
+                <span className="truncate">{student.email}</span>
               </div>
             )}
             {student.phone && (
-              <div className="flex items-center gap-2">
-                <Phone className="h-4 w-4" />
-                {student.phone}
+              <div className="flex items-center gap-1.5 min-w-0">
+                <Phone className="h-3.5 w-3.5 shrink-0" />
+                <span className="truncate">{student.phone}</span>
               </div>
             )}
             {student.university && (
-              <div className="flex items-center gap-2">
-                <GraduationCap className="h-4 w-4" />
-                {student.university}
-                {student.year_of_study && ` - ${student.year_of_study}`}
+              <div className="flex items-center gap-1.5 min-w-0">
+                <GraduationCap className="h-3.5 w-3.5 shrink-0" />
+                <span className="truncate">
+                  {student.university}{student.year_of_study ? ` · ${student.year_of_study}` : ''}
+                </span>
               </div>
             )}
             {student.gender && (
-              <div className="flex items-center gap-2">
-                <User className="h-4 w-4" />
-                {student.gender}
+              <div className="flex items-center gap-1.5 min-w-0">
+                <User className="h-3.5 w-3.5 shrink-0" />
+                <span className="truncate">{student.gender}</span>
               </div>
             )}
           </div>
