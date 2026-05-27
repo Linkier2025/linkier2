@@ -818,30 +818,30 @@ export default function ViewingRequests() {
                   <div className="space-y-4">
                     <h2 className="text-lg font-semibold">Previous Requests</h2>
                     {otherRentalRequests.map((request) => (
-                      <Card key={request.id}>
-                        <CardHeader>
-                          <div className="flex justify-between items-start">
-                            <div>
-                              <CardTitle>{request.property.title}</CardTitle>
-                              <div className="flex items-center gap-2 mt-2 text-sm text-muted-foreground">
-                                <MapPin className="h-4 w-4" />
-                                {request.property.location}
+                      <Card key={request.id} className="overflow-hidden">
+                        <CardHeader className="p-3 pb-2">
+                          <div className="flex justify-between items-start gap-2 min-w-0">
+                            <div className="min-w-0 flex-1">
+                              <CardTitle className="text-base truncate">{request.property.title}</CardTitle>
+                              <div className="flex items-center gap-1.5 mt-1 text-xs text-muted-foreground min-w-0">
+                                <MapPin className="h-3.5 w-3.5 shrink-0" />
+                                <span className="truncate">{request.property.location}</span>
                               </div>
                               {request.preferred_room_number && (
-                                <div className="flex items-center gap-2 mt-1 text-sm text-muted-foreground">
-                                  <DoorOpen className="h-4 w-4" />
-                                  Preferred: {request.preferred_room_number}
+                                <div className="flex items-center gap-1.5 mt-1 text-xs text-muted-foreground min-w-0">
+                                  <DoorOpen className="h-3.5 w-3.5 shrink-0" />
+                                  <span className="truncate">Preferred: {request.preferred_room_number}</span>
                                 </div>
                               )}
                             </div>
-                            {getStatusBadge(request.status)}
+                            <div className="shrink-0">{getStatusBadge(request.status)}</div>
                           </div>
                         </CardHeader>
-                        <CardContent className="space-y-4">
+                        <CardContent className="p-3 pt-0 space-y-3">
                           <StudentInfoCard student={request.student} />
-                          <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                            <Clock className="h-4 w-4" />
-                            Requested: {format(new Date(request.requested_at), "PPP")}
+                          <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                            <Clock className="h-3.5 w-3.5 shrink-0" />
+                            <span className="truncate">Requested: {format(new Date(request.requested_at), "PPP")}</span>
                           </div>
                         </CardContent>
                       </Card>
