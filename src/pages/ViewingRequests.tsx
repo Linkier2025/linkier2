@@ -590,68 +590,72 @@ export default function ViewingRequests() {
                   <div className="space-y-4">
                     <h2 className="text-lg font-semibold">Pending Requests</h2>
                     {pendingRentalRequests.map((request) => (
-                      <Card key={request.id}>
-                        <CardHeader>
-                          <div className="flex justify-between items-start">
-                            <div>
-                              <CardTitle>{request.property.title}</CardTitle>
-                              <div className="flex items-center gap-2 mt-2 text-sm text-muted-foreground">
-                                <MapPin className="h-4 w-4" />
-                                {request.property.location}
+                      <Card key={request.id} className="overflow-hidden">
+                        <CardHeader className="p-3 pb-2">
+                          <div className="flex justify-between items-start gap-2 min-w-0">
+                            <div className="min-w-0 flex-1">
+                              <CardTitle className="text-base truncate">{request.property.title}</CardTitle>
+                              <div className="flex items-center gap-1.5 mt-1 text-xs text-muted-foreground min-w-0">
+                                <MapPin className="h-3.5 w-3.5 shrink-0" />
+                                <span className="truncate">{request.property.location}</span>
                               </div>
                               {request.preferred_room_number && (
-                                <div className="flex items-center gap-2 mt-1 text-sm">
-                                  <DoorOpen className="h-4 w-4 text-primary" />
-                                  <span className="font-medium">Preferred Room: {request.preferred_room_number}</span>
+                                <div className="flex items-center gap-1.5 mt-1 text-xs min-w-0">
+                                  <DoorOpen className="h-3.5 w-3.5 text-primary shrink-0" />
+                                  <span className="font-medium truncate">Preferred: {request.preferred_room_number}</span>
                                 </div>
                               )}
                             </div>
-                            {getStatusBadge(request.status)}
+                            <div className="shrink-0">{getStatusBadge(request.status)}</div>
                           </div>
                         </CardHeader>
-                        <CardContent className="space-y-4">
+                        <CardContent className="p-3 pt-0 space-y-3">
                           <StudentInfoCard student={request.student} />
 
-                          <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                            <Clock className="h-4 w-4" />
-                            Requested: {format(new Date(request.requested_at), "PPP")}
+                          <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                            <Clock className="h-3.5 w-3.5 shrink-0" />
+                            <span className="truncate">Requested: {format(new Date(request.requested_at), "PPP")}</span>
                           </div>
 
                           {request.student_message && (
-                            <div className="p-3 bg-muted/30 rounded-lg">
-                              <div className="flex items-center gap-2 text-sm font-medium mb-1">
-                                <MessageSquare className="h-4 w-4" />
+                            <div className="p-2.5 bg-muted/30 rounded-lg">
+                              <div className="flex items-center gap-1.5 text-xs font-medium mb-1">
+                                <MessageSquare className="h-3.5 w-3.5" />
                                 Student's Message
                               </div>
-                              <p className="text-sm text-muted-foreground">{request.student_message}</p>
+                              <p className="text-xs text-muted-foreground break-words">{request.student_message}</p>
                             </div>
                           )}
 
-                          <div className="flex gap-2 pt-2">
+                          <div className="grid grid-cols-2 gap-1.5">
                             <Button
-                              className="flex-1"
+                              size="sm"
+                              className="h-8 text-xs px-2 min-w-0 col-span-2"
                               variant="default"
                               onClick={() => handleAcceptRental(request)}
                               disabled={updating}
                             >
-                              <Check className="h-4 w-4 mr-2" />
-                              {request.preferred_room_number ? `Approve (${request.preferred_room_number})` : "Approve"}
+                              <Check className="h-3.5 w-3.5 mr-1 shrink-0" />
+                              <span className="truncate">{request.preferred_room_number ? `Approve (${request.preferred_room_number})` : "Approve"}</span>
                             </Button>
                             <Button
+                              size="sm"
                               variant="outline"
-                              className="flex-1"
+                              className="h-8 text-xs px-2 min-w-0"
                               onClick={() => handleOpenAssignRoom(request)}
                               disabled={updating}
                             >
-                              <DoorOpen className="h-4 w-4 mr-2" />
-                              Assign Different Room
+                              <DoorOpen className="h-3.5 w-3.5 mr-1 shrink-0" />
+                              <span className="truncate">Other Room</span>
                             </Button>
                             <Button
+                              size="sm"
                               variant="destructive"
+                              className="h-8 text-xs px-2 min-w-0"
                               onClick={() => handleDeclineRental(request)}
                             >
-                              <X className="h-4 w-4 mr-2" />
-                              Reject
+                              <X className="h-3.5 w-3.5 mr-1 shrink-0" />
+                              <span className="truncate">Reject</span>
                             </Button>
                           </div>
                         </CardContent>
