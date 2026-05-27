@@ -553,9 +553,9 @@ export default function ViewingRequests() {
   const otherRentalRequests = rentalRequests.filter(r => !['pending', 'offered', 'approved'].includes(r.status));
 
   return (
-    <div className="px-4 pt-6 pb-4">
-      <div className="max-w-4xl mx-auto space-y-6">
-        <h1 className="text-2xl font-bold">
+    <div className="px-3 pt-4 pb-4 overflow-x-hidden">
+      <div className="max-w-4xl mx-auto space-y-4">
+        <h1 className="text-xl font-bold">
           {isLandlord ? "Property Requests" : "My Requests"}
         </h1>
 
