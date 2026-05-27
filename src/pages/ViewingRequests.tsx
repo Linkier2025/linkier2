@@ -492,41 +492,42 @@ export default function ViewingRequests() {
 
   const StudentInfoCard = ({ student }: { student: StudentInfo | null | undefined }) => {
     if (!student) return null;
-    
+
     return (
-      <div className="flex items-start gap-4 p-4 bg-muted/50 rounded-lg">
-        <Avatar className="h-14 w-14">
+      <div className="flex items-start gap-3 p-3 bg-muted/50 rounded-lg min-w-0 overflow-hidden">
+        <Avatar className="h-11 w-11 shrink-0">
           <AvatarImage src={student.avatar_url || undefined} />
           <AvatarFallback>{getStudentInitials(student)}</AvatarFallback>
         </Avatar>
-        <div className="flex-1 space-y-1">
-          <h3 className="font-semibold">
+        <div className="flex-1 min-w-0 space-y-1">
+          <h3 className="font-semibold text-sm truncate">
             {student.first_name} {student.surname}
           </h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-2 text-sm text-muted-foreground">
+          <div className="grid grid-cols-1 gap-1 text-xs text-muted-foreground">
             {student.email && (
-              <div className="flex items-center gap-2">
-                <Mail className="h-4 w-4" />
-                {student.email}
+              <div className="flex items-center gap-1.5 min-w-0">
+                <Mail className="h-3.5 w-3.5 shrink-0" />
+                <span className="truncate">{student.email}</span>
               </div>
             )}
             {student.phone && (
-              <div className="flex items-center gap-2">
-                <Phone className="h-4 w-4" />
-                {student.phone}
+              <div className="flex items-center gap-1.5 min-w-0">
+                <Phone className="h-3.5 w-3.5 shrink-0" />
+                <span className="truncate">{student.phone}</span>
               </div>
             )}
             {student.university && (
-              <div className="flex items-center gap-2">
-                <GraduationCap className="h-4 w-4" />
-                {student.university}
-                {student.year_of_study && ` - ${student.year_of_study}`}
+              <div className="flex items-center gap-1.5 min-w-0">
+                <GraduationCap className="h-3.5 w-3.5 shrink-0" />
+                <span className="truncate">
+                  {student.university}{student.year_of_study ? ` · ${student.year_of_study}` : ''}
+                </span>
               </div>
             )}
             {student.gender && (
-              <div className="flex items-center gap-2">
-                <User className="h-4 w-4" />
-                {student.gender}
+              <div className="flex items-center gap-1.5 min-w-0">
+                <User className="h-3.5 w-3.5 shrink-0" />
+                <span className="truncate">{student.gender}</span>
               </div>
             )}
           </div>
@@ -552,9 +553,9 @@ export default function ViewingRequests() {
   const otherRentalRequests = rentalRequests.filter(r => !['pending', 'offered', 'approved'].includes(r.status));
 
   return (
-    <div className="px-4 pt-6 pb-4">
-      <div className="max-w-4xl mx-auto space-y-6">
-        <h1 className="text-2xl font-bold">
+    <div className="px-3 pt-4 pb-4 overflow-x-hidden">
+      <div className="max-w-4xl mx-auto space-y-4">
+        <h1 className="text-xl font-bold">
           {isLandlord ? "Property Requests" : "My Requests"}
         </h1>
 
@@ -589,68 +590,72 @@ export default function ViewingRequests() {
                   <div className="space-y-4">
                     <h2 className="text-lg font-semibold">Pending Requests</h2>
                     {pendingRentalRequests.map((request) => (
-                      <Card key={request.id}>
-                        <CardHeader>
-                          <div className="flex justify-between items-start">
-                            <div>
-                              <CardTitle>{request.property.title}</CardTitle>
-                              <div className="flex items-center gap-2 mt-2 text-sm text-muted-foreground">
-                                <MapPin className="h-4 w-4" />
-                                {request.property.location}
+                      <Card key={request.id} className="overflow-hidden">
+                        <CardHeader className="p-3 pb-2">
+                          <div className="flex justify-between items-start gap-2 min-w-0">
+                            <div className="min-w-0 flex-1">
+                              <CardTitle className="text-base truncate">{request.property.title}</CardTitle>
+                              <div className="flex items-center gap-1.5 mt-1 text-xs text-muted-foreground min-w-0">
+                                <MapPin className="h-3.5 w-3.5 shrink-0" />
+                                <span className="truncate">{request.property.location}</span>
                               </div>
                               {request.preferred_room_number && (
-                                <div className="flex items-center gap-2 mt-1 text-sm">
-                                  <DoorOpen className="h-4 w-4 text-primary" />
-                                  <span className="font-medium">Preferred Room: {request.preferred_room_number}</span>
+                                <div className="flex items-center gap-1.5 mt-1 text-xs min-w-0">
+                                  <DoorOpen className="h-3.5 w-3.5 text-primary shrink-0" />
+                                  <span className="font-medium truncate">Preferred: {request.preferred_room_number}</span>
                                 </div>
                               )}
                             </div>
-                            {getStatusBadge(request.status)}
+                            <div className="shrink-0">{getStatusBadge(request.status)}</div>
                           </div>
                         </CardHeader>
-                        <CardContent className="space-y-4">
+                        <CardContent className="p-3 pt-0 space-y-3">
                           <StudentInfoCard student={request.student} />
 
-                          <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                            <Clock className="h-4 w-4" />
-                            Requested: {format(new Date(request.requested_at), "PPP")}
+                          <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                            <Clock className="h-3.5 w-3.5 shrink-0" />
+                            <span className="truncate">Requested: {format(new Date(request.requested_at), "PPP")}</span>
                           </div>
 
                           {request.student_message && (
-                            <div className="p-3 bg-muted/30 rounded-lg">
-                              <div className="flex items-center gap-2 text-sm font-medium mb-1">
-                                <MessageSquare className="h-4 w-4" />
+                            <div className="p-2.5 bg-muted/30 rounded-lg">
+                              <div className="flex items-center gap-1.5 text-xs font-medium mb-1">
+                                <MessageSquare className="h-3.5 w-3.5" />
                                 Student's Message
                               </div>
-                              <p className="text-sm text-muted-foreground">{request.student_message}</p>
+                              <p className="text-xs text-muted-foreground break-words">{request.student_message}</p>
                             </div>
                           )}
 
-                          <div className="flex gap-2 pt-2">
+                          <div className="grid grid-cols-2 gap-1.5">
                             <Button
-                              className="flex-1"
+                              size="sm"
+                              className="h-8 text-xs px-2 min-w-0 col-span-2"
                               variant="default"
                               onClick={() => handleAcceptRental(request)}
                               disabled={updating}
                             >
-                              <Check className="h-4 w-4 mr-2" />
-                              {request.preferred_room_number ? `Approve (${request.preferred_room_number})` : "Approve"}
+                              <Check className="h-3.5 w-3.5 mr-1 shrink-0" />
+                              <span className="truncate">{request.preferred_room_number ? `Approve (${request.preferred_room_number})` : "Approve"}</span>
                             </Button>
                             <Button
+                              size="sm"
                               variant="outline"
-                              className="flex-1"
+                              className="h-8 text-xs px-2 min-w-0"
                               onClick={() => handleOpenAssignRoom(request)}
                               disabled={updating}
                             >
-                              <DoorOpen className="h-4 w-4 mr-2" />
-                              Assign Different Room
+                              <DoorOpen className="h-3.5 w-3.5 mr-1 shrink-0" />
+                              <span className="truncate">Other Room</span>
                             </Button>
                             <Button
+                              size="sm"
                               variant="destructive"
+                              className="h-8 text-xs px-2 min-w-0"
                               onClick={() => handleDeclineRental(request)}
                             >
-                              <X className="h-4 w-4 mr-2" />
-                              Reject
+                              <X className="h-3.5 w-3.5 mr-1 shrink-0" />
+                              <span className="truncate">Reject</span>
                             </Button>
                           </div>
                         </CardContent>
@@ -813,30 +818,30 @@ export default function ViewingRequests() {
                   <div className="space-y-4">
                     <h2 className="text-lg font-semibold">Previous Requests</h2>
                     {otherRentalRequests.map((request) => (
-                      <Card key={request.id}>
-                        <CardHeader>
-                          <div className="flex justify-between items-start">
-                            <div>
-                              <CardTitle>{request.property.title}</CardTitle>
-                              <div className="flex items-center gap-2 mt-2 text-sm text-muted-foreground">
-                                <MapPin className="h-4 w-4" />
-                                {request.property.location}
+                      <Card key={request.id} className="overflow-hidden">
+                        <CardHeader className="p-3 pb-2">
+                          <div className="flex justify-between items-start gap-2 min-w-0">
+                            <div className="min-w-0 flex-1">
+                              <CardTitle className="text-base truncate">{request.property.title}</CardTitle>
+                              <div className="flex items-center gap-1.5 mt-1 text-xs text-muted-foreground min-w-0">
+                                <MapPin className="h-3.5 w-3.5 shrink-0" />
+                                <span className="truncate">{request.property.location}</span>
                               </div>
                               {request.preferred_room_number && (
-                                <div className="flex items-center gap-2 mt-1 text-sm text-muted-foreground">
-                                  <DoorOpen className="h-4 w-4" />
-                                  Preferred: {request.preferred_room_number}
+                                <div className="flex items-center gap-1.5 mt-1 text-xs text-muted-foreground min-w-0">
+                                  <DoorOpen className="h-3.5 w-3.5 shrink-0" />
+                                  <span className="truncate">Preferred: {request.preferred_room_number}</span>
                                 </div>
                               )}
                             </div>
-                            {getStatusBadge(request.status)}
+                            <div className="shrink-0">{getStatusBadge(request.status)}</div>
                           </div>
                         </CardHeader>
-                        <CardContent className="space-y-4">
+                        <CardContent className="p-3 pt-0 space-y-3">
                           <StudentInfoCard student={request.student} />
-                          <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                            <Clock className="h-4 w-4" />
-                            Requested: {format(new Date(request.requested_at), "PPP")}
+                          <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                            <Clock className="h-3.5 w-3.5 shrink-0" />
+                            <span className="truncate">Requested: {format(new Date(request.requested_at), "PPP")}</span>
                           </div>
                         </CardContent>
                       </Card>
@@ -892,20 +897,20 @@ export default function ViewingRequests() {
               </Card>
             ) : (
               viewings.map((viewing) => (
-                <Card key={viewing.id}>
-                  <CardHeader>
-                    <div className="flex justify-between items-start">
-                      <div>
-                        <CardTitle>{viewing.property.title}</CardTitle>
-                        <div className="flex items-center gap-2 mt-2 text-sm text-muted-foreground">
-                          <MapPin className="h-4 w-4" />
-                          {viewing.property.location}
+                <Card key={viewing.id} className="overflow-hidden">
+                  <CardHeader className="p-3 pb-2">
+                    <div className="flex justify-between items-start gap-2 min-w-0">
+                      <div className="min-w-0 flex-1">
+                        <CardTitle className="text-base truncate">{viewing.property.title}</CardTitle>
+                        <div className="flex items-center gap-1.5 mt-1 text-xs text-muted-foreground min-w-0">
+                          <MapPin className="h-3.5 w-3.5 shrink-0" />
+                          <span className="truncate">{viewing.property.location}</span>
                         </div>
                       </div>
-                      {getStatusBadge(viewing.status)}
+                      <div className="shrink-0">{getStatusBadge(viewing.status)}</div>
                     </div>
                   </CardHeader>
-                  <CardContent className="space-y-4">
+                  <CardContent className="p-3 pt-0 space-y-3">
                     {isLandlord && <StudentInfoCard student={viewing.student} />}
 
                     <div className="flex items-center gap-2 text-sm text-muted-foreground">

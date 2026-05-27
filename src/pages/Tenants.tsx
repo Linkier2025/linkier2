@@ -229,9 +229,9 @@ export default function Tenants() {
   const roomOccupancies = groupByRoom(currentTenants);
 
   const getStatusBadge = (status: string) => {
-    if (status === 'active') return <Badge className="bg-green-600 text-white">Active</Badge>;
-    if (status === 'inactive') return <Badge className="bg-amber-500 text-white">Inactive</Badge>;
-    return <Badge variant="secondary">Moved Out</Badge>;
+    if (status === 'active') return <Badge className="bg-green-600 text-white text-[10px] px-1.5 py-0.5">Active</Badge>;
+    if (status === 'inactive') return <Badge className="bg-amber-500 text-white text-[10px] px-1.5 py-0.5">Inactive</Badge>;
+    return <Badge variant="secondary" className="text-[10px] px-1.5 py-0.5">Moved Out</Badge>;
   };
 
   if (loading) {
@@ -246,50 +246,47 @@ export default function Tenants() {
   }
 
   const renderTenantCard = (tenant: ActiveTenant) => (
-    <div key={tenant.assignment_id} className="p-3 bg-muted/50 rounded-lg space-y-2">
-      <div className="flex items-start gap-3">
+    <div key={tenant.assignment_id} className="p-2.5 bg-muted/50 rounded-lg space-y-2 overflow-hidden">
+      <div className="flex items-start gap-2.5 min-w-0">
         <Avatar className="h-9 w-9 shrink-0">
           <AvatarImage src={tenant.student?.avatar_url || undefined} />
           <AvatarFallback className="text-xs">{getStudentInitials(tenant.student)}</AvatarFallback>
         </Avatar>
         <div className="flex-1 min-w-0">
-          <div className="flex items-center justify-between gap-2">
-            <p className="font-medium text-sm truncate">{getStudentName(tenant.student)}</p>
-            <div className="flex items-center gap-1 shrink-0">
-              {getStatusBadge(tenant.status)}
-              <Badge
-                variant={tenant.payment_status === 'paid' ? 'default' : 'destructive'}
-                className={`text-[10px] ${tenant.payment_status === 'paid' ? 'bg-green-600' : ''}`}
-              >
-                <DollarSign className="h-3 w-3 mr-0.5" />
-                {tenant.payment_status === 'paid' ? 'Paid' : 'Unpaid'}
-              </Badge>
-            </div>
-          </div>
-          <div className="flex flex-wrap gap-1 text-[11px] text-muted-foreground mt-0.5">
-            {tenant.student?.phone && <span>{tenant.student.phone}</span>}
-            {tenant.student?.gender && <span>• {tenant.student.gender}</span>}
-          </div>
+          <p className="font-medium text-sm truncate">{getStudentName(tenant.student)}</p>
+          {tenant.student?.phone && (
+            <p className="text-[11px] text-muted-foreground truncate">{tenant.student.phone}</p>
+          )}
           {tenant.student?.university && (
-            <p className="text-[11px] text-muted-foreground">
-              {tenant.student.university}{tenant.student?.year_of_study ? ` - ${tenant.student.year_of_study}` : ''}
+            <p className="text-[11px] text-muted-foreground truncate">
+              {tenant.student.university}{tenant.student?.year_of_study ? ` · ${tenant.student.year_of_study}` : ''}
             </p>
           )}
         </div>
+        <div className="flex flex-col items-end gap-1 shrink-0 max-w-[40%]">
+          {getStatusBadge(tenant.status)}
+          <Badge
+            variant={tenant.payment_status === 'paid' ? 'default' : 'destructive'}
+            className={`text-[10px] px-1.5 py-0.5 ${tenant.payment_status === 'paid' ? 'bg-green-600' : ''}`}
+          >
+            <DollarSign className="h-2.5 w-2.5 mr-0.5" />
+            {tenant.payment_status === 'paid' ? 'Paid' : 'Unpaid'}
+          </Badge>
+        </div>
       </div>
 
-      <div className="flex flex-wrap gap-1.5 mt-2">
+      <div className="grid grid-cols-2 gap-1.5">
         <Button
           size="sm"
           variant={tenant.payment_status === 'paid' ? 'outline' : 'default'}
-          className={`h-7 text-xs ${tenant.payment_status !== 'paid' ? 'bg-green-600 hover:bg-green-700' : ''}`}
+          className={`h-7 text-[11px] px-2 min-w-0 ${tenant.payment_status !== 'paid' ? 'bg-green-600 hover:bg-green-700' : ''}`}
           onClick={() => setConfirmDialog({
             open: true, type: 'payment', tenant,
             newStatus: tenant.payment_status === 'paid' ? 'unpaid' : 'paid',
           })}
         >
-          <DollarSign className="h-3 w-3 mr-1" />
-          {tenant.payment_status === 'paid' ? 'Mark Unpaid' : 'Mark Paid'}
+          <DollarSign className="h-3 w-3 mr-0.5 shrink-0" />
+          <span className="truncate">{tenant.payment_status === 'paid' ? 'Mark Unpaid' : 'Mark Paid'}</span>
         </Button>
 
         <ContactOptionsSheet
@@ -297,38 +294,37 @@ export default function Tenants() {
           email={tenant.student?.email}
           name={getStudentName(tenant.student)}
           trigger={
-            <Button variant="outline" size="sm" className="h-7 text-xs">
-              <MessageCircle className="h-3 w-3 mr-1" />
-              Contact
+            <Button variant="outline" size="sm" className="h-7 text-[11px] px-2 min-w-0">
+              <MessageCircle className="h-3 w-3 mr-0.5 shrink-0" />
+              <span className="truncate">Contact</span>
             </Button>
           }
         />
 
-        {/* Toggle Active/Inactive */}
         <Button
           size="sm"
           variant="outline"
-          className="h-7 text-xs"
+          className="h-7 text-[11px] px-2 min-w-0"
           onClick={() => setConfirmDialog({
             open: true, type: 'toggle_status', tenant,
             newStatus: tenant.status === 'active' ? 'inactive' : 'active',
           })}
         >
           {tenant.status === 'active' ? (
-            <><Moon className="h-3 w-3 mr-1" /> Mark Inactive</>
+            <><Moon className="h-3 w-3 mr-0.5 shrink-0" /><span className="truncate">Inactive</span></>
           ) : (
-            <><Sun className="h-3 w-3 mr-1" /> Mark Active</>
+            <><Sun className="h-3 w-3 mr-0.5 shrink-0" /><span className="truncate">Activate</span></>
           )}
         </Button>
 
         <Button
           size="sm"
           variant="destructive"
-          className="h-7 text-xs"
+          className="h-7 text-[11px] px-2 min-w-0"
           onClick={() => setConfirmDialog({ open: true, type: 'moveout', tenant })}
         >
-          <LogOutIcon className="h-3 w-3 mr-1" />
-          Move Out
+          <LogOutIcon className="h-3 w-3 mr-0.5 shrink-0" />
+          <span className="truncate">Move Out</span>
         </Button>
       </div>
     </div>
@@ -356,32 +352,32 @@ export default function Tenants() {
   };
 
   return (
-    <div className="px-4 pt-6 pb-4">
-      <div className="max-w-6xl mx-auto space-y-6">
-        <div className="flex items-center gap-3">
-          <button onClick={() => navigate(-1)} className="flex items-center justify-center h-8 w-8 rounded-full hover:bg-accent transition-colors">
+    <div className="px-3 pt-4 pb-4 overflow-x-hidden">
+      <div className="max-w-6xl mx-auto space-y-4">
+        <div className="flex items-center gap-2 min-w-0">
+          <button onClick={() => navigate(-1)} className="flex items-center justify-center h-8 w-8 rounded-full hover:bg-accent transition-colors shrink-0">
             <ArrowLeft className="h-4 w-4" />
           </button>
-          <h1 className="text-2xl font-bold">My Tenants</h1>
-          <Badge variant="secondary">{allTenants.length} total</Badge>
+          <h1 className="text-xl font-bold truncate">My Tenants</h1>
+          <Badge variant="secondary" className="shrink-0 text-[10px]">{allTenants.length}</Badge>
         </div>
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
           <TabsList className="w-full">
-            <TabsTrigger value="active" className="flex-1">
+            <TabsTrigger value="active" className="flex-1 text-xs">
               Active ({activeTenants.length})
             </TabsTrigger>
-            <TabsTrigger value="inactive" className="flex-1">
+            <TabsTrigger value="inactive" className="flex-1 text-xs">
               Inactive ({inactiveTenants.length})
             </TabsTrigger>
           </TabsList>
 
-          <TabsContent value={activeTab} className="mt-4">
+          <TabsContent value={activeTab} className="mt-3">
             {roomOccupancies.length === 0 ? (
               <Card>
                 <CardContent className="py-12 text-center text-muted-foreground">
                   <Users className="h-12 w-12 mx-auto mb-4 text-muted-foreground/50" />
-                  <p className="text-lg font-medium">
+                  <p className="text-base font-medium">
                     {activeTab === 'active' ? 'No active tenants' : 'No inactive tenants'}
                   </p>
                   <p className="text-sm">
@@ -392,20 +388,20 @@ export default function Tenants() {
                 </CardContent>
               </Card>
             ) : (
-              <div className="space-y-4">
+              <div className="space-y-3">
                 {roomOccupancies.map((room) => (
-                  <Card key={room.room_id}>
-                    <CardHeader className="pb-3">
-                      <div className="flex items-center gap-3">
-                        <Home className="h-5 w-5 text-muted-foreground" />
-                        <div>
-                          <CardTitle className="text-lg">{room.property_title}</CardTitle>
-                          <p className="text-sm text-muted-foreground">Room {room.room_number}</p>
+                  <Card key={room.room_id} className="overflow-hidden">
+                    <CardHeader className="p-3 pb-2">
+                      <div className="flex items-center gap-2 min-w-0">
+                        <Home className="h-4 w-4 text-muted-foreground shrink-0" />
+                        <div className="min-w-0 flex-1">
+                          <CardTitle className="text-base truncate">{room.property_title}</CardTitle>
+                          <p className="text-xs text-muted-foreground truncate">Room {room.room_number}</p>
                         </div>
                       </div>
                     </CardHeader>
-                    <CardContent>
-                      <div className="grid gap-3">
+                    <CardContent className="p-3 pt-0">
+                      <div className="grid gap-2">
                         {room.tenants.map(renderTenantCard)}
                       </div>
                     </CardContent>
