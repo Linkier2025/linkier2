@@ -246,6 +246,8 @@ export default function ViewingRequests() {
             student: studentData
           };
         })
+      );
+
       setRentalRequests(requestsWithDetails);
 
       // For landlords: compute available bed counts per property for pending requests
@@ -277,8 +279,6 @@ export default function ViewingRequests() {
       }
     } catch (error) {
       console.error('Error fetching rental requests:', error);
-    }
-  };
     }
   };
 
