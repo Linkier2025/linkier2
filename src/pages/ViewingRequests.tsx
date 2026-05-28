@@ -395,29 +395,33 @@ export default function ViewingRequests() {
   };
 
   const handleOpenAssignRoom = async (request: RentalRequest) => {
-    // Fetch available rooms for this property
-    const { data: roomsData } = await supabase
-      .from('rooms')
-      .select('id, room_number, capacity')
-      .eq('property_id', request.property_id)
-      .eq('type', 'bedroom');
-
-    if (roomsData) {
-      // Get current occupants for each room
-      const roomsWithOccupants = await Promise.all(
-        roomsData.map(async (room) => {
-          const { count } = await supabase
-            .from('room_assignments')
-            .select('*', { count: 'exact', head: true })
-            .eq('room_id', room.id)
-            .in('status', ['active', 'reserved']);
-          return { ...room, current_occupants: count || 0 };
-        })
-      );
-      setAvailableRooms(roomsWithOccupants.filter(r => r.capacity && r.current_occupants < r.capacity));
-    }
     setSelectedAssignRoomId("");
+    setAvailableRooms([]);
     setAssignRoomDialog({ open: true, request });
+    setLoadingRooms(true);
+    try {
+      const { data: roomsData } = await supabase
+        .from('rooms')
+        .select('id, room_number, capacity')
+        .eq('property_id', request.property_id)
+        .eq('type', 'bedroom');
+
+      if (roomsData) {
+        const roomsWithOccupants = await Promise.all(
+          roomsData.map(async (room) => {
+            const { count } = await supabase
+              .from('room_assignments')
+              .select('*', { count: 'exact', head: true })
+              .eq('room_id', room.id)
+              .in('status', ['active', 'reserved']);
+            return { ...room, current_occupants: count || 0 };
+          })
+        );
+        setAvailableRooms(roomsWithOccupants.filter(r => r.capacity && r.current_occupants < r.capacity));
+      }
+    } finally {
+      setLoadingRooms(false);
+    }
   };
 
   const handleDeclineRental = async (request: RentalRequest) => {
