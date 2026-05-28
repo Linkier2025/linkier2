@@ -1,0 +1,1 @@
+DROP FUNCTION IF EXISTS public.accept_rental_request(uuid);

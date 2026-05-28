@@ -796,12 +796,10 @@ export type Database = {
     }
     Functions: {
       accept_offer: { Args: { p_request_id: string }; Returns: Json }
-      accept_rental_request:
-        | { Args: { p_request_id: string }; Returns: Json }
-        | {
-            Args: { p_assigned_room_id?: string; p_request_id: string }
-            Returns: Json
-          }
+      accept_rental_request: {
+        Args: { p_assigned_room_id?: string; p_request_id: string }
+        Returns: Json
+      }
       auto_complete_renovations: { Args: never; Returns: undefined }
       cancel_reservation: {
         Args: { p_assignment_id: string }
