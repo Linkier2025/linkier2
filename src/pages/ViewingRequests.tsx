@@ -1081,40 +1081,77 @@ export default function ViewingRequests() {
           </AlertDialogContent>
         </AlertDialog>
 
-        {/* Assign Different Room Dialog */}
-        <Dialog open={assignRoomDialog.open} onOpenChange={(open) => { if (!open) setAssignRoomDialog({ open: false, request: null }); }}>
-          <DialogContent>
+        {/* Assign Room Dialog */}
+        <Dialog open={assignRoomDialog.open} onOpenChange={(open) => { if (!open) { setAssignRoomDialog({ open: false, request: null }); setSelectedAssignRoomId(""); } }}>
+          <DialogContent className="max-w-md">
             <DialogHeader>
-              <DialogTitle>Assign a Different Room</DialogTitle>
+              <DialogTitle>Assign Room</DialogTitle>
             </DialogHeader>
-            <div className="space-y-4 pt-2">
-              {assignRoomDialog.request?.preferred_room_number && (
-                <p className="text-sm text-muted-foreground">
-                  Student preferred: <strong>{assignRoomDialog.request.preferred_room_number}</strong>
-                </p>
+            <div className="space-y-3 pt-1">
+              {assignRoomDialog.request && (
+                <div className="rounded-lg bg-muted/40 p-3 text-sm space-y-1">
+                  <div className="flex items-center gap-2 min-w-0">
+                    <Home className="h-4 w-4 text-muted-foreground shrink-0" />
+                    <span className="font-medium truncate">{assignRoomDialog.request.property.title}</span>
+                  </div>
+                  <div className="flex items-center gap-2 min-w-0">
+                    <User className="h-4 w-4 text-muted-foreground shrink-0" />
+                    <span className="truncate">
+                      {assignRoomDialog.request.student?.first_name} {assignRoomDialog.request.student?.surname}
+                    </span>
+                  </div>
+                  {assignRoomDialog.request.preferred_room_number && (
+                    <p className="text-xs text-muted-foreground pt-1">
+                      Student preferred: <strong>{assignRoomDialog.request.preferred_room_number}</strong>
+                    </p>
+                  )}
+                </div>
               )}
+
               <div>
-                <Label>Select Room</Label>
-                <RadioGroup value={selectedAssignRoomId} onValueChange={setSelectedAssignRoomId} className="mt-2 space-y-2">
-                  {availableRooms.map((room) => (
-                    <div key={room.id} className="flex items-center space-x-2 p-3 border rounded-lg">
-                      <RadioGroupItem value={room.id} id={`room-${room.id}`} />
-                      <Label htmlFor={`room-${room.id}`} className="flex-1 cursor-pointer">
-                        <span className="font-medium">{room.room_number}</span>
-                        <span className="text-sm text-muted-foreground ml-2">
-                          ({room.current_occupants}/{room.capacity} occupied)
-                        </span>
-                      </Label>
-                    </div>
-                  ))}
-                </RadioGroup>
-                {availableRooms.length === 0 && (
-                  <p className="text-sm text-muted-foreground mt-2">No available rooms found.</p>
+                <Label className="text-sm">Available rooms</Label>
+                {loadingRooms ? (
+                  <div className="mt-2 space-y-2">
+                    <Skeleton className="h-16 w-full" />
+                    <Skeleton className="h-16 w-full" />
+                  </div>
+                ) : availableRooms.length === 0 ? (
+                  <p className="text-sm text-muted-foreground mt-2">No rooms available.</p>
+                ) : (
+                  <div className="mt-2 space-y-2 max-h-[50vh] overflow-y-auto">
+                    {availableRooms.map((room) => {
+                      const beds = room.capacity - room.current_occupants;
+                      const selected = selectedAssignRoomId === room.id;
+                      return (
+                        <button
+                          key={room.id}
+                          type="button"
+                          onClick={() => setSelectedAssignRoomId(room.id)}
+                          className={`w-full text-left rounded-lg border p-3 transition-all ${
+                            selected
+                              ? "border-primary bg-primary/5 ring-2 ring-primary"
+                              : "border-border hover:border-primary/40 hover:bg-muted/40"
+                          }`}
+                        >
+                          <div className="flex items-center justify-between gap-2">
+                            <div className="flex items-center gap-2 min-w-0">
+                              <DoorOpen className={`h-4 w-4 shrink-0 ${selected ? "text-primary" : "text-muted-foreground"}`} />
+                              <span className="font-medium truncate">{room.room_number}</span>
+                            </div>
+                            {selected && <CheckCircle className="h-4 w-4 text-primary shrink-0" />}
+                          </div>
+                          <p className="text-xs text-muted-foreground mt-1">
+                            {beds} {beds === 1 ? "bed" : "beds"} available
+                          </p>
+                        </button>
+                      );
+                    })}
+                  </div>
                 )}
               </div>
             </div>
-            <DialogFooter>
-              <Button variant="outline" onClick={() => setAssignRoomDialog({ open: false, request: null })}>
+            <DialogFooter className="gap-2">
+              <Button variant="outline" onClick={() => { setAssignRoomDialog({ open: false, request: null }); setSelectedAssignRoomId(""); }}>
                 Cancel
               </Button>
               <Button
@@ -1126,6 +1163,7 @@ export default function ViewingRequests() {
             </DialogFooter>
           </DialogContent>
         </Dialog>
+
       </div>
     </div>
   );
