@@ -246,11 +246,39 @@ export default function ViewingRequests() {
             student: studentData
           };
         })
-      );
-
       setRentalRequests(requestsWithDetails);
+
+      // For landlords: compute available bed counts per property for pending requests
+      if (landlord) {
+        const pendingPropIds = [...new Set(
+          requestsWithDetails.filter(r => r.status === 'pending').map(r => r.property_id)
+        )];
+        const availability: Record<string, number> = {};
+        await Promise.all(pendingPropIds.map(async (pid) => {
+          const { data: roomsData } = await supabase
+            .from('rooms')
+            .select('id, capacity')
+            .eq('property_id', pid)
+            .eq('type', 'bedroom');
+          if (!roomsData) { availability[pid] = 0; return; }
+          let total = 0;
+          await Promise.all(roomsData.map(async (room) => {
+            if (!room.capacity) return;
+            const { count } = await supabase
+              .from('room_assignments')
+              .select('*', { count: 'exact', head: true })
+              .eq('room_id', room.id)
+              .in('status', ['active', 'reserved']);
+            total += Math.max(0, room.capacity - (count || 0));
+          }));
+          availability[pid] = total;
+        }));
+        setRoomAvailability(availability);
+      }
     } catch (error) {
       console.error('Error fetching rental requests:', error);
+    }
+  };
     }
   };
 
