@@ -661,37 +661,33 @@ export default function ViewingRequests() {
                             </div>
                           )}
 
-                          <div className="grid grid-cols-2 gap-1.5">
-                            <Button
-                              size="sm"
-                              className="h-8 text-xs px-2 min-w-0 col-span-2"
-                              variant="default"
-                              onClick={() => handleAcceptRental(request)}
-                              disabled={updating}
-                            >
-                              <Check className="h-3.5 w-3.5 mr-1 shrink-0" />
-                              <span className="truncate">{request.preferred_room_number ? `Approve (${request.preferred_room_number})` : "Approve"}</span>
-                            </Button>
-                            <Button
-                              size="sm"
-                              variant="outline"
-                              className="h-8 text-xs px-2 min-w-0"
-                              onClick={() => handleOpenAssignRoom(request)}
-                              disabled={updating}
-                            >
-                              <DoorOpen className="h-3.5 w-3.5 mr-1 shrink-0" />
-                              <span className="truncate">Other Room</span>
-                            </Button>
-                            <Button
-                              size="sm"
-                              variant="destructive"
-                              className="h-8 text-xs px-2 min-w-0"
-                              onClick={() => handleDeclineRental(request)}
-                            >
-                              <X className="h-3.5 w-3.5 mr-1 shrink-0" />
-                              <span className="truncate">Reject</span>
-                            </Button>
-                          </div>
+                          {(() => {
+                            const beds = roomAvailability[request.property_id] ?? null;
+                            const noRooms = beds === 0;
+                            return (
+                              <div className="grid grid-cols-2 gap-1.5">
+                                <Button
+                                  size="sm"
+                                  className="h-8 text-xs px-2 min-w-0 col-span-2"
+                                  variant="default"
+                                  onClick={() => handleOpenAssignRoom(request)}
+                                  disabled={updating || noRooms}
+                                >
+                                  <Check className="h-3.5 w-3.5 mr-1 shrink-0" />
+                                  <span className="truncate">{noRooms ? "No rooms available" : "Approve"}</span>
+                                </Button>
+                                <Button
+                                  size="sm"
+                                  variant="destructive"
+                                  className="h-8 text-xs px-2 min-w-0 col-span-2"
+                                  onClick={() => handleDeclineRental(request)}
+                                >
+                                  <X className="h-3.5 w-3.5 mr-1 shrink-0" />
+                                  <span className="truncate">Reject</span>
+                                </Button>
+                              </div>
+                            );
+                          })()}
                         </CardContent>
                       </Card>
                     ))}
