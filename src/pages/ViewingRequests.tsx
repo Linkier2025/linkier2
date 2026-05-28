@@ -92,6 +92,8 @@ export default function ViewingRequests() {
   const [assignRoomDialog, setAssignRoomDialog] = useState<{ open: boolean; request: RentalRequest | null }>({ open: false, request: null });
   const [availableRooms, setAvailableRooms] = useState<{ id: string; room_number: string; capacity: number; current_occupants: number }[]>([]);
   const [selectedAssignRoomId, setSelectedAssignRoomId] = useState<string>("");
+  const [roomAvailability, setRoomAvailability] = useState<Record<string, number>>({});
+  const [loadingRooms, setLoadingRooms] = useState(false);
 
   const isLandlord = profile?.user_type === 'landlord';
 
