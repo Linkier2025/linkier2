@@ -321,6 +321,23 @@ export default function AddProperty() {
       return;
     }
 
+    // Require complete landlord contact info before publishing
+    const { data: prof } = await supabase
+      .from("profiles")
+      .select("first_name, surname, phone")
+      .eq("user_id", user.id)
+      .single();
+    if (!prof?.first_name?.trim() || !prof?.surname?.trim() || !prof?.phone?.trim()) {
+      toast({
+        title: "Complete your profile",
+        description: "Please complete your profile before listing a property.",
+        variant: "destructive",
+      });
+      navigate("/landlord-profile");
+      return;
+    }
+
+
     setLoading(true);
 
     try {
