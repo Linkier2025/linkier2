@@ -48,7 +48,7 @@ const Landing = () => {
       <main className="relative z-10 flex-1 flex flex-col items-center justify-center px-6 pb-8">
         <div className="w-full max-w-md space-y-8">
           {/* Hero Text */}
-          <div className="text-center text-white mb-8">
+          <div className="text-center text-white mb-8 animate-slide-up-fade" style={{ animationDelay: "200ms" }}>
             <h2 className="text-xl font-semibold leading-relaxed">
               Find your perfect match:<br />
               Students find accommodation,<br />
