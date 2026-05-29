@@ -89,7 +89,7 @@ const Landing = () => {
             </Card>
           ) : (
             <>
-              <Card className="p-6 bg-white/20 backdrop-blur-sm border-white/30 shadow-strong">
+              <Card className="p-6 bg-white/20 backdrop-blur-sm border-white/30 shadow-strong animate-slide-up-fade" style={{ animationDelay: "300ms" }}>
                 <div className="space-y-4">
                   <h3 className="text-lg font-semibold text-center mb-6 text-white">Sign in to your account</h3>
                   
