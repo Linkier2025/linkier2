@@ -364,6 +364,17 @@ export default function MyProperties() {
                       </Badge>
                     )}
                   </div>
+                  {(property as any).listing_incomplete && (
+                    <div className="mx-4 mt-3 p-3 rounded-md border border-amber-500/40 bg-amber-500/10 text-xs text-amber-700 dark:text-amber-300">
+                      ⚠ Your property is hidden from students until your contact information (name & phone) is completed.{" "}
+                      <button
+                        onClick={() => navigate("/landlord-profile")}
+                        className="underline font-medium"
+                      >
+                        Complete profile
+                      </button>
+                    </div>
+                  )}
                   <CardHeader className="pb-2">
                     <div className="flex justify-between items-start">
                       <div>
@@ -373,6 +384,7 @@ export default function MyProperties() {
                       <div className="text-xl font-bold text-primary">R{property.rent_amount.toLocaleString()}/mo</div>
                     </div>
                   </CardHeader>
+
                   <CardContent className="space-y-4">
                     {/* Room Summary */}
                     <div className="grid grid-cols-3 gap-4">
