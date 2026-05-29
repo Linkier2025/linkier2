@@ -31,14 +31,14 @@ const Landing = () => {
     <div className="min-h-screen relative flex flex-col">
       {showSplash && <SplashScreen onFinished={handleSplashFinished} />}
       {/* Background Image */}
-      <div 
-        className="absolute inset-0 bg-cover bg-center"
-        style={{ backgroundImage: `url(${landingBg})` }}
+      <div
+        className="absolute inset-0 bg-cover bg-center animate-fade-in"
+        style={{ backgroundImage: `url(${landingBg})`, animationDuration: "500ms" }}
       />
       {/* Overlay */}
-      <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-black/50 to-black/70" />
+      <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-black/50 to-black/70 animate-fade-in" style={{ animationDuration: "500ms" }} />
       {/* Header */}
-      <header className="relative z-10 p-6 text-center">
+      <header className="relative z-10 p-6 text-center animate-slide-up-fade" style={{ animationDelay: "100ms" }}>
         <div className="flex items-center justify-center mb-4">
           <Logo size="lg" className="text-white drop-shadow-lg" />
         </div>
@@ -48,7 +48,7 @@ const Landing = () => {
       <main className="relative z-10 flex-1 flex flex-col items-center justify-center px-6 pb-8">
         <div className="w-full max-w-md space-y-8">
           {/* Hero Text */}
-          <div className="text-center text-white mb-8">
+          <div className="text-center text-white mb-8 animate-slide-up-fade" style={{ animationDelay: "200ms" }}>
             <h2 className="text-xl font-semibold leading-relaxed">
               Find your perfect match:<br />
               Students find accommodation,<br />
@@ -58,7 +58,7 @@ const Landing = () => {
 
           {/* Auth Section */}
           {user && profile ? (
-            <Card className="p-6 bg-white/20 backdrop-blur-sm border-white/30 shadow-strong">
+            <Card className="p-6 bg-white/20 backdrop-blur-sm border-white/30 shadow-strong animate-slide-up-fade" style={{ animationDelay: "300ms" }}>
               <div className="space-y-4">
                 <h3 className="text-lg font-semibold text-center mb-2 text-white">
                   Welcome back, {profile.first_name || 'User'}!
@@ -89,7 +89,7 @@ const Landing = () => {
             </Card>
           ) : (
             <>
-              <Card className="p-6 bg-white/20 backdrop-blur-sm border-white/30 shadow-strong">
+              <Card className="p-6 bg-white/20 backdrop-blur-sm border-white/30 shadow-strong animate-slide-up-fade" style={{ animationDelay: "300ms" }}>
                 <div className="space-y-4">
                   <h3 className="text-lg font-semibold text-center mb-6 text-white">Sign in to your account</h3>
                   
@@ -114,7 +114,7 @@ const Landing = () => {
               </Card>
 
               {/* Sign Up Link */}
-              <div className="text-center">
+              <div className="text-center animate-slide-up-fade" style={{ animationDelay: "400ms" }}>
                 <p className="text-white/90 mb-3">Don't have an account?</p>
                 <Button 
                   variant="outline" 
