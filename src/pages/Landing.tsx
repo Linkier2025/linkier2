@@ -114,7 +114,7 @@ const Landing = () => {
               </Card>
 
               {/* Sign Up Link */}
-              <div className="text-center">
+              <div className="text-center animate-slide-up-fade" style={{ animationDelay: "400ms" }}>
                 <p className="text-white/90 mb-3">Don't have an account?</p>
                 <Button 
                   variant="outline" 
