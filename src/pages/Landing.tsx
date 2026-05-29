@@ -58,7 +58,7 @@ const Landing = () => {
 
           {/* Auth Section */}
           {user && profile ? (
-            <Card className="p-6 bg-white/20 backdrop-blur-sm border-white/30 shadow-strong">
+            <Card className="p-6 bg-white/20 backdrop-blur-sm border-white/30 shadow-strong animate-slide-up-fade" style={{ animationDelay: "300ms" }}>
               <div className="space-y-4">
                 <h3 className="text-lg font-semibold text-center mb-2 text-white">
                   Welcome back, {profile.first_name || 'User'}!
