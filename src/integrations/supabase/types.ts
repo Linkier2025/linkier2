@@ -327,6 +327,7 @@ export type Database = {
           id: string
           images: string[] | null
           landlord_id: string
+          listing_incomplete: boolean
           location: string
           location_area: string | null
           location_city: string | null
@@ -352,6 +353,7 @@ export type Database = {
           id?: string
           images?: string[] | null
           landlord_id: string
+          listing_incomplete?: boolean
           location: string
           location_area?: string | null
           location_city?: string | null
@@ -377,6 +379,7 @@ export type Database = {
           id?: string
           images?: string[] | null
           landlord_id?: string
+          listing_incomplete?: boolean
           location?: string
           location_area?: string | null
           location_city?: string | null
@@ -813,6 +816,10 @@ export type Database = {
       is_landlord: { Args: never; Returns: boolean }
       is_roommate: {
         Args: { p_room_id: string; p_user_id: string }
+        Returns: boolean
+      }
+      landlord_profile_complete: {
+        Args: { p_user_id: string }
         Returns: boolean
       }
       move_out_tenant: { Args: { p_assignment_id: string }; Returns: boolean }
