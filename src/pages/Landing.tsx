@@ -31,14 +31,14 @@ const Landing = () => {
     <div className="min-h-screen relative flex flex-col">
       {showSplash && <SplashScreen onFinished={handleSplashFinished} />}
       {/* Background Image */}
-      <div 
-        className="absolute inset-0 bg-cover bg-center"
-        style={{ backgroundImage: `url(${landingBg})` }}
+      <div
+        className="absolute inset-0 bg-cover bg-center animate-fade-in"
+        style={{ backgroundImage: `url(${landingBg})`, animationDuration: "500ms" }}
       />
       {/* Overlay */}
-      <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-black/50 to-black/70" />
+      <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-black/50 to-black/70 animate-fade-in" style={{ animationDuration: "500ms" }} />
       {/* Header */}
-      <header className="relative z-10 p-6 text-center">
+      <header className="relative z-10 p-6 text-center animate-slide-up-fade" style={{ animationDelay: "100ms" }}>
         <div className="flex items-center justify-center mb-4">
           <Logo size="lg" className="text-white drop-shadow-lg" />
         </div>
