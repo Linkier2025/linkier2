@@ -162,6 +162,13 @@ const Announcements = () => {
   return (
     <div className="px-4 pt-6 pb-4">
       <main className="max-w-4xl mx-auto space-y-6">
+        <button
+          onClick={() => navigate(-1)}
+          aria-label="Go back"
+          className="inline-flex items-center justify-center h-10 w-10 -ml-2 rounded-full text-foreground hover:bg-muted active:scale-95 transition"
+        >
+          <ArrowLeft className="h-5 w-5" />
+        </button>
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <h1 className="text-2xl font-bold text-foreground">Announcements</h1>
           {isLandlord && (
