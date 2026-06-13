@@ -295,6 +295,13 @@ export default function Complaints() {
   return (
     <div className="px-4 pt-6 pb-4">
       <div className="max-w-2xl mx-auto space-y-6">
+        <button
+          onClick={() => navigate(-1)}
+          aria-label="Go back"
+          className="inline-flex items-center justify-center h-10 w-10 -ml-2 rounded-full text-foreground hover:bg-muted active:scale-95 transition"
+        >
+          <ArrowLeft className="h-5 w-5" />
+        </button>
         {/* Header */}
         <div className="flex items-center justify-between">
           <h1 className="text-xl font-bold text-foreground">
